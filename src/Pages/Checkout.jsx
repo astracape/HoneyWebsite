@@ -1,0 +1,340 @@
+import React, { useEffect, useState } from 'react'
+import img from "../assets/17.png"
+import img1 from "../assets/Group 70.png"
+import { Country, State, City } from 'country-state-city';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../FirebaseConfig';
+import { toast, ToastContainer } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
+import { getDatabase, onValue, ref } from 'firebase/database';
+
+
+function Checkout() {
+    const [cartItems, setCartItems] = useState([]);
+    const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
+        country: '',
+        state: '',
+        city: '',
+        address: '',
+        apartment: '',
+        pinCode: '',
+        phone: '',
+        email: '',
+        paymentMethod: '',
+    });
+    // console.log(Country.getAllCountries())
+const navigate=useNavigate()
+    const [country, setCountry] = useState(null);
+    const[user,setUser]=useState()
+    const [state, setState] = useState(null);
+    const [city, setCity] = useState(null);
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prevData) => ({ ...prevData, [name]: value }));
+    };
+
+    // useEffect(() => {
+    //     const cart = JSON.parse(localStorage.getItem("cart")) || [];
+    //     setCartItems(cart);
+    // }, []);
+    useEffect(() => {
+        onAuthStateChanged(auth, (currentUser) => {
+            if (currentUser) {
+                setUser(currentUser);
+
+                // Fetch cart items from the database for the logged-in user
+                const db = getDatabase();
+                const cartRef = ref(db, `users/${currentUser.uid}/cart`);
+                onValue(cartRef, (snapshot) => {
+                    if (snapshot.exists()) {
+                        const cartData = snapshot.val();
+                        setCartItems(Object.values(cartData)); // Convert Firebase object to array
+                    } else {
+                        setCartItems([]); // No cart items for logged user
+                    }
+                });
+            } else {
+                // Use localStorage for guests
+                const cart = JSON.parse(localStorage.getItem("cart")) || [];
+                setCartItems(cart);
+            }
+        });
+    }, []);
+
+    const handleSubmit = (e) => {
+        e.preventDefault()
+        onAuthStateChanged(auth,(user)=>{
+            if(!user){
+                toast.warning("Please log in to place your order")
+                navigate('/login')
+            }
+            else{
+                console.log("Details", formData)
+                console.log("cart items", cartItems)
+                toast("Order Placed Successfully")
+            }
+        })
+       
+
+    }
+
+    return (
+        <div>
+            <div className="relative h-96 bg-cover bg-center" style={{ backgroundImage: `url(${img1})` }}>
+                <div className="absolute inset-0 bg-black opacity-50"></div>
+                <div className='p-10 flex justify-center md:justify-start items-center h-full'>
+                </div>
+            </div>
+            <div className="container mx-auto p-8 md:w-2/3">
+
+                <div className="mb-8">
+
+
+                    <h3 className="text-2xl font-semibold mb-4">Billing Details</h3>
+                    <form onSubmit={handleSubmit}>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="flex flex-col">
+                                <label htmlFor="firstName" className="text-gray-700">First Name *</label>
+                                <input
+                                    type="text"
+                                    id="firstName"
+                                    name="firstName"
+                                    className="mt-2 px-4 py-2 border rounded-md"
+                                    required
+                                    onChange={handleInputChange}
+                                    pattern="[A-Za-z\s]{2,50}"
+                                    title="Name must contain only letters and be 2-50 characters long."
+                                />
+                            </div>
+                            <div className="flex flex-col">
+                                <label htmlFor="lastName" className="text-gray-700">Last Name *</label>
+                                <input
+                                    type="text"
+                                    id="lastName"
+                                    name="lastName"
+                                    className="mt-2 px-4 py-2 border rounded-md"
+                                    onChange={handleInputChange}
+                                    required
+                                    pattern="[A-Za-z\s]{2,50}"
+                                    title="Name must contain only letters and be 2-50 characters long."
+                                />
+                            </div>
+                        </div>
+
+
+
+                        <div className="flex flex-col mt-4">
+                            <label htmlFor="country" className="text-gray-700">Country / Region *</label>
+                            <select
+                                id="country"
+                                name="country"
+                                value={country?.isoCode || ""}
+                                onChange={(e) => {
+                                    const selectedCountry = Country.getAllCountries().find(c => c.isoCode === e.target.value);
+                                    setCountry(selectedCountry);
+                                    setFormData((prevData) => ({
+                                        ...prevData,
+                                        country: selectedCountry ? selectedCountry.name : '',
+                                    }));
+                                }}
+                                className="mt-2 px-4 py-2 border rounded-md"
+                                required
+                            >
+                                <option value="">Select Country</option>
+                                {Country.getAllCountries().map((c) => (
+                                    <option key={c.isoCode} value={c.isoCode}>
+                                        {c.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="flex flex-col mt-4">
+                            <label htmlFor="address" className="text-gray-700">Street Address *</label>
+                            <input
+                                type="text"
+                                id="address"
+                                name="address"
+                                className="mt-2 px-4 py-2 border rounded-md"
+                                onChange={handleInputChange}
+                                required
+                            />
+                        </div>
+
+                        <div className="flex flex-col mt-4">
+                            <label htmlFor="apartment" className="text-gray-700">Apartment, Suite, Unit, etc. (optional)</label>
+                            <input
+                                type="text"
+                                id="apartment"
+                                value={formData.apartment}
+                                name="apartment"
+                                onChange={handleInputChange}
+                                className="mt-2 px-4 py-2 border rounded-md"
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                            
+                            <div className="flex flex-col">
+                                <label htmlFor="state" className="text-gray-700">State *</label>
+                                <select
+                                    id="state"
+                                    name="state"
+                                    value={state?.isoCode || ""}
+                                    onChange={(e) => {
+                                        const selectedState = State.getStatesOfCountry(country?.isoCode).find(s => s.isoCode === e.target.value);
+                                        setState(selectedState);
+                                        setFormData((prevData) => ({
+                                            ...prevData,
+                                            state: selectedState ? selectedState.name : '',
+                                        }));
+                                    }}
+                                    className="mt-2 px-4 py-2 border rounded-md"
+                                    required
+                                >
+                                    <option value="">Select State</option>
+                                    {country &&
+                                        State.getStatesOfCountry(country.isoCode).map((s) => (
+                                            <option key={s.isoCode} value={s.isoCode}>
+                                                {s.name}
+                                            </option>
+                                        ))}
+                                </select>
+                            </div>
+                            <div className="flex flex-col">
+                                <label htmlFor="city" className="text-gray-700">Town / City *</label>
+                                <select
+                                    id="city"
+                                    name="city"
+                                    value={formData.city}
+                                    onChange={handleInputChange
+                                    }
+                                    className="mt-2 px-4 py-2 border rounded-md"
+                                    required
+                                >
+                                    <option value="">Select City</option>
+                                    {state &&
+                                        City.getCitiesOfState(country.isoCode, state.isoCode).map((c) => (
+                                            <option key={c.name} value={c.name}>
+                                                {c.name}
+                                            </option>
+                                        ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                            <div className="flex flex-col">
+                                <label htmlFor="pinCode" className="text-gray-700">PIN Code *</label>
+                                <input
+                                    type="text"
+                                    id="pinCode"
+                                    name="pinCode"
+                                    onChange={handleInputChange}
+                                    className="mt-2 px-4 py-2 border rounded-md"
+                                    required
+                                />
+                            </div>
+                            <div className="flex flex-col">
+                                <label htmlFor="phone" className="text-gray-700">Phone *</label>
+                                <input
+                                    type="text"
+                                    id="phone"
+                                    name="phone"
+                                    onChange={handleInputChange}
+                                    className="mt-2 px-4 py-2 border rounded-md"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col mt-4">
+                            <label htmlFor="email" className="text-gray-700">Email address *</label>
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                onChange={handleInputChange}
+                                className="mt-2 px-4 py-2 border rounded-md"
+                                required
+                            />
+                        </div>
+
+
+
+
+                        <div className="mt-6">
+                            <h3 className="text-xl font-semibold mb-4">Payment Methods</h3>
+                            <div className="flex space-x-4">
+                                <label className="flex items-center">
+                                    <input
+                                        type="radio"
+                                        name="paymentMethod"
+                                        value={formData.paymentMethod}
+                                        onChange={(e) =>
+                                            setFormData((prevData) => ({ ...prevData, paymentMethod: e.target.value }))}
+                                        className="mr-2"
+                                    />
+                                    Razorpay (Credit/Debit Card / UPI)
+                                </label>
+                                <label className="flex items-center">
+                                    <input
+                                        type="radio"
+                                        name="paymentMethod"
+                                        value={formData.paymentMethod}
+                                        onChange={(e) =>
+                                            setFormData((prevData) => ({ ...prevData, paymentMethod: e.target.value }))}
+                                        className="mr-2"
+                                    />
+                                    Cash on Delivery
+                                </label>
+                            </div>
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            className="mt-8 py-3 px-6 bg-yellow-600 text-white font-semibold rounded-md w-1/3"
+                        >
+                            Place Order
+                        </button>
+                    </form>
+                </div>
+
+
+                <div className="mt-8 border-t pt-8">
+                    <h3 className="text-xl font-semibold mb-4">Your Order</h3>
+                    {cartItems.map((item, index) => (
+                        <div className="flex justify-between mt-2" key={index}>
+                            <span>{item.name}</span>
+                            <span>₹{item.price}</span>
+                        </div>
+                    ))}
+
+                </div>
+            </div>
+            <ToastContainer
+                position="bottom-center"
+                autoClose={5000}
+                hideProgressBar={false}
+                newestOnTop={true}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                // toastStyle={{
+                //     borderRadius: "8px",
+                //     border:"",
+                //     padding: "15px",
+                //   }}
+            />
+        </div>
+        
+    )
+}
+
+export default Checkout
