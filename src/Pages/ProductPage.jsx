@@ -77,20 +77,40 @@ function ProductPage() {
             try {
                 const snapshot = await get(userCartRef);
                 const currentCart = snapshot.val() || [];
-                const updatedCart = [...currentCart, product];
-                await set(userCartRef, updatedCart);
+                const existingProduct=currentCart.findIndex(
+                    (item)=>item.id===product.id
+                )
+                if (existingProduct > -1) {
+                    // Increment the quantity of the existing product
+                    currentCart[existingProduct].quantity += 1;
+                } else {
+                    // Add the product with default quantity 1
+                    currentCart.push({ ...product, quantity: 1 });
+                }
+                await set(userCartRef, currentCart);
     
                 console.log("Item added to logged-in user's cart in Firebase.");
                 setShowPopup(true); // Show popup
                 setTimeout(() => setShowPopup(false), 3000);
             } catch (error) {
                 console.error("Error updating cart:", error);
+                toast.error("Failed to add item to cart.");
             }
         } else {
             // For unlogged users
-            const localCart = JSON.parse(localStorage.getItem("cart")) || [];
-            const updatedCart = [...localCart, product];
-            localStorage.setItem("cart", JSON.stringify(updatedCart));
+            const localCart = JSON.parse(sessionStorage.getItem("cart")) || [];
+            const existingProduct=localCart.findIndex(
+                (item)=>item.id===product.id
+            )
+            if (existingProduct > -1) {
+                // Increment the quantity of the existing product
+                localCart[existingProduct].quantity += 1;
+            } else {
+                // Add the product with default quantity 1
+                localCart.push({ ...product, quantity: 1 });
+            }
+    
+            sessionStorage.setItem("cart", JSON.stringify(localCart));
     toast.success("item added to your cart")
             console.log("Item added to unlogged user's cart in localStorage.");
         }

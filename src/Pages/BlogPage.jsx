@@ -31,7 +31,7 @@ function BlogPage() {
           <img
             src={img1}
             alt="Ancient Beekeeping 1"
-            className="w-full md:w-auto h-[384px] object-cover"
+            className="w-full md:w-auto h-[354px] object-cover img"
           />
         </div>
         <div className="absolute inset-0 bg-black opacity-25"></div>
@@ -40,7 +40,7 @@ function BlogPage() {
         </div>
       </section>
 
-      <div className="2xl:p-10 flex flex-col justify-center items-center mx-auto 2xl:mt-10">
+      <div className="2xl:p-10 p-5 flex flex-col justify-center items-center mx-auto 2xl:mt-10">
         <div>
           <h1 className="text-xl md:text-2xl font-semibold italic text-center">
             Did you know that honey has been part of humans' diet for thousands of

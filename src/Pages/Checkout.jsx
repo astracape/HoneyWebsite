@@ -6,7 +6,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../FirebaseConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
-import { getDatabase, onValue, ref } from 'firebase/database';
+import { getDatabase, onValue, push, ref, remove, set } from 'firebase/database';
 
 
 function Checkout() {
@@ -30,16 +30,13 @@ const navigate=useNavigate()
     const[user,setUser]=useState()
     const [state, setState] = useState(null);
     const [city, setCity] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData((prevData) => ({ ...prevData, [name]: value }));
     };
 
-    // useEffect(() => {
-    //     const cart = JSON.parse(localStorage.getItem("cart")) || [];
-    //     setCartItems(cart);
-    // }, []);
     useEffect(() => {
         onAuthStateChanged(auth, (currentUser) => {
             if (currentUser) {
@@ -57,30 +54,136 @@ const navigate=useNavigate()
                     }
                 });
             } else {
-                // Use localStorage for guests
-                const cart = JSON.parse(localStorage.getItem("cart")) || [];
+                // Use sessionStorage for guests
+                const cart = JSON.parse(sessionStorage.getItem("cart")) || [];
                 setCartItems(cart);
             }
         });
     }, []);
 
-    const handleSubmit = (e) => {
-        e.preventDefault()
-        onAuthStateChanged(auth,(user)=>{
-            if(!user){
-                toast.warning("Please log in to place your order")
-                navigate('/login')
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (isSubmitting) return; // Prevent duplicate submissions
+        setIsSubmitting(true);
+    
+        // Early return if user is not logged in
+        if (!user) {
+            toast.warning("Please log in to place your order");
+            navigate("/login");
+            setIsSubmitting(false);
+            return;
+        }
+    
+        const orderDetails = createOrderDetails(formData, cartItems);
+    
+        try {
+            if (formData.paymentMethod === "Razorpay") {
+                await handleRazorpayPayment(orderDetails);
+            } else if (formData.paymentMethod === "Cash on Delivery") {
+                await handleCashOnDelivery(orderDetails);
             }
-            else{
-                console.log("Details", formData)
-                console.log("cart items", cartItems)
-                toast("Order Placed Successfully")
-            }
-        })
-       
-
-    }
-
+        } catch (error) {
+            console.error("Error placing order:", error);
+            toast.error("Error placing order. Please try again.");
+        } finally {
+            setIsSubmitting(false); // Reset submission flag
+        }
+    };
+    
+    // Helper function to create order details
+    const createOrderDetails = (formData, cartItems) => {
+        return {
+            user: {
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                email: formData.email,
+                phone: formData.phone,
+                address: formData.address,
+                apartment: formData.apartment,
+                city: formData.city,
+                state: formData.state,
+                country: formData.country,
+                pinCode: formData.pinCode,
+            },
+            // cartItems,
+            cartItems: cartItems.map(item => ({
+                ...item,
+                 // Store the total price per item based on quantity
+            })),
+            totalAmount: cartItems.reduce((total, item) => total + parseFloat(item.price), 0),
+            paymentMethod: formData.paymentMethod,
+            orderStatus: "Pending",
+            timestamp: new Date().toISOString(),
+        };
+    };
+    
+    // Helper function for Razorpay payment
+    const handleRazorpayPayment = async (orderDetails) => {
+        const orderAmount = orderDetails.totalAmount * 100; // Convert to paise
+        const options = {
+            key: "rzp_test_b5Ry0nM29Awoau",
+            amount: orderAmount,
+            currency: "INR",
+            name: "Honey Store",
+            description: "Test Transaction",
+            image: "https://example.com/logo.png",
+            handler: async (response) => {
+                // On successful payment
+                await saveOrderToDatabase(orderDetails);
+                toast.success("Order Placed Successfully!");
+                navigate("/successpage");
+            },
+            prefill: {
+                name: `${orderDetails.user.firstName} ${orderDetails.user.lastName}`,
+                email: orderDetails.user.email,
+                contact: orderDetails.user.phone,
+            },
+            notes: {
+                address: orderDetails.user.address,
+            },
+            theme: {
+                color: "#F37254",
+            },
+        };
+    
+        const rzp = new window.Razorpay(options);
+        rzp.on("payment.failed", (response) => {
+            console.error("Payment Failed:", response.error);
+            toast.error("Payment Failed. Please try again.");
+        });
+        rzp.open();
+    };
+    
+    // Helper function for Cash on Delivery
+    const handleCashOnDelivery = async (orderDetails) => {
+        await saveOrderToDatabase(orderDetails);
+        await clearUserCart(user.uid);
+        toast.success("Order Placed Successfully!");
+        navigate("/successpage");
+    };
+    
+    // Helper function to save order to Firebase
+    const saveOrderToDatabase = async (orderDetails) => {
+        const db = getDatabase();
+        const ordersRef = ref(db, `orders/${user.uid}`); // Centralized orders node
+        
+        // Push the order to the 'orders' node, with the userId included in the order
+        const newOrderRef = push(ordersRef);  // Generate unique ID for order
+        const orderData = {
+            ...orderDetails,
+            userId: user.uid, // Store the userId with the order
+        };
+        
+        await set(newOrderRef, orderData); // Save the order with the userId in the database
+    };
+    
+    // Helper function to clear user's cart from Firebase
+    const clearUserCart = async (uid) => {
+        const db = getDatabase();
+        const userCartRef = ref(db, `users/${uid}/cart`);
+        await remove(userCartRef);
+    };
+    
     return (
         <div>
             <div className="relative h-96 bg-cover bg-center" style={{ backgroundImage: `url(${img1})` }}>
@@ -273,9 +376,8 @@ const navigate=useNavigate()
                                     <input
                                         type="radio"
                                         name="paymentMethod"
-                                        value={formData.paymentMethod}
-                                        onChange={(e) =>
-                                            setFormData((prevData) => ({ ...prevData, paymentMethod: e.target.value }))}
+                                        value="Razorpay"
+                                        onChange={handleInputChange}
                                         className="mr-2"
                                     />
                                     Razorpay (Credit/Debit Card / UPI)
@@ -284,9 +386,8 @@ const navigate=useNavigate()
                                     <input
                                         type="radio"
                                         name="paymentMethod"
-                                        value={formData.paymentMethod}
-                                        onChange={(e) =>
-                                            setFormData((prevData) => ({ ...prevData, paymentMethod: e.target.value }))}
+                                        value="Cash on Delivery"
+                                        onChange={handleInputChange}
                                         className="mr-2"
                                     />
                                     Cash on Delivery

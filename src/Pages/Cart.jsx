@@ -3,9 +3,12 @@ import img from "../assets/oatmeal-cookies-honey-jar-isolated-pastel-background-
 import { getAuth } from 'firebase/auth';
 import { database } from '../FirebaseConfig';
 import { get, ref, set } from 'firebase/database';
+import ReactPaginate from 'react-paginate';
 
 function Cart() {
     const [cartItems, setCartItems] = useState([]);
+    const [currentPage, setCurrentPage] = useState(0);
+    const itemsPerPage = 10;
     const auth = getAuth();
     useEffect(() => {
         const fetchCartItems = async () => {
@@ -28,8 +31,8 @@ function Cart() {
                     console.error("Error fetching cart data:", error);
                 }
             } else {
-                // Fetch cart from localStorage for unlogged users
-                const storedCart = JSON.parse(localStorage.getItem('cart')) || [];
+                // Fetch cart from sessionStorage for unlogged users
+                const storedCart = JSON.parse(sessionStorage.getItem('cart')) || [];
                 const updatedCart = storedCart.map(item => ({
                     ...item,
                     quantity: Number(item.quantity) || 1,  // Default to 1 if invalid
@@ -52,8 +55,8 @@ function Cart() {
             const userCartRef = ref(database, `users/${userId}/cart`);
             set(userCartRef, updatedCart);
         } else {
-            // Update localStorage for unlogged users
-            localStorage.setItem('cart', JSON.stringify(updatedCart));
+            // Update sessionStorage for unlogged users
+            sessionStorage.setItem('cart', JSON.stringify(updatedCart));
         }
 
         setCartItems(updatedCart);
@@ -73,6 +76,15 @@ function Cart() {
     const deleteItem = (index) => {
         const updatedCart = cartItems.filter((_, i) => i !== index);
         updateCart(updatedCart);
+    };
+    const pageCount = Math.ceil(cartItems.length / itemsPerPage);
+    const currentItems = cartItems.slice(
+        currentPage * itemsPerPage,
+        currentPage * itemsPerPage + itemsPerPage
+    );
+
+    const handlePageChange = ({ selected }) => {
+        setCurrentPage(selected);
     };
     return (
         <div>
@@ -101,7 +113,7 @@ function Cart() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {cartItems.map((item, index) => (
+                                    {currentItems.map((item, index) => (
                                         <tr key={index} className="border-b hover:bg-gray-50">
                                             <td className="py-4 px-4 flex justify-center items-center space-x-4">
                                                 <img src={item.imageUrl} alt={item.name} className="w-16 h-16 object-cover rounded-md" />
@@ -110,14 +122,14 @@ function Cart() {
                                             <td className="py-4 px-4 text-center">
                                                 <div className="flex justify-center space-x-3">
                                                     <button
-                                                        onClick={() => changeQuantity(index, -1)}
+                                                        onClick={() => changeQuantity(index + currentPage * itemsPerPage, -1)}
                                                         className="bg-gray-100 text-xl text-gray-600 p-2 rounded-full hover:bg-gray-200 transition duration-200"
                                                     >
                                                         −
                                                     </button>
                                                     <span className="text-lg font-semibold">{item.quantity}</span>
                                                     <button
-                                                        onClick={() => changeQuantity(index, 1)}
+                                                        onClick={() => changeQuantity(index + currentPage * itemsPerPage, 1)}
                                                         className="bg-gray-100 text-xl text-gray-600 p-2 rounded-full hover:bg-gray-200 transition duration-200"
                                                     >
                                                         +
@@ -128,7 +140,7 @@ function Cart() {
                                             <td className="py-4 px-4 text-center text-gray-700">₹{item.price * item.quantity}</td>
                                             <td className="py-4 px-4 text-center">
                                                 <button
-                                                    onClick={() => deleteItem(index)}
+                                                    onClick={() => deleteItem(index + currentPage * itemsPerPage)}
                                                     className="text-red-500 text-2xl hover:text-red-700"
                                                 >
                                                     &times;
@@ -138,7 +150,7 @@ function Cart() {
                                     ))}
                                 </tbody>
                             </table>
-
+                            
                             <div className="flex justify-end mt-6">
                                 <div className="flex items-center space-x-6 p-5">
                                     <div className="text-2xl font-semibold">Total: ₹{calculateTotal()}</div>
@@ -149,6 +161,23 @@ function Cart() {
                                         <a href='/checkout'>Checkout</a>
                                     </button>
                                 </div>
+                            </div>
+                            <div className="flex justify-center mt-6 px-3 py-3">
+                                <ReactPaginate
+                                    previousLabel={"Previous"}
+                                    nextLabel={"Next"}
+                                    breakLabel={"..."}
+                                    pageCount={pageCount}
+                                    marginPagesDisplayed={2}
+                                    pageRangeDisplayed={3}
+                                    onPageChange={handlePageChange}
+                                    containerClassName={"flex space-x-3"}
+                                    activeClassName={"font-bold text-yellow-800"}
+                                    pageClassName={"px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"}
+                                    previousClassName={"px-4 py-2 bg-yellow-600 text-white rounded-lg"}
+                                    nextClassName={"px-4 py-2 bg-yellow-600 text-white rounded-lg"}
+                                    disabledClassName={"opacity-50 pointer-events-none"}
+                                />
                             </div>
                         </div>
                     ) : (

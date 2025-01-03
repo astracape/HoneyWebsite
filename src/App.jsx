@@ -29,6 +29,10 @@ import ViewBlogs from './Pages/Admin/ViewBlogs'
 import { BounceLoader } from "react-spinners";
 import Cart from './Pages/Cart'
 import Checkout from './Pages/Checkout';
+import ForgotPassword from './Pages/ForgotPassword';
+import SuccessPage from './Pages/SuccessPage';
+import OrderDetails from './Pages/Admin/OrderDetails';
+import OrderHistory from './Pages/OrderHistory';
 
 
 function App() {
@@ -38,12 +42,13 @@ function App() {
 
 
   useEffect(() => {
-    AOS.init({  once: false }); 
-}, []);
+    AOS.init({ once: false });
+  }, []);
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         console.log("User is logged in:", user);
+
         setIsAuth(true);
 
         // Fetch user role from Firebase Database
@@ -53,8 +58,8 @@ function App() {
         const userData = snapshot.val();
         console.log("User role data:", userData);
         setIsAdmin(userData?.role === 'admin');
-      } 
-        else {
+      }
+      else {
         console.log("User is logged out");
         setIsAuth(false);
         setIsAdmin(false);
@@ -68,14 +73,15 @@ function App() {
       <BounceLoader color="#FFA500" size={50} />
     </div>
   );
+  console.log("isAuth:", isAuth); // Check if this is true when you manually type the URL
 
   return (
     <>
       <BrowserRouter>
-      <NavBar isAuth={isAuth} setIsAuth={setIsAuth} isAdmin={isAdmin} setIsAdmin={setIsAdmin}/> 
+        <NavBar isAuth={isAuth} setIsAuth={setIsAuth} isAdmin={isAdmin} setIsAdmin={setIsAdmin} />
         <Routes>
           {/* Admin Routes */}
-           <Route
+          <Route
             path="/sidebar"
             element={
               <AdminRoute element={<><SideBar /></>} isAuth={isAuth} isAdmin={isAdmin} />
@@ -96,13 +102,13 @@ function App() {
           <Route
             path="/viewblog"
             element={
-              <AdminRoute element={<><SideBar /><ViewBlogs/></>} isAuth={isAuth} isAdmin={isAdmin} />
+              <AdminRoute element={<><SideBar /><ViewBlogs /></>} isAuth={isAuth} isAdmin={isAdmin} />
             }
           />
           <Route
             path="/dashboard"
             element={
-              <AdminRoute element={<><SideBar /><Dashboard/></>} isAuth={isAuth} isAdmin={isAdmin} />
+              <AdminRoute element={<><SideBar /><Dashboard /></>} isAuth={isAuth} isAdmin={isAdmin} />
             }
           />
           <Route
@@ -110,24 +116,39 @@ function App() {
             element={
               <AdminRoute element={<><SideBar /><EditProduct /></>} isAuth={isAuth} isAdmin={isAdmin} />
             }
-          /> 
-           <Route
+          />
+          <Route
+            path="/orderdetails/:userId/:orderId"
+            element={
+              <AdminRoute element={<><SideBar /><OrderDetails /></>} isAuth={isAuth} isAdmin={isAdmin} />
+            }
+          />
+          <Route
             path="/addblog"
             element={
               <AdminRoute element={<><SideBar /><AddBlogs /></>} isAuth={isAuth} isAdmin={isAdmin} />
             }
-          /> 
+          />
 
           {/* Public and User Routes */}
-       
-         <Route
+
+          <Route
             path="/login"
-            element={isAuth ? <Navigate to="/" /> : <><Loginpage /><Footer/></>}
+            element={isAuth ? <Navigate to="/" /> : <><Loginpage /><Footer /></>}
+          />
+          <Route
+            path="/forgotpwd"
+            element={isAuth ? <Navigate to="/" /> : <><ForgotPassword /><Footer /></>}
           />
           <Route
             path="/reg"
-            element={isAuth ? <Navigate to="/" /> : <><RegisterationPage /><Footer/></>}
-          /> 
+            element={isAuth ? <Navigate to="/" /> : <><RegisterationPage /><Footer /></>}
+          />
+          <Route
+            path="/successpage"
+            element={isAuth ? <SuccessPage /> : <Navigate to="/" />}
+          />
+
           <Route
             path="/"
             element={<><HomePage /><Footer /></>}
@@ -136,6 +157,11 @@ function App() {
             path="/productpage"
             element={<><ProductPage /><Footer /></>}
           />
+          <Route
+            path="/oh"
+            element={isAuth ? <OrderHistory /> : <Navigate to="/login" />}
+          />
+
           <Route
             path="/singleproduct/:productId"
             element={<><SingleProduct /><Footer /></>}
@@ -156,7 +182,7 @@ function App() {
             path="/checkout"
             element={<><Checkout /><Footer /></>}
           />
-           <Route
+          <Route
             path="/fullblog/:id"
             element={<><FullBlogPage /><Footer /></>}
           />

@@ -33,6 +33,8 @@ function Footer() {
                             <li><a href="/productpage" className="hover:text-yellow-400">Our products</a></li>
                             <li><a href="/aboutus" className="hover:text-yellow-400">About us</a></li>
                             <li><a href="/blog" className="hover:text-yellow-400">Blogs</a></li>
+                            <li><a href="/oh" className="hover:text-yellow-400">Order History</a></li>
+
                         </ul>
                     </div>
 

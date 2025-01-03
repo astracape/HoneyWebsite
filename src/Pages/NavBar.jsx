@@ -13,7 +13,7 @@ function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin }) {
     const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState(false);
-
+    const [isAccountDropdownOpen, setAccountDropdownOpen] = useState(false);
     const toggleMobileDropdown = () => setIsMobileDropdownOpen(!isMobileDropdownOpen);
     const dropdownRef = useRef(null); // For dropdown
     const iconRef = useRef(null); // For icon
@@ -26,6 +26,7 @@ function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin }) {
                 iconRef.current &&
                 !iconRef.current.contains(e.target)
             ) {
+                setAccountDropdownOpen(false);
                 setIsDropdownOpen(false);
                 setIsMobileDropdownOpen(false);
             }
@@ -43,13 +44,17 @@ function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin }) {
     const toggleMobileMenu = () => {
         setMobileMenuOpen(!isMobileMenuOpen);
     };
-
+    const toggleAccountDropdown = () => {
+        setAccountDropdownOpen(!isAccountDropdownOpen);
+    };
     const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
     const handleLogout = async () => {
         try {
             await signOut(auth);
             navigate('/login');
+            setIsAuth(false);
+            setIsAdmin(false);
             toast.success('Logged out successfully');
         } catch (error) {
             toast.error('Logout failed');
@@ -81,7 +86,7 @@ function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin }) {
     return (
         <div>
 
-            <header className="bg-gradient-to-r from-[#f2d275] to-[#8B4513] py-2 px-4  h-20 relative">
+            <header className="bg-yellow-600 py-2 px-4  h-20 relative">
                 <div className=" mx-auto flex justify-between items-center">
                     <div>
                         <img src={logo} className="h-16"></img>
@@ -97,14 +102,70 @@ function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin }) {
                             <Link to="/aboutus" className="text-black hover:text-yellow-400">About Us</Link>
 
                         </div>
-                        {isAuth ? (
+                        {/* {isAuth ? (
                             <button onClick={handleLogout} className="text-black hover:text-yellow-400">Logout</button>
                         ) : (
                             <button onClick={() => navigate('/login')} className="text-black hover:text-yellow-400">Login</button>
-                        )}
+                        )} */}
                         <Link to="/cart" className="text-black hover:text-yellow-400 mb-1"><BsCart4 /></Link>
-
-                        {isAdmin && (
+                        {isAuth ? (
+                        <div className="relative">
+                            <div
+                                ref={iconRef}
+                                onClick={toggleAccountDropdown}
+                                className="text-black cursor-pointer flex items-center"
+                            >
+                                <FaUser />
+                                <span className="ml-2">My Account</span>
+                            </div>
+                            {isAccountDropdownOpen && (
+                                <div
+                                    ref={dropdownRef}
+                                    className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-50"
+                                >
+                                    {isAdmin ? (
+                                        <>
+                                            <Link
+                                                to="/dashboard"
+                                                className="block px-4 py-2 text-black hover:bg-gray-200"
+                                            >
+                                                Dashboard
+                                            </Link>
+                                            <button
+                                                onClick={handleLogout}
+                                                className="block w-full text-left px-4 py-2 text-black hover:bg-gray-200"
+                                            >
+                                                Logout
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Link
+                                                to="/oh"
+                                                className="block px-4 py-2 text-black hover:bg-gray-200"
+                                            >
+                                                Order History
+                                            </Link>
+                                            <button
+                                                onClick={handleLogout}
+                                                className="block w-full text-left px-4 py-2 text-black hover:bg-gray-200"
+                                            >
+                                                Logout
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <button
+                            onClick={() => navigate('/login')}
+                            className="text-black hover:text-yellow-400"
+                        >
+                            Login
+                        </button>
+                    )}
+                        {/* {isAdmin && (
                             <div className="relative mb-1">
                                 <div
                                     ref={iconRef}
@@ -119,7 +180,7 @@ function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin }) {
                                     </div>
                                 )}
                             </div>
-                        )}
+                        )} */}
 
                     </nav>
 
@@ -138,14 +199,70 @@ function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin }) {
                         <a href='/productpage' className="block text-white hover:text-yellow-400 mb-2">Products</a>
                         <a href="/blog" className="block text-white hover:text-yellow-400 mb-2">Blog</a>
                         <Link to="/aboutus" className="block text-white hover:text-yellow-400 mb-2">About Us</Link>
-                        {isAuth ? (
+                        {/* {isAuth ? (
                             <button onClick={handleLogout} className="text-white hover:text-yellow-400 mb-2">Logout</button>
                         ) : (
                             <button onClick={() => navigate('/login')} className="text-white hover:text-yellow-400 mb-2">Login</button>
-                        )}
+                        )} */}
                         <Link to="/cart" className="text-white hover:text-yellow-400 mb-2 p-2"><BsCart4 /></Link>
-
-                        {isAdmin && (
+                        {isAuth ? (
+                        <div className="relative">
+                            <div
+                                ref={iconRef}
+                                onClick={toggleAccountDropdown}
+                                className="text-white cursor-pointer flex items-center"
+                            >
+                                <FaUser />
+                                <span className="ml-2">My Account</span>
+                            </div>
+                            {isAccountDropdownOpen && (
+                                <div
+                                    ref={dropdownRef}
+                                    className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-50"
+                                >
+                                    {isAdmin ? (
+                                        <>
+                                            <Link
+                                                to="/dashboard"
+                                                className="block px-4 py-2 text-black hover:bg-gray-200"
+                                            >
+                                                Dashboard
+                                            </Link>
+                                            <button
+                                                onClick={handleLogout}
+                                                className="block w-full text-left px-4 py-2 text-black hover:bg-gray-200"
+                                            >
+                                                Logout
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Link
+                                                to="/oh"
+                                                className="block px-4 py-2 text-black hover:bg-gray-200"
+                                            >
+                                                Order History
+                                            </Link>
+                                            <button
+                                                onClick={handleLogout}
+                                                className="block w-full text-left px-4 py-2 text-black hover:bg-gray-200"
+                                            >
+                                                Logout
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <button
+                            onClick={() => navigate('/login')}
+                            className="text-black hover:text-yellow-400"
+                        >
+                            Login
+                        </button>
+                    )}
+                        {/* {isAdmin && (
                             <div className="relative">
                                 <div
                                     ref={iconRef}
@@ -167,7 +284,7 @@ function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin }) {
                                     </div>
                                 )}
                             </div>
-                        )}
+                        )} */}
 
                     </div>
                 )}

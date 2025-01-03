@@ -119,3 +119,31 @@
 [data-aos="rotate"].aos-animate {
   transform: rotate(360deg);
 }
+.img {
+  --s: 20px;  /* control the size of the wave */
+  --w: 350px; /* preferred image width */
+  --c:#bf8a02;
+  
+  width: round(var(--w),2*var(--s)); /* my first use case of round() 🥳 */
+  aspect-ratio: 1;
+  object-fit: cover;
+  padding: var(--s);
+  border-radius: calc(1.5*var(--s));
+  --R:calc(var(--s)/sqrt(2)) at;
+  --g:radial-gradient(var(--R) 50%,var(--c) calc(100% - 1px),#0000) 
+     0 0/calc(2*var(--s)) calc(2*var(--s));
+  --_c:#0000 100%,var(--c) calc(100% + 1px);
+  --_b:calc(2*var(--s)) calc(51% - var(--s)/2) repeat-x;
+  background: var(--g),
+    radial-gradient(var(--R) 50% calc(100% + var(--s)/2),var(--_c)) 
+     var(--s) calc(100% - var(--s)/2)/var(--_b),
+    radial-gradient(var(--R) 50% calc(      var(--s)/-2),var(--_c)) 
+     var(--s) calc(       var(--s)/2)/var(--_b);
+  --_m:var(--s)/calc(51% - var(--s)/2) calc(2*var(--s)) repeat-y;
+  mask: var(--g),
+    radial-gradient(var(--R) calc(100% + var(--s)/2) 50%,var(--_c))
+     calc(100% - var(--s)/2) var(--_m),
+    radial-gradient(var(--R) calc(      var(--s)/-2) 50%,var(--_c)) 
+     calc(       var(--s)/2) var(--_m);
+}
+

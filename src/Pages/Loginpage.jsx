@@ -87,8 +87,12 @@ function Loginpage() {
                         </div>
                         <button className='bg-[#5a3a01] rounded-lg w-full md:w-3/4 mt-5 h-10 text-white'>Submit</button>
                     </form>
-                    <div className=' mt-3'>
-                        <a href='/reg' className='text-yellow-800 underline text-xs text-center md:text-base md:text-left'>Don't have an account?Signup</a></div>
+                    <div className=' mt-3 flex flex-col'>
+                        <a href='/reg' className='text-yellow-800 underline text-xs md:text-base md:text-left mt-5'>Don't have an account?Signup</a>
+                        <a href='/forgotpwd' className='text-yellow-800 underline text-xs md:text-base mt-3'>Forgot Password?</a>
+
+                        </div>
+                        
                 </div>
             </div>
             {/* <ToastContainer/> */}

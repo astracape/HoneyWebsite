@@ -9,6 +9,7 @@ export default {
         honey: '#FFA500',   
         spice: '#8B4513',   
       },
+      
     },
   },
   plugins: [
