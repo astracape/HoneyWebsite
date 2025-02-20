@@ -1,25 +1,25 @@
 import React, { useEffect, useState } from 'react'
-import img from '../assets/Rectangle 15.png'
-import img1 from '../assets/hstory.png'
-import wild from '../assets/wild.png'
-import bee from '../assets/bee.png'
-import img4 from "../assets/western.png"
-import img5 from "../assets/Rectangle 59.png"
-import spices from "../assets/Group 68.png"
-import tamarind from "..//assets/tamarind.jpg"
-import cloves from "../assets/cloves.png"
-import nutmeg from "../assets/nutmeg.png"
-import pepper from "../assets/Rectangle 43.png"
-import pep from "../assets/about.png"
-import im52 from "../assets/57.png"
-import retail from "../assets/retail.png"
-import certificate1 from "../assets/ndli-logo.png"
-import certificate from "../assets/Fssai-Logo-PNG-Transparent.png"
-import bulk from "../assets/bulk.png"
+import img from '../../assets/Rectangle 15.png'
+import img1 from '../../assets/hstory.png'
+import wild from '../../assets/wild.png'
+import bee from '../../assets/bee.png'
+import img4 from "../../assets/western.png"
+import img5 from "../../assets/Rectangle 59.png"
+import spices from "../../assets/Group 68.png"
+import tamarind from "../../assets/tamarind.jpg"
+import cloves from "../../assets/cloves.png"
+import nutmeg from "../../assets/nutmeg.png"
+import pepper from "../../assets/Rectangle 43.png"
+import pep from "../../assets/about.png"
+import im52 from "../../assets/57.png"
+import retail from "../../assets/retail.png"
+import certificate1 from "../../assets/ndli-logo.png"
+import certificate from "../../assets/Fssai-Logo-PNG-Transparent.png"
+import bulk from "../../assets/bulk.png"
 import { FaEnvira } from "react-icons/fa";
 import { FaHouse, FaBoxOpen } from "react-icons/fa6";
 import { get, ref } from 'firebase/database'
-import { database } from '../FirebaseConfig'
+import { database } from '../../FirebaseConfig'
 import { Link } from "react-router-dom"
 
 function HomePage() {
@@ -54,7 +54,7 @@ function HomePage() {
             <div className='overflow-x-hidden '>
 
 
-                <div className="relative h-screen bg-cover  bg-center" style={{ backgroundImage: `url(${img})` }}>
+                <div className="relative h-screen bg-cover  bg-center p-0 m-0" style={{ backgroundImage: `url(${img})` }}>
                     <div className="absolute inset-0 bg-black opacity-50"></div>
 
 
@@ -63,7 +63,7 @@ function HomePage() {
                             Drizzle the Goodness of Nature's Best Honey
                         </h1>
                         <p className=" text-white text-base md:text-xl">
-                            Pure, Raw, and Unfiltered Honey Direct from Local Farms
+                            Pure, Raw, and Unfiltered Honey Direct from Farms
                         </p>
 
                         <a href="/productpage" className="mt-16 bg-yellow-600 hover:scale-95 md:w-96 w-48 h-8  md:h-16 text-black font-bold rounded-lg shadow-lg transition duration-300 flex items-center justify-center text-base md:text-2xl">
@@ -82,8 +82,9 @@ function HomePage() {
 
                     <div className='p-5 md:p-10 my-auto'>
                         <p className='text-4xl font-bold bebas-neue-regular'>Honey Story</p>
-                        <p className='text-base mt-5 md:mr-10'>We pride ourselves on offering pure, raw honey straight from nature. Sourced from local beekeepers who practice sustainable farming,
-                            our honey is 100% natural, unfiltered, and packed with nutrients. We believe in delivering the highest quality product that’s free of additives,
+                        <p className='text-base mt-5 md:mr-10'>We strive to bring you pure, raw honey crafted by nature’s finest workers—bees! Sourced from local beekeepers who practice sustainable farming,
+                             our honey is 100% natural, unfiltered, and packed with nutrients. With no additives or processing, we ensure you experience the true flavour and health benefits of honey, just as nature intended.
+                              We believe in delivering the highest quality product that’s free of additives,
                             preserving the true taste and benefits of honey.</p>
                         <p className='italic mt-4 font-semibold'> "From our hives to your home, every jar reflects our commitment to purity and sustainability."</p>
                     </div>
@@ -166,21 +167,21 @@ function HomePage() {
 
                 </section>
                 <div className='mx-auto  text-font text-center bg-black' >
-                    <h1 className='reggae-one-regular text-5xl p-7 text-white'>---Spices---</h1>
+                    <h1 className='reggae-one-regular text-4xl p-7 text-white'>---Spices---</h1>
                     <div className='mx-auto items-center justify-center md:p-3'>
                         <div className='grid grid-cols-1 md:grid-cols-2 justify-center items-center mx-auto gap-5'>
                             <div>
                                 <div className="flex justify-center py-8 mt-16  md:mt-0 ">
 
-                                    <div className="relative bg-red-900 text-white w-80 rounded-lg shadow-lg shadow-red-300 p-6 hover:scale-105">
+                                    <div className="relative bg-gradient-to-br from-red-900 to-red-500 text-white w-80 rounded-lg shadow-xl shadow-red-500/50 p-6 hover:scale-105 transition-transform duration-300 ease-out">
 
-                                        <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 w-36 h-36 rounded-full overflow-hidden shadow-lg border-4 border-white transition-transform duration-500 hover:rotate-12">
+                                        <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 w-36 h-36 rounded-full overflow-hidden drop-shadow-2xl border-4 border-white ">
                                             <img className="object-cover w-full h-full hover:animate-spin" src={tamarind} alt="Tamarind" />
                                         </div>
 
 
                                         <div className="mt-16 text-center">
-                                            <h2 className="font-bold text-lg">TAMARIND</h2>
+                                            <h2 className="font-bold text-lg drop-shadow-[0_1px_10px_rgba(255,255,255,0.8)]">TAMARIND</h2>
                                             <p className="font-semibold mt-2">Tangy and versatile, Tamarind adds a unique flavor to traditional dishes.</p>
                                             <p className="text-sm mt-4">
                                                 Harvested from the heart of the Western Ghats, Tamarind is known for its bold, sour-sweet taste.
@@ -195,7 +196,7 @@ function HomePage() {
                             <div>
                                 <div className="flex justify-center py-8">
 
-                                    <div className="relative bg-red-900 text-white w-80 rounded-lg shadow-lg  shadow-red-300 p-6 hover:scale-105">
+                                    <div className="relative bg-gradient-to-br from-red-900 to-red-500 text-white w-80 rounded-lg shadow-xl drop-shadow-2xl shadow-red-500/50  p-6 hover:scale-105 transition-transform duration-300 ease-out">
 
                                         <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 w-36 h-36 rounded-full overflow-hidden shadow-lg border-4 border-white">
                                             <img className="object-cover w-full h-full hover:animate-spin" src={cloves} alt="Tamarind" />
@@ -203,7 +204,7 @@ function HomePage() {
 
 
                                         <div className="mt-16 text-center">
-                                            <h2 className="font-bold text-lg">CLOVES</h2>
+                                            <h2 className="font-bold text-lg drop-shadow-[0_1px_10px_rgba(255,255,255,0.8)]">CLOVES</h2>
                                             <p className="font-semibold mt-2">Aromatic and strong, Cloves bring depth to curries and baked goods.</p>
                                             <p className="text-sm mt-4">
                                                 Cloves grown in the Western Ghats are intensely aromatic, with a warm, spicy-sweet flavor. Each clove is sun-dried to preserve its rich oils, making it a powerful ingredient in spice blends like garam masala. Beyond culinary uses, cloves are known for their medicinal properties.
@@ -214,9 +215,9 @@ function HomePage() {
                                 </div>
                             </div>
                             <div>
-                                <div className="flex justify-center py-8">
+                                <div className="flex justify-center py-8 mt-5">
 
-                                    <div className="relative hover:scale-105 bg-red-900 text-white w-80 rounded-lg shadow-lg  shadow-red-300 p-6">
+                                    <div className="relative hover:scale-105 bg-gradient-to-br from-red-900 to-red-500 text-white w-80 rounded-lg drop-shadow-2xl shadow-xl shadow-red-500/50 p-6 transition-transform duration-300 ease-out">
 
                                         <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 w-36 h-36 rounded-full overflow-hidden shadow-lg border-4 border-white">
                                             <img className="object-cover w-full h-full hover:animate-spin" src={pepper} alt="Tamarind" />
@@ -224,7 +225,7 @@ function HomePage() {
 
 
                                         <div className="mt-16 text-center">
-                                            <h2 className="font-bold text-lg">PEPPER</h2>
+                                            <h2 className="font-bold text-lg drop-shadow-[0_1px_10px_rgba(255,255,255,0.8)]">PEPPER</h2>
                                             <p className="font-semibold mt-2">Bold and pungent, our Pepper is carefully handpicked for quality and heat.</p>
                                             <p className="text-sm mt-4">
                                                 The Western Ghats are home to some of the world’s finest black pepper, revered for its sharp, spicy kick. Grown in the shade of dense forests, this pepper is sun-dried to perfection, ensuring every peppercorn bursts with intense heat and flavor. It’s a staple in kitchens worldwide, elevating both savory and grilled dishes.
@@ -235,17 +236,17 @@ function HomePage() {
                                 </div>
                             </div>
                             <div>
-                                <div className="flex justify-center py-8">
+                                <div className="flex justify-center py-8  mt-5">
 
-                                    <div className="relative bg-red-900 text-white w-80 rounded-lg shadow-lg shadow-red-300 p-6 hover:scale-105">
+                                    <div className="relative bg-gradient-to-br from-red-900 to-red-500 text-white w-80 rounded-lg shadow-xl shadow-red-500/50 p-6 hover:scale-105 transition-transform duration-300 ease-out">
 
-                                        <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 w-32 h-32 rounded-full overflow-hidden shadow-lg border-4 border-white transition-transform duration-500 hover:rotate-12">
+                                        <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 w-32 h-32 rounded-full overflow-hidden drop-shadow-2xl border-4 border-white transition-transform duration-500 hover:rotate-12">
                                             <img className="object-cover w-full h-full hover:animate-spin" src={nutmeg} alt="Tamarind" />
                                         </div>
 
 
                                         <div className="mt-16 text-center">
-                                            <h2 className="font-bold text-lg">NUTMEG</h2>
+                                            <h2 className="font-bold text-lg drop-shadow-[0_1px_10px_rgba(255,255,255,0.8)]">NUTMEG</h2>
                                             <p className="font-semibold mt-2">Warm and slightly sweet, Nutmeg is perfect for both savory and sweet dishes.</p>
                                             <p className="text-sm mt-4">
                                                 Grown high in the hills, Nutmeg from the Western Ghats has a distinct sweetness with a subtle warmth. Used in both savory dishes like creamy sauces and sweet recipes like cakes and pies, its aromatic flavor adds richness. Nutmeg is also prized for its potential health benefits, including aiding digestion and improving sleep.
@@ -259,7 +260,7 @@ function HomePage() {
                         </div>
 
                         <div className='flex justify-center mt-8 p-5'>
-                            <Link to="/productpage" className="px-6 py-4 bg-red-900 text-white rounded-lg text-lg">
+                            <Link to="/productpage" className="px-6 py-4 bg-gradient-to-br from-red-900 to-red-500 text-white rounded-lg text-lg">
                                 Explore Spices
                             </Link>
                         </div>
@@ -280,20 +281,18 @@ function HomePage() {
                                     <img
                                         src={blog.image}
 
-                                        className="w-2/3 object-cover border-l-4 border-yellow-700 p-3 rounded-xl"
+                                        className="w-1/2 h-72 object-cover border-l-4 border-yellow-700 p-3 rounded-xl"
                                     />
-
-
-                                    <div className=" w-full flex flex-col justify-center">
-                                        <div className="text-gray-500 text-sm mb-4">
-                                            <span>{blog.date}</span>
+                                    <div className=" w-full flex flex-col">
+                                        <div className="text-gray-500 text-sm mb-4 self-start">
+                                            <span> {new Date(blog.date).toLocaleDateString("en-GB")}</span>
                                         </div>
                                         <div className="text-gray-700 text-base mb-4 line-clamp-3">
                                             <div dangerouslySetInnerHTML={{ __html: blog.description }} />
                                         </div>
                                         <a
                                             href={`/fullblog/${blog.id}`}
-                                            className="text-yellow-600 font-semibold hover:underline"
+                                            className="text-yellow-600 font-semibold hover:underline self-start"
                                         >
                                             Read More
                                         </a>

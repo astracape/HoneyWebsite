@@ -1,12 +1,12 @@
 import React from 'react'
-import img from "../assets/bg2.png"
-import bee from "../assets/image5.png"
-import bee1 from "../assets/bee123.png"
-import img2 from "../assets/Untitled.png"
-import honeyspice from "../assets/image6.png"
-import img3 from "../assets/bee-fly-dotted-route-pattern-vector_638603-453.jpg"
+import img from "../../assets/bg2.png"
+import bee from "../../assets/image5.png"
+import bee1 from "../../assets/bee123.png"
+import img2 from "../../assets/Untitled.png"
+import honeyspice from "../../assets/image6.png"
+import img3 from "../../assets/bee-fly-dotted-route-pattern-vector_638603-453.jpg"
 
-import { GiCogLock } from "react-icons/gi";
+import { GiCogLock, GiHoneyJar } from "react-icons/gi";
 function AboutUs() {
     return (
         <div>
@@ -27,7 +27,7 @@ function AboutUs() {
                     <div className="relative z-10 max-w-4xl mx-auto">
                         <h2 className="text-4xl font-bold mb-6 text-yellow-700">Our Story</h2>
                         <p className="text-lg mb-4">
-                            Our story began with a hobby hive in our family garden. We have grown to share pure, raw, and natural Western Ghats honey with the world.
+                        Our story began started with a few hives nestled in our family farm. What began as a passion for beekeeping quickly grew into a commitment to sharing the pure, raw honey that bees so beautifully create. We have grown to share pure, raw, and natural Western Ghats honey with the world.
                             Harvested from the vast rubber farms and forest regions of Kanyakumari, our honey is unprocessed, cold-spun, and coarsely filtered to maintain the pure taste and natural benefits.
                         </p>
                         <p className="text-lg mb-4">We are passionate about producing and promoting farm-fresh honey and spices.</p>
@@ -62,13 +62,13 @@ function AboutUs() {
                         <h2 className="text-4xl font-bold mb-8 text-yellow-600">Our Products</h2>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 items-center">
                             <div className='p-3'>
-                                <div className="p-6   shadow-md rounded-lg hover:shadow-xl transform hover:-translate-y-1 transition-all">
+                                <div className="p-6   shadow-md rounded-se-3xl border-2 border-yellow-600 hover:shadow-xl transform hover:-translate-y-1 transition-all">
                                     <h3 className="text-2xl font-bold mb-4 text-yellow-600">Honey</h3>
                                     <ul className="space-y-4">
                                         {["Wild Honey", "Wildflower Honey", "Bulk Honey", "Retail Honey"].map(
                                             (item, index) => (
                                                 <li key={index} className="flex items-center gap-3">
-                                                    <GiCogLock className="text-yellow-600 text-2xl" />
+                                                    <GiHoneyJar className="text-yellow-600 text-2xl" />
                                                     <span className="text-gray-800 font-semibold">{item}</span>
                                                 </li>
                                             )
@@ -80,7 +80,7 @@ function AboutUs() {
                                 <img src={honeyspice} alt="Honey and Spices" className="rounded-full w-60 h-60 border-4  border-yellow-700" />
                             </div>
                             <div className='p-3'>
-                                <div className="p-6 shadow-md rounded-lg hover:shadow-xl transform hover:-translate-y-1 transition-all">
+                                <div className="p-6 shadow-md rounded-es-3xl border-2 border-yellow-600 hover:shadow-xl transform hover:-translate-y-1 transition-all">
                                     <h3 className="text-2xl font-bold mb-4 text-yellow-600">Spices</h3>
                                     <ul className="space-y-4">
                                         {["Nutmeg", "Tamarind", "Cloves", "Pepper"].map((item, index) => (

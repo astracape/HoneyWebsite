@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import img from "../assets/oatmeal-cookies-honey-jar-isolated-pastel-background-copy-space_176841-82698.jpg"
-import img1 from "../assets/history1.png"
-import img2 from "../assets/The_history_of_ancient_Mexico_-_from_the_foundation_of_that_empire_to_its_destruction_by_the_Spaniards_(1832)_(14780941454).jpg"
+import img from "../../assets/oatmeal-cookies-honey-jar-isolated-pastel-background-copy-space_176841-82698.jpg"
+import img1 from "../../assets/history1.png"
 
 import { onValue, ref } from 'firebase/database';
-import { database } from '../FirebaseConfig';
+import { database } from '../../FirebaseConfig';
 
 function BlogPage() {
   const [blogs, setBlogs] = useState([]);
@@ -27,7 +26,7 @@ function BlogPage() {
         className="relative h-96 bg-cover bg-center"
         style={{ backgroundImage: `url(${img})` }}
       >
-        <div className="absolute left-0 top-0 h-full w-full flex flex-col gap-4 justify-start items-start space-y-4">
+        <div className="absolute left-0 top-0 h-full w-full items-start justify-start">
           <img
             src={img1}
             alt="Ancient Beekeeping 1"
@@ -74,10 +73,9 @@ function BlogPage() {
                       className="w-full object-cover rounded-lg shadow-lg"
                     />
                   </div>
-                  <div className="col-span-2 flex flex-col justify-center p-4">
-                    <h2 className="text-lg md:text-2xl font-bold">{blog.title}</h2>
+                  <div className="col-span-2 p-4">
                     <p className="text-gray-400 text-xs md:text-sm mb-2">
-                      {blog.date}
+                    {new Date(blog.date).toLocaleDateString("en-GB")}
                     </p>
                     <div
                       className="text-gray-700 text-sm md:text-base"
@@ -99,7 +97,7 @@ function BlogPage() {
                   <div className="p-4">
 
                     <p className="text-gray-400 text-xs md:text-sm mb-2">
-                      {blog.date}
+                    {new Date(blog.date).toLocaleDateString("en-GB")}
                     </p>
                     <div
                       className="text-gray-700 text-sm md:text-base"
@@ -118,10 +116,9 @@ function BlogPage() {
                     alt={blog.title}
                     className="w-full h-32 md:h-auto object-cover rounded-lg shadow-lg"
                   />
-                  <div className="flex flex-col p-4">
-                    <h2 className="text-lg md:text-xl font-bold">{blog.title}</h2>
+                  <div className=" p-4">
                     <p className="text-gray-400 text-xs md:text-sm mb-2">
-                      {blog.date}
+                    {new Date(blog.date).toLocaleDateString("en-GB")}
                     </p>
                     <div
                       className="text-gray-700 text-sm md:text-base"
@@ -138,10 +135,10 @@ function BlogPage() {
                   key={blog.id}
                   className="col-span-1 md:col-span-3 md:grid md:grid-cols-3 gap-4"
                 >
-                  <div className="col-span-2 order-2 md:order-1 flex flex-col justify-center p-4">
+                  <div className="col-span-2 order-2 md:order-1  p-4">
                     <h2 className="text-lg md:text-2xl font-bold">{blog.title}</h2>
                     <p className="text-gray-400 text-xs md:text-sm mb-2">
-                      {blog.date}
+                    {new Date(blog.date).toLocaleDateString("en-GB")}
                     </p>
                     <div
                       className="text-gray-700 text-sm md:text-base"
@@ -171,9 +168,8 @@ function BlogPage() {
                     className="w-full h-96 object-cover rounded-lg shadow-lg"
                   />
                   <div className="p-4">
-                    <h2 className="text-lg md:text-xl font-bold">{blog.title}</h2>
                     <p className="text-gray-400 text-xs md:text-sm mb-2">
-                      {blog.date}
+                    {new Date(blog.date).toLocaleDateString("en-GB")}
                     </p>
                     <div
                       className="text-gray-700 text-sm md:text-base"
@@ -187,10 +183,9 @@ function BlogPage() {
             else if (index % 6 === 5) {
               return (
                 <div key={blog.id} className="col-span-1">
-                  <div className="flex flex-col p-4 bg-orange-200 rounded-lg shadow-lg">
-                    <h2 className="text-lg md:text-xl font-bold">{blog.title}</h2>
+                  <div className=" p-4 bg-orange-200 rounded-lg shadow-lg">
                     <p className="text-gray-400 text-xs md:text-sm mb-2">
-                      {blog.date}
+                    {new Date(blog.date).toLocaleDateString("en-GB")}
                     </p>
                     <div
                       className="text-gray-700 text-sm md:text-base"

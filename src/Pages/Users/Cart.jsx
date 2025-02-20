@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import img from "../assets/oatmeal-cookies-honey-jar-isolated-pastel-background-copy-space_176841-82698.jpg"
+import img from "../../assets/oatmeal-cookies-honey-jar-isolated-pastel-background-copy-space_176841-82698.jpg"
 import { getAuth } from 'firebase/auth';
-import { database } from '../FirebaseConfig';
+import { database } from '../../FirebaseConfig';
 import { get, ref, set } from 'firebase/database';
 import ReactPaginate from 'react-paginate';
 
@@ -101,7 +101,8 @@ function Cart() {
                         <h2 className="text-3xl font-semibold  text-left text-yellow-800 underline italic ">Items in Your Cart</h2>
                     </div>
                     {cartItems.length > 0 ? (
-                        <div className="overflow-x-auto bg-white shadow-lg rounded-lg">
+                        <div className=" bg-white shadow-lg rounded-lg">
+                            <div className='overflow-x-auto'>
                             <table className="w-full table-auto">
                                 <thead>
                                     <tr className="bg-gray-100 text-center">
@@ -115,9 +116,9 @@ function Cart() {
                                 <tbody>
                                     {currentItems.map((item, index) => (
                                         <tr key={index} className="border-b hover:bg-gray-50">
-                                            <td className="py-4 px-4 flex justify-center items-center space-x-4">
-                                                <img src={item.imageUrl} alt={item.name} className="w-16 h-16 object-cover rounded-md" />
-                                                <span className="text-gray-800">{item.name}</span>
+                                            <td className="py-4 px-4 flex flex-col sm:flex-row sm:items-center sm:space-x-4 ">
+                                                <img src={item.imageUrl} alt={item.name} className="w-16 h-16 object-cover rounded-md mx-auto sm:mx-0" />
+                                                <span className="text-gray-800 text-center sm:text-left mt-2 sm:mt-0">{item.name}</span>
                                             </td>
                                             <td className="py-4 px-4 text-center">
                                                 <div className="flex justify-center space-x-3">
@@ -150,10 +151,11 @@ function Cart() {
                                     ))}
                                 </tbody>
                             </table>
-                            
-                            <div className="flex justify-end mt-6">
-                                <div className="flex items-center space-x-6 p-5">
-                                    <div className="text-2xl font-semibold">Total: ₹{calculateTotal()}</div>
+                            </div>
+
+                            <div className="flex md:justify-end justify-center mt-6">
+                                <div className="flex flex-col md:flex-row items-center justify-center gap-3 p-2">
+                                    <div className=" font-semibold text-2xl text-gray-800">Total: ₹{calculateTotal()}</div>
                                     <button
                                         // onClick={handleCheckout}
                                         className="bg-yellow-600 text-white  px-8 py-3 rounded-lg shadow-lg  transition duration-300"

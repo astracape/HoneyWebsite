@@ -10,9 +10,11 @@ function RegisterationPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
+    const [phone, setPhone] = useState('');
+
     const navigate = useNavigate();
 
- 
+
 
     const handleRegister = async (e) => {
         e.preventDefault();
@@ -23,36 +25,38 @@ function RegisterationPage() {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
-           
-    
-            const isAdminEmail = email === "admin123@gmail.com"; 
+
+
+            const isAdminEmail = email === "admin123@gmail.com";
             const role = isAdminEmail ? "admin" : "user";
-    
+
             await set(ref(database, `users/${user.uid}`), {
                 name: name,
                 email: email,
-                role: role
+                phone:phone,
+                role: role,
+                timestamp: Date.now() 
             });
-    
+
             toast.success('Registration successful! Redirecting to login.');
             setTimeout(() => {
-                        navigate('/');
-                    }, 3000);
-            
+                navigate('/');
+            }, 3000);
+
         } catch (error) {
             console.log('Registration error:', error);
             toast.error('Failed to register. Please check your details.');
         }
     };
-    
+
     return (
         <div>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4 p-10'>
-            <div>
+                <div>
                     <img src={img}></img>
                 </div>
                 <div className="register-page my-auto">
-                    <form onSubmit={handleRegister}>
+                    <form onSubmit={handleRegister} className='flex flex-col justify-start'>
                         <h2 className='font-bold text-2xl md:text-3xl mb-5'>Create an Account</h2>
                         <input
                             type="text"
@@ -81,12 +85,17 @@ function RegisterationPage() {
                             className='rounded-lg p-5 md:w-3/4 border-0 border-l-4 border-[#5a3a01] mt-3 focus:ring-0  focus:border-[#5a3a01] focus:outline-none'
 
                         />
-                        <button type="submit" className='bg-[#5a3a01] rounded-lg w-full md:w-3/4 mt-5 h-10 text-white'>Register</button>
-                        <div className=' mt-3'>
-                        <a href='/login' className='text-yellow-800 underline text-xs text-center md:text-base md:text-left'>already have an account?Signin</a></div>
-                
+                        <input type="tel" id="phone" name="phone" pattern="\+?[0-9\s\-\(\)]*" className='rounded-lg p-5 md:w-3/4 border-0 border-l-4 border-[#5a3a01] mt-3 focus:ring-0  focus:border-[#5a3a01] focus:outline-none'
+                         value={phone}
+                         onChange={(e) => setPhone(e.target.value)}
+                         required placeholder="+91 12345 67890"/>
+
+                            <button type="submit" className='bg-[#5a3a01] rounded-lg w-full md:w-3/4 mt-5 h-10 text-white'>Register</button>
+                            <div className=' mt-3'>
+                                <a href='/login' className='text-yellow-800 underline text-xs text-center md:text-base md:text-left'>already have an account?Signin</a></div>
+
                     </form>
-                    
+
                     <ToastContainer />
                 </div>
             </div>

@@ -1,15 +1,20 @@
 import React, { useEffect, useState } from 'react'
-import { ref, onValue,remove } from 'firebase/database';
+import { ref, onValue, remove } from 'firebase/database';
 import { database } from '../../FirebaseConfig'
 import { useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import ReactPaginate from 'react-paginate';
 
 function ViewProduct() {
     const [products, setProducts] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState('');
-    
-   
+    const [sortOrder, setSortOrder] = useState('');
+    const [currentPage, setCurrentPage] = useState(0);
+    const itemsPerPage = 10;
+
     const location = useLocation();
+
+
     useEffect(() => {
         const queryParams = new URLSearchParams(location.search);
         const category = queryParams.get('category') || 'all';  // Default to 'all'
@@ -17,7 +22,7 @@ function ViewProduct() {
     }, [location]);
 
 
-    
+
     useEffect(() => {
         const productsRef = ref(database, 'products/categories');
         onValue(productsRef, (snapshot) => {
@@ -47,51 +52,61 @@ function ViewProduct() {
             });
     };
 
-    
-    const filteredProducts = selectedCategory === 'all'
-        ? products
-        : products.filter((product) => product.category === selectedCategory);
-  return (
-    <div>
-        
-        <div class="relative overflow-x-auto shadow-md sm:rounded-lg p-10">
-        <div className="flex flex-col items-center mb-8">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Categories</h2>
-                <div className="flex flex-wrap justify-center gap-4">
-                    <button
-                        onClick={() => setSelectedCategory('all')}
-                        className="bg-transparent border-2 border-yellow-600 text-yellow-600 hover:bg-yellow-600 hover:text-white transition-colors duration-300 px-6 py-2 rounded-full shadow-md"
-                    >
-                        All
-                    </button>
-                    <button
-                        onClick={() => setSelectedCategory('honey')}
-                        className="bg-transparent border-2 border-yellow-600 text-yellow-600 hover:bg-yellow-600 hover:text-white transition-colors duration-300 px-6 py-2 rounded-full shadow-md"
-                    >
-                        Honey
-                    </button>
-                    <button
-                        onClick={() => setSelectedCategory('spices')}
-                        className="bg-transparent border-2 border-yellow-600 text-yellow-600 hover:bg-yellow-600 hover:text-white transition-colors duration-300 px-6 py-2 rounded-full shadow-md"
-                    >
-                        Spices
-                    </button>
-                    <button
-                        onClick={() => setSelectedCategory('oil')}
-                        className="bg-transparent border-2 border-yellow-600 text-yellow-600 hover:bg-yellow-600 hover:text-white transition-colors duration-300 px-6 py-2 rounded-full shadow-md"
-                    >
-                        Oil
-                    </button>
-                    <button
-                        onClick={() => setSelectedCategory('coconut')}
-                        className="bg-transparent border-2 border-yellow-600 text-yellow-600 hover:bg-yellow-600 hover:text-white transition-colors duration-300 px-6 py-2 rounded-full shadow-md"
-                    >
-                        Coconut
-                    </button>
+
+    const categories = ["all", "honey", "spices", "oil", "coconut", "nuts", "wholesale"];
+
+    const filteredProducts = products.filter(product =>
+        selectedCategory === "all" || product.category === selectedCategory
+    );
+
+    const sortedProducts = [...filteredProducts].sort((a, b) => {
+        if (sortOrder === "lowToHigh") return a.price - b.price;
+        if (sortOrder === "highToLow") return b.price - a.price;
+        return 0;
+    });
+    const offset = currentPage * itemsPerPage;
+    const paginatedProducts = sortedProducts.slice(offset, offset + itemsPerPage);
+    const pageCount = Math.ceil(sortedProducts.length / itemsPerPage);
+    return (
+        <div className='md:ml-52 md:p-6 p-2 min-h-screen'>
+
+            <div class="relative  shadow-md sm:rounded-lg p-4 md:p-10">
+            
+                <div className="flex  mb-8 gap-4">
+                    <div className='flex justify-end items-end gap-4 flex-col  md:flex-row'>
+                        <div className='flex gap-2'>
+                            <p>category:</p>
+                            <select
+                                onChange={(e) => setSelectedCategory(e.target.value)}
+                                value={selectedCategory}
+                                className="px-4 py-3 border-2 border-yellow-600 rounded-lg text-gray-900 bg-white shadow-md focus:outline-none focus:ring-2 focus:border-transparent focus:ring-yellow-600"
+                            >
+                                {categories.map(category => (
+                                    <option key={category} value={category}>
+                                        {category.charAt(0).toUpperCase() + category.slice(1)}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className='flex gap-2'>
+                            <p>sort:</p>
+                            <select
+                                onChange={(e) => setSortOrder(e.target.value)}
+                                value={sortOrder}
+                                className="px-4 py-3 border-2 border-yellow-600 rounded-lg text-gray-900 bg-white shadow-md focus:outline-none focus:border-transparent focus:ring-2 focus:ring-yellow-600"
+                            >
+                                <option value="">Sort by</option>
+                                <option value="lowToHigh" >Price: Low to High</option>
+                                <option value="highToLow">Price: High to Low</option>
+                            </select>
+                        </div>
+                    </div>
+                   
+         
                 </div>
-            </div>
+                <div className="overflow-x-auto w-full">
                 <table class="w-full border text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 text-center">
+                    <thead class="text-xs text-gray-200 uppercase bg-black text-center">
                         <tr>
                             <th scope="col" class="px-16 py-3">
                                 <span class="sr-only">Image</span>
@@ -111,17 +126,16 @@ function ViewProduct() {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredProducts.length > 0 ? (
-                            filteredProducts.map(product => (
+                        {paginatedProducts.length > 0 ? (
+                            paginatedProducts.map(product => (
                                 <tr class=" border bg-white dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-50 text-center">
                                     <td class="p-4">
                                         <div className='flex justify-center items-center'>
                                             <img src={product.imageUrl} alt={product.name} className="w-24 h-36 object-cover" />
                                         </div>
-                                        {/* <img src="/docs/images/products/apple-watch.png" class="w-16 md:w-32 max-w-full max-h-full" alt="Apple Watch"/> */}
                                     </td>
                                     <td class="px-6 py-4 font-semibold text-gray-900 ">
-                                        
+
                                         <h2 className="font-bold mt-2 text-black">{product.name}</h2>
 
                                     </td>
@@ -129,17 +143,17 @@ function ViewProduct() {
                                         <p>{product.category}</p>
                                     </td>
                                     <td class="px-6 py-4 font-semibold text-black">
-                                
+
                                         <p>{product.price}</p>
 
                                     </td>
                                     <td class="px-6 py-4">
                                         <div className='flex  justify-center items-center'>
                                             <div className='bg-red-600 w-24 h-10 rounded-md flex justify-center items-center'>
-                                                <button  onClick={() => removeProduct(product.id, product.category)} class="font-medium text-white hover:underline">Remove</button>
+                                                <button onClick={() => removeProduct(product.id, product.category)} class="font-medium text-white hover:underline">Remove</button>
                                             </div>
                                             <div className='bg-yellow-600 w-24 h-10 rounded-md ml-5 flex justify-center items-center'>
-                                                <a href={`/editproductbyid/${product.id}`}  class="font-medium text-white hover:underline">Edit</a>
+                                                <a href={`/editproductbyid/${product.id}`} class="font-medium text-white hover:underline">Edit</a>
                                             </div>
                                         </div>
 
@@ -154,9 +168,23 @@ function ViewProduct() {
 
                     </tbody>
                 </table>
+                </div>
+                <div className="mt-6 flex justify-center">
+                        <ReactPaginate
+                            previousLabel={"← Previous"}
+                            nextLabel={"Next →"}
+                            pageCount={pageCount}
+                            onPageChange={({ selected }) => setCurrentPage(selected)}
+                            containerClassName={"flex space-x-2"}
+                            pageClassName={"px-3 py-2 border rounded-lg cursor-pointer hover:bg-gray-200"}
+                            previousClassName={"px-3 py-2 border rounded-lg cursor-pointer hover:bg-gray-200"}
+                            nextClassName={"px-3 py-2 border rounded-lg cursor-pointer hover:bg-gray-200"}
+                            activeClassName={"bg-yellow-600 text-white"}
+                        />
+                    </div>
             </div>
-    </div>
-  )
+        </div>
+    )
 }
 
 export default ViewProduct

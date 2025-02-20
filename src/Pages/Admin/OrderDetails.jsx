@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom';
 import { database } from '../../FirebaseConfig';
-import { get, ref } from 'firebase/database';
-import { ToastContainer } from 'react-toastify';
+import { get, getDatabase, ref, update } from 'firebase/database';
+import { toast, ToastContainer } from 'react-toastify';
 import img from "../../assets/orderd.jpg"
 
 function OrderDetails() {
@@ -11,6 +11,22 @@ function OrderDetails() {
     // Fetch the orderId from the URL
     const [orderDetails, setOrderDetails] = useState(null);
     const [loading, setLoading] = useState(true);
+
+
+    const updateOrderStatus = async (status) => {
+        const db = getDatabase();
+        const orderRef = ref(db, `orders/${userId}/${orderId}`);
+
+        try {
+            await update(orderRef, { orderStatus: status });
+            toast.success(`Order status updated to ${status}`);
+            setOrderDetails((prev) => ({ ...prev, orderStatus: status }));
+
+        } catch (error) {
+            console.error("Error updating order status:", error);
+            toast.error("Failed to update order status");
+        }
+    };
 
     useEffect(() => {
         const fetchOrderDetails = async () => {
@@ -42,8 +58,8 @@ function OrderDetails() {
     }
     return (
         <div>
-            <div className="container mx-auto p-8">
-                <h2 className="text-4xl font-bold text-yellow-600 mb-8 text-center">Order Details</h2>
+            <div className="md:ml-64 md:p-6 p-2 min-h-screen">
+                <h2 className="text-4xl font-bold text-yellow-600 mb-8">Order Details</h2>
 
                 {/* Print Button */}
                 <div className="flex justify-end mb-6 p-5">
@@ -94,6 +110,32 @@ function OrderDetails() {
                         </div>
                         <div className='flex justify-center my-auto'>
                             <img src={img} className='w-64 h-64 rounded-full border-4 border-yellow-600'></img>
+                            {/* <div className="flex gap-2 p-5">
+                                <button
+                                    className="px-2 py-1 bg-[#D98C00] text-white rounded hover:scale-95"
+                                    onClick={() => updateOrderStatus('Processing')}
+                                >
+                                    Accept
+                                </button>
+                                <button
+                                    className="px-4 py-2 bg-green-500 text-white rounded hover:scale-95"
+                                    onClick={() => updateOrderStatus('Shipped')}
+                                >
+                                    Shipped
+                                </button>
+                                <button
+                                    className="px-2 py-1 bg-[#6C4600] text-white rounded hover:scale-95"
+                                    onClick={() => updateOrderStatus('Order Completed')}
+                                >
+                                    Completed
+                                </button>
+                                <button
+                                    className="px-2 py-1 bg-black text-white rounded hover:scale-95"
+                                    onClick={() => updateOrderStatus('Rejected')}
+                                >
+                                    Reject
+                                </button>
+                            </div> */}
                         </div>
                     </div>
                     <h4 className="text-lg font-semibold mt-4 mb-2">Order Items</h4>

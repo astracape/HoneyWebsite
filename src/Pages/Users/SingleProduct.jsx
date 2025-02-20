@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom';
 import { getDatabase, ref, get, set } from "firebase/database";
-import img from "../assets/productpage.jpg"
+import img from "../../assets/productpage.jpg"
 import { getAuth } from 'firebase/auth';
-import { database } from '../FirebaseConfig';
+import { database } from '../../FirebaseConfig';
 import { ToastContainer, toast } from 'react-toastify';
 
 function SingleProduct() {
@@ -16,7 +16,7 @@ function SingleProduct() {
     const fetchProduct = async () => {
       try {
 
-        const categories = ['honey', 'spices', 'oil', 'coconut'];
+        const categories = ['honey', 'spices', 'oil', 'coconut','nuts','wholesale'];
         let foundProduct = null;
 
         for (let category of categories) {
@@ -52,7 +52,7 @@ function SingleProduct() {
 
     if (user) {
       const userId = user.uid;
-      const userCartRef = ref(database, `users/${userId}/details/cart`);
+      const userCartRef = ref(database, `users/${userId}/cart`);
 
       try {
         // Get the current cart for the user
@@ -69,24 +69,36 @@ function SingleProduct() {
       }
     } else {
       // Prompt login if user is not authenticated
-      navigate('/login');
+      const localCart = JSON.parse(sessionStorage.getItem("cart")) || [];
+      const existingProductIndex = localCart.findIndex((item) => item.id === product.id);
+
+      if (existingProductIndex > -1) {
+          // If the product is already in the cart, increment its quantity
+          localCart[existingProductIndex].quantity += 1;
+      } else {
+          // Otherwise, add the product with a default quantity of 1
+          localCart.push({ ...product, quantity: 1 });
+      }
+
+      sessionStorage.setItem("cart", JSON.stringify(localCart));
+      toast.success("Product added to your cart!");
     }
   };
   return (
     <div>
       <div className="relative h-96 bg-cover bg-center" style={{ backgroundImage: `url(${img})` }}>
-        {/* <div className="absolute inset-0 bg-black opacity-50"></div> */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent"></div>
         <div className='p-10 flex justift-center items-center h-full'>
           <div className='font-thin text-7xl bebas-neue-regular'>{product.name}</div>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 p-6 gap-20 w-full h-auto">
-        <div className='flex justify-end items-end'>
-          <img src={product.imageUrl} alt={product.name} className="w-96 h-96 object-cover mb-4 rounded" />
+      <div className="grid grid-cols-1 md:grid-cols-2 p-8 gap-12 max-w-6xl mx-auto mt-10">
+        <div className='flex justify-center items-center'>
+          <img src={product.imageUrl} alt={product.name} className="w-full h-auto max-w-md object-cover rounded-lg" />
         </div>
-        <div className='my-auto flex flex-col justify-start items-start'>
-          <h1 className="text-3xl font-bold">{product.name}</h1>
-          <p className="text-xl font-semibold mt-4">₹{product.price}</p>
+        <div className=' flex flex-col justify-center items-start space-y-6 border-l-2 pl-8'>
+          <h1 className="text-3xl font-bold ">{product.name}</h1>
+          <p className="text-xl font-semibold mt-4 ">__</p>
           <p className="text-gray-500 mt-2">Category: {product.category}</p>
 
           <button
@@ -96,22 +108,24 @@ function SingleProduct() {
           </button>
         </div>
       </div>
-      <div className='p-10 font-semibold'>
+     
+      <div className='p-10 font-semibold max-w-6xl mx-auto'>
         <h1 className='text-4xl font-bold'>Description</h1>
-        <p className="text-gray-600 mt-2">{product.description}</p>
+        <p className="text-gray-600 mt-2 leading-relaxed">{product.description}</p>
+        <p className='font-bold mt-5 italic'>Try it today!</p>
       </div>
-      <p className='font-bold p-10 italic'>Try it today!</p>
+
       <ToastContainer
-                position="bottom-center"
-                autoClose={5000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-            />
+        position="bottom-center"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </div>
   )
 }

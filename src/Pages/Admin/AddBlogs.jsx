@@ -68,27 +68,28 @@ const addBlog = () => {
 
     
   return (
-    <div>
-        <div className="max-w-3xl mx-auto mt-10 p-6 bg-gray-100 rounded-lg shadow-lg">
+    <div className='md:ml-44 md:p-6 p-2'>
+        <div className="max-w-4xl mx-auto mt-2 p-6 bg-gray-100 rounded-lg shadow-lg space-y-6">
             <h2 className="text-3xl font-semibold mb-6">Add Blog Post</h2>
             {/* <form onSubmit={handleSubmit} className="space-y-6"> */}
                 
                 {/* Date Field */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Date</label>
+                    <label className="block text-sm font-bold text-gray-700">Date</label>
                     <input
                         type="date"
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-0 focus:border-transparent sm:text-sm"
                         value={date}
                         onChange={(e) => setDate(e.target.value)}
                         required
+                        max={new Date().toISOString().split("T")[0]}
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Description</label>
+                    <label className="block text-sm font-bold text-gray-700">Description</label>
                     <ReactQuill
                         rows="4"
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        className="mt-1 block w-full px-3 py-2 min-h-[150px] space-y-6 border border-gray-300 rounded-md shadow-sm focus:outline-none  sm:text-sm"
                         placeholder="Add a description..."
                         value={description}
                         // onChange={(e) => setDescription(e.target.value)}
@@ -100,17 +101,17 @@ const addBlog = () => {
                 <img
                     src={previewImage}
                     alt="Product Preview"
-                    className="w-96 h-2/4 object-cover mb-4 rounded-full border-4 border-yellow-600 mx-auto xl:mx-48"
+                    className="w-96 h-2/4 object-cover mb-4 rounded-lg border-4 border-yellow-600 mx-auto xl:mx-48"
                 />
             )}
                 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 ">Add Image</label>
+                    <label className="block text-sm font-bold text-gray-700 ">Add Image</label>
                     <input
                         type="file"
                         accept="image/*"
                         onChange={handleImageChange}
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm cursor-pointer"
                     />
                 </div>
 
@@ -119,7 +120,7 @@ const addBlog = () => {
                     <button
                     onClick={addBlog}
                         type="submit"
-                        className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
                     >
                         Publish Blog
                     </button>

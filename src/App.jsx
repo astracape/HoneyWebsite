@@ -4,18 +4,18 @@ import viteLogo from '/vite.svg'
 import './App.css'
 import AOS from "aos";
 import "aos/dist/aos.css";
-import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import NavBar from './Pages/NavBar'
-import HomePage from './Pages/HomePage'
-import Footer from './Pages/Footer'
+import HomePage from './Pages/Users/HomePage'
+import Footer from './layouts/Footer'
 import SideBar from './Pages/Admin/SideBar'
 import AddProduct from './Pages/Admin/AddProduct'
-import ProductPage from './Pages/ProductPage'
-import SingleProduct from './Pages/SingleProduct'
+import ProductPage from './Pages/Users/ProductPage'
+import SingleProduct from './Pages/Users/SingleProduct'
 import ViewProduct from './Pages/Admin/ViewProduct'
-import AboutUs from './Pages/AboutUs'
+import AboutUs from './Pages/Users/AboutUs'
 import EditProduct from './Pages/Admin/EditProduct'
-import BlogPage from './Pages/BlogPage'
+import BlogPage from './Pages/Users/BlogPage'
 import AddBlogs from './Pages/Admin/AddBlogs'
 import Loginpage from './Pages/Loginpage'
 import RegisterationPage from './Pages/RegisterationPage'
@@ -24,23 +24,28 @@ import { auth, database } from './FirebaseConfig'
 import { get, ref } from 'firebase/database'
 import AdminRoute from './Pages/AdminRoute'
 import Dashboard from './Pages/Admin/Dashboard'
-import FullBlogPage from './Pages/FullBlogPage'
+import FullBlogPage from './Pages/Users/FullBlogPage'
 import ViewBlogs from './Pages/Admin/ViewBlogs'
 import { BounceLoader } from "react-spinners";
-import Cart from './Pages/Cart'
-import Checkout from './Pages/Checkout';
+import Cart from './Pages/Users/Cart'
+import Checkout from './Pages/Users/Checkout';
 import ForgotPassword from './Pages/ForgotPassword';
 import SuccessPage from './Pages/SuccessPage';
 import OrderDetails from './Pages/Admin/OrderDetails';
 import OrderHistory from './Pages/OrderHistory';
+import OrderManagement from './Pages/Admin/OrderManagement';
+import UsersTable from './Pages/Admin/UsersTable';
+
 
 
 function App() {
   const [isAuth, setIsAuth] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  // const location = useLocation();
 
 
+  // const isAdminPage = location.pathname.includes("/admin");
   useEffect(() => {
     AOS.init({ once: false });
   }, []);
@@ -93,6 +98,24 @@ function App() {
               <AdminRoute element={<><SideBar /><AddProduct /></>} isAuth={isAuth} isAdmin={isAdmin} />
             }
           />
+           <Route
+            path="/users"
+            element={
+              <AdminRoute element={<><SideBar /><UsersTable /></>} isAuth={isAuth} isAdmin={isAdmin} />
+            }
+          />
+           <Route
+            path="/orders"
+            element={
+              <AdminRoute element={<><SideBar /><OrderManagement /></>} isAuth={isAuth} isAdmin={isAdmin} />
+            }
+          />
+          {/* <Route
+            path="/orders1"
+            element={
+              <AdminRoute element={<><Orders /></>} isAuth={isAuth} isAdmin={isAdmin} />
+            }
+          /> */}
           <Route
             path="/viewproduct"
             element={

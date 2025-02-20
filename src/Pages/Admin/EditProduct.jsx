@@ -16,7 +16,7 @@ function EditProduct() {
 
     useEffect(() => {
         const fetchProduct = async () => {
-            const categories = ['honey', 'spices', 'oil', 'coconut'];
+            const categories = ['honey', 'spices', 'oil', 'coconut','nuts','wholesale'];
             for (let category of categories) {
                 const productRef = ref(database, `products/categories/${category}/${productId}`);
                 const snapshot = await get(productRef);

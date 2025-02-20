@@ -11,6 +11,25 @@
         "source": "**",
         "destination": "/index.html"
       }
-    ]
+    ],
+    "redirects": [
+      {
+        "source": "https://capenaturals.in",
+        "destination": "https://www.capenaturals.in",
+        "type": 301
+      }
+    ],
+    "headers": [
+      {
+        "source": "/sitemap.xml",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml"
+          }
+        ]
+      }
+    ],
+    "httpsOnly": true
   }
 }

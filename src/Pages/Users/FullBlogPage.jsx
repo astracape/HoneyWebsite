@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import img from "../assets/oatmeal-cookies-honey-jar-isolated-pastel-background-copy-space_176841-82698.jpg"
-import img1 from "../assets/bee1.png"
+import img from "../../assets/oatmeal-cookies-honey-jar-isolated-pastel-background-copy-space_176841-82698.jpg"
+
 
 import { useParams } from 'react-router-dom';
-import { database } from '../FirebaseConfig';
+import { database } from '../../FirebaseConfig';
 import { get, ref } from 'firebase/database';
 
 function FullBlogPage() {

@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import img from "../assets/17.png"
-import img1 from "../assets/Group 70.png"
+import img1 from "../../assets/Group 70.png"
 import { Country, State, City } from 'country-state-city';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../FirebaseConfig';
+import { auth } from '../../FirebaseConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { getDatabase, onValue, push, ref, remove, set } from 'firebase/database';
@@ -25,9 +24,9 @@ function Checkout() {
         paymentMethod: '',
     });
     // console.log(Country.getAllCountries())
-const navigate=useNavigate()
+    const navigate = useNavigate()
     const [country, setCountry] = useState(null);
-    const[user,setUser]=useState()
+    const [user, setUser] = useState()
     const [state, setState] = useState(null);
     const [city, setCity] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -65,7 +64,7 @@ const navigate=useNavigate()
         e.preventDefault();
         if (isSubmitting) return; // Prevent duplicate submissions
         setIsSubmitting(true);
-    
+
         // Early return if user is not logged in
         if (!user) {
             toast.warning("Please log in to place your order");
@@ -73,9 +72,9 @@ const navigate=useNavigate()
             setIsSubmitting(false);
             return;
         }
-    
+
         const orderDetails = createOrderDetails(formData, cartItems);
-    
+
         try {
             if (formData.paymentMethod === "Razorpay") {
                 await handleRazorpayPayment(orderDetails);
@@ -89,7 +88,7 @@ const navigate=useNavigate()
             setIsSubmitting(false); // Reset submission flag
         }
     };
-    
+
     // Helper function to create order details
     const createOrderDetails = (formData, cartItems) => {
         return {
@@ -108,15 +107,20 @@ const navigate=useNavigate()
             // cartItems,
             cartItems: cartItems.map(item => ({
                 ...item,
-                 // Store the total price per item based on quantity
+                // Store the total price per item based on quantity
             })),
-            totalAmount: cartItems.reduce((total, item) => total + parseFloat(item.price), 0),
+            // totalAmount: cartItems.reduce((total, item) => total + parseFloat(item.price), 0),
+            totalAmount: cartItems.length ? cartItems.reduce((total, item) => {
+                const price = parseFloat(item.price);
+                return total + (isNaN(price) ? 0 : price);
+            }, 0) : 0,
+            
             paymentMethod: formData.paymentMethod,
             orderStatus: "Pending",
             timestamp: new Date().toISOString(),
         };
     };
-    
+
     // Helper function for Razorpay payment
     const handleRazorpayPayment = async (orderDetails) => {
         const orderAmount = orderDetails.totalAmount * 100; // Convert to paise
@@ -145,7 +149,7 @@ const navigate=useNavigate()
                 color: "#F37254",
             },
         };
-    
+
         const rzp = new window.Razorpay(options);
         rzp.on("payment.failed", (response) => {
             console.error("Payment Failed:", response.error);
@@ -153,7 +157,7 @@ const navigate=useNavigate()
         });
         rzp.open();
     };
-    
+
     // Helper function for Cash on Delivery
     const handleCashOnDelivery = async (orderDetails) => {
         await saveOrderToDatabase(orderDetails);
@@ -161,29 +165,48 @@ const navigate=useNavigate()
         toast.success("Order Placed Successfully!");
         navigate("/successpage");
     };
-    
+
     // Helper function to save order to Firebase
-    const saveOrderToDatabase = async (orderDetails) => {
-        const db = getDatabase();
-        const ordersRef = ref(db, `orders/${user.uid}`); // Centralized orders node
-        
-        // Push the order to the 'orders' node, with the userId included in the order
-        const newOrderRef = push(ordersRef);  // Generate unique ID for order
-        const orderData = {
-            ...orderDetails,
-            userId: user.uid, // Store the userId with the order
-        };
-        
-        await set(newOrderRef, orderData); // Save the order with the userId in the database
+    // const saveOrderToDatabase = async (orderDetails) => {
+    //     const db = getDatabase();
+    //     const ordersRef = ref(db, `orders/${user.uid}`); // Centralized orders node
+
+    //     // Push the order to the 'orders' node, with the userId included in the order
+    //     const newOrderRef = push(ordersRef);  // Generate unique ID for order
+    //     const orderData = {
+    //         ...orderDetails,
+    //         userId: user.uid, // Store the userId with the order
+    //     };
+
+    //     await set(newOrderRef, orderData); // Save the order with the userId in the database
+    // };
+    // Helper function to save order to Firebase with a short readable order ID
+const saveOrderToDatabase = async (orderDetails) => {
+    const db = getDatabase();
+
+    // Generate a short custom order ID
+    const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
+    const randomString = Math.random().toString(36).substring(2, 6).toUpperCase(); // 4-char random string
+    const orderId = `ORD-${timestamp}-${randomString}`; // Example: ORD-654321-ABCD
+
+    const orderData = {
+        ...orderDetails,
+        userId: user.uid, // Store user ID
+        orderId: orderId, // Store custom order ID
     };
-    
+
+    // Save order with custom order ID as key
+    await set(ref(db, `orders/${user.uid}/${orderId}`), orderData);
+};
+
+
     // Helper function to clear user's cart from Firebase
     const clearUserCart = async (uid) => {
         const db = getDatabase();
         const userCartRef = ref(db, `users/${uid}/cart`);
         await remove(userCartRef);
     };
-    
+
     return (
         <div>
             <div className="relative h-96 bg-cover bg-center" style={{ backgroundImage: `url(${img1})` }}>
@@ -198,14 +221,14 @@ const navigate=useNavigate()
 
                     <h3 className="text-2xl font-semibold mb-4">Billing Details</h3>
                     <form onSubmit={handleSubmit}>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
                             <div className="flex flex-col">
                                 <label htmlFor="firstName" className="text-gray-700">First Name *</label>
                                 <input
                                     type="text"
                                     id="firstName"
                                     name="firstName"
-                                    className="mt-2 px-4 py-2 border rounded-md"
+                                    className="mt-2 px-4 py-2 border rounded-md w-full"
                                     required
                                     onChange={handleInputChange}
                                     pattern="[A-Za-z\s]{2,50}"
@@ -218,7 +241,7 @@ const navigate=useNavigate()
                                     type="text"
                                     id="lastName"
                                     name="lastName"
-                                    className="mt-2 px-4 py-2 border rounded-md"
+                                    className="mt-2 px-4 py-2 border rounded-md w-full"
                                     onChange={handleInputChange}
                                     required
                                     pattern="[A-Za-z\s]{2,50}"
@@ -243,7 +266,7 @@ const navigate=useNavigate()
                                         country: selectedCountry ? selectedCountry.name : '',
                                     }));
                                 }}
-                                className="mt-2 px-4 py-2 border rounded-md"
+                                className="mt-2 px-4 py-2 border rounded-md w-full"
                                 required
                             >
                                 <option value="">Select Country</option>
@@ -261,7 +284,7 @@ const navigate=useNavigate()
                                 type="text"
                                 id="address"
                                 name="address"
-                                className="mt-2 px-4 py-2 border rounded-md"
+                                className="mt-2 px-4 py-2 border rounded-md w-full"
                                 onChange={handleInputChange}
                                 required
                             />
@@ -275,12 +298,12 @@ const navigate=useNavigate()
                                 value={formData.apartment}
                                 name="apartment"
                                 onChange={handleInputChange}
-                                className="mt-2 px-4 py-2 border rounded-md"
+                                className="mt-2 px-4 py-2 border rounded-md w-full"
                             />
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                            
+
                             <div className="flex flex-col">
                                 <label htmlFor="state" className="text-gray-700">State *</label>
                                 <select
@@ -295,7 +318,7 @@ const navigate=useNavigate()
                                             state: selectedState ? selectedState.name : '',
                                         }));
                                     }}
-                                    className="mt-2 px-4 py-2 border rounded-md"
+                                    className="mt-2 px-4 py-2 border rounded-md w-full"
                                     required
                                 >
                                     <option value="">Select State</option>
@@ -315,7 +338,7 @@ const navigate=useNavigate()
                                     value={formData.city}
                                     onChange={handleInputChange
                                     }
-                                    className="mt-2 px-4 py-2 border rounded-md"
+                                    className="mt-2 px-4 py-2 border rounded-md w-full"
                                     required
                                 >
                                     <option value="">Select City</option>
@@ -337,7 +360,7 @@ const navigate=useNavigate()
                                     id="pinCode"
                                     name="pinCode"
                                     onChange={handleInputChange}
-                                    className="mt-2 px-4 py-2 border rounded-md"
+                                    className="mt-2 px-4 py-2 border rounded-md w-full"
                                     required
                                 />
                             </div>
@@ -348,7 +371,7 @@ const navigate=useNavigate()
                                     id="phone"
                                     name="phone"
                                     onChange={handleInputChange}
-                                    className="mt-2 px-4 py-2 border rounded-md"
+                                    className="mt-2 px-4 py-2 border rounded-md w-full"
                                     required
                                 />
                             </div>
@@ -361,7 +384,7 @@ const navigate=useNavigate()
                                 id="email"
                                 name="email"
                                 onChange={handleInputChange}
-                                className="mt-2 px-4 py-2 border rounded-md"
+                                className="mt-2 px-4 py-2 border rounded-md w-full"
                                 required
                             />
                         </div>
@@ -427,14 +450,14 @@ const navigate=useNavigate()
                 pauseOnFocusLoss
                 draggable
                 pauseOnHover
-                // toastStyle={{
-                //     borderRadius: "8px",
-                //     border:"",
-                //     padding: "15px",
-                //   }}
+            // toastStyle={{
+            //     borderRadius: "8px",
+            //     border:"",
+            //     padding: "15px",
+            //   }}
             />
         </div>
-        
+
     )
 }
 
