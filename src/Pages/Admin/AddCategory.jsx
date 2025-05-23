@@ -130,17 +130,6 @@ function AddCategory() {
         setEditingCategory(category);
     };
 
-    // const handleDelete = async (id) => {
-    //     if (window.confirm("Are you sure you want to delete this category?")) {
-    //         try {
-    //             await deleteDoc(doc(database, "categories", id));
-    //             toast.success("Category deleted!");
-    //             fetchCategories();
-    //         } catch (error) {
-    //             toast.error("Failed to delete category.");
-    //         }
-    //     }
-    // };
     const handleDelete = async (categoryId) => {
         if (window.confirm("Are you sure you want to delete this category and all its products?")) {
             try {

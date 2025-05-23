@@ -31,40 +31,6 @@ function CouponForm({ onClose, couponToEdit }) {
         }
     }, [couponToEdit]);
 
-    // const handleSubmit = async (e) => {
-    //     e.preventDefault();
-    //     setLoading(true);
-    //     setError("");
-
-    //     const couponData = {
-    //         code,
-    //         discountType,
-    //         discountValue: Number(discountValue),
-    //         validFrom,
-    //         validTo,
-    //         minimumOrderValue: Number(minimumOrderValue),
-    //         maxDiscount: Number(maxDiscount) || null,
-    //         usageLimit: Number(usageLimit),
-    //         isActive: new Date(validFrom) <= new Date() && new Date(validTo) >= new Date(),
-    //         applicableProducts: applicableProducts
-    //             ? applicableProducts.split(",").map((item) => item.trim())
-    //             : [],
-    //         createdAt: serverTimestamp(),
-    //         createdBy: "admin_user",
-    //         usedCount: 0,
-    //     };
-
-    //     try {
-    //         const docRef = await addDoc(collection(database, "coupons"), couponData);
-    //         console.log("Coupon Created with ID:", docRef.id);
-    //         onClose(); // Close the modal after successful submission
-    //     } catch (err) {
-    //         console.error("Error adding coupon:", err);
-    //         setError("Failed to add coupon. Please try again.");
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
  
     const handleSubmit = async (e) => {
         e.preventDefault();

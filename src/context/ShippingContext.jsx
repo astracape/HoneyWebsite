@@ -56,58 +56,6 @@ export const ShippingProvider = ({ children }) => {
         }
     };
     
-    // const fetchShippingRate = async (state, shippingType) => {
-    //     if (!state || !shippingType)
-    //         {
-    //             console.warn("Missing state or shipping type:", state, shippingType);
-    //             return; }
-    //             const normalizedState = state.trim();
-    //             const normalizedType = shippingType.trim();
-    //     setLoading(true);
-    //     setError(null);
-      
-    //     try {
-    //         console.log("Fetching rate for:", state, shippingType);
-    //       const q = query(
-    //         collection(database, "shipping_methods"),
-    //         where("region", "==", normalizedState),
-    //         // where("type", "==", shippingType)
-    //         where('type', '==', normalizedType)
-    //       );
-      
-    //       const snapshot = await getDocs(q);
-    //       console.log('Querying for:', { state, type: normalizedType });
-    //       console.log("Documents found:", snapshot.size);
-
-      
-    //     //   if (!snapshot.empty) {
-    //     //     const method = snapshot.docs[0].data();
-    //     //     console.log("Matched method:",  doc.id, doc.data());
-    //     //     setShippingRate(method.rate);
-    //     //   } else {
-    //     //     console.warn("No match found for", state, shippingType);
-    //     //     setShippingRate(0);
-    //     //     setError("No shipping rate found");
-    //     //   }
-    //     if (!snapshot.empty) {
-    //         snapshot.forEach((doc) => {
-    //           console.log("Matched doc:", doc.id, doc.data());
-    //         });
-      
-    //         const method = snapshot.docs[0].data();
-    //         setShippingRate(method.rate);
-    //       } else {
-    //         setShippingRate(0);
-    //         setError("No shipping rate found");
-    //       }
-    //     } catch (err) {
-    //       console.error("Error fetching shipping rate:", err);
-    //       setShippingRate(0);
-    //       setError("Error fetching rate");
-    //     } finally {
-    //       setLoading(false);
-    //     }
-    //   };
      
     const fetchShippingRate = async (state, shippingType) => {
         if (!state || !shippingType) {

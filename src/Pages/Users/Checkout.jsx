@@ -161,55 +161,7 @@ if (!checkoutData.useSameAddress && !checkoutData.billingComplete) {
         }
     };
 
-    // const createOrderDetails = () => {
-    //     const timestamp = Date.now().toString().slice(-6);
-    //     const randomString = Math.random().toString(36).substring(2, 6).toUpperCase();
-    //     const orderId = `ORD-${timestamp}-${randomString}`;
-
-    //     return {
-    //         orderId,
-    //         userId: user.uid,
-    //         shippingAddress: {
-    //             firstName: formData.firstName, 
-    //             lastName: formData.lastName,
-    //             address: `${formData.address}${formData.apartment ? ', ' + formData.apartment : ''}`,
-    //             city: formData.city,
-    //             state: formData.state,
-    //             country: formData.country,
-    //             pinCode: formData.pinCode,
-    //         },
-    //         billingAddress: useSameAddress ? {
-    //             firstName: formData.firstName, 
-    //             lastName: formData.lastName,
-    //             address: `${formData.address}${formData.apartment ? ', ' + formData.apartment : ''}`,
-    //             city: formData.city,
-    //             state: formData.state,
-    //             country: formData.country,
-    //             pinCode: formData.pinCode,
-    //         } : {
-    //             address: `${billingData.address}${billingData.apartment ? ', ' + billingData.apartment : ''}`,
-    //             city: billingData.city,
-    //             state: billingData.state,
-    //             country: billingData.country,
-    //             pinCode: billingData.pinCode,
-    //         },
-    //         items: cart.map(item => ({
-    //             id: item.id,
-    //             name: item.name,
-    //             price: item.price,
-    //             quantity: item.quantity,
-    //             imageUrl: item.imageUrl,
-    //             weight: item.weight
-    //         })),
-    //         subtotal: cart.reduce((total, item) => total + item.price * item.quantity, 0),
-    //         shipping: shippingRate || 0,
-    //         discount: discountAmount || 0,
-    //         total: calculateFinalTotal(),
-    //         paymentMethod: formData.paymentMethod,
-    //         status: "Pending",
-    //         createdAt: new Date().toISOString(),
-    //     };
-    // };
+    
     const createOrderDetails = () => {
     const timestamp = Date.now().toString().slice(-6);
     const randomString = Math.random().toString(36).substring(2, 6).toUpperCase();
