@@ -1,7 +1,10 @@
-import { onValue, ref, remove, update } from 'firebase/database';
+import { onValue, query, ref, remove, update } from 'firebase/database';
 import React, { useEffect, useState } from 'react'
+import 'react-toastify/dist/ReactToastify.css';
 import { database } from '../../FirebaseConfig';
 import { toast, ToastContainer } from 'react-toastify';
+import { collection, deleteDoc, doc, onSnapshot, orderBy, updateDoc } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 
 function UsersTable() {
     const [users, setUsers] = useState([]);
@@ -13,22 +16,26 @@ function UsersTable() {
 
 
     useEffect(() => {
-        const usersRef = ref(database, "users");
-        onValue(usersRef, (snapshot) => {
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-                const usersList = Object.keys(data).map((key) => ({
-                    id: key,
-                    ...data[key],
-                }));
-                const otherUsers = usersList.filter(user => user.role !== "admin");
-                const sortedUsers = [...otherUsers].sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0))
+        const usersRef = collection(database, "users");
+        const usersQuery = query(usersRef, orderBy("timestamp", "desc"));
 
-                setUsers(sortedUsers);
+        // Listen for real-time updates
+        const unsubscribe = onSnapshot(usersQuery, (snapshot) => {
+            if (!snapshot.empty) {
+                const usersList = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                }));
+
+                // Filter out admins
+                const otherUsers = usersList.filter(user => user.role !== "admin");
+
+                setUsers(otherUsers);
             } else {
                 setUsers([]);
             }
         });
+        return () => unsubscribe();
     }, []);
 
     const searchedOrders = users.filter((user) => {
@@ -50,13 +57,23 @@ function UsersTable() {
         if (!selectedUserId) return;
 
         try {
-            await remove(ref(database, `users/${selectedUserId}`));
+            const userRef = doc(database, "users", selectedUserId);
+            // Delete user from Firestore
+            await deleteDoc(userRef);
+
+            // Remove from Firebase Authentication
+            const auth = getAuth();
+            const user = auth.currentUser 
+
+            if (user && user.uid === selectedUserId) {
+                await deleteUser(user); // Delete user from Firebase Authentication
+            }
             setUsers(users.filter(user => user.id !== selectedUserId));
             setShowModal(false);
             setSelectedUserId(null);
             toast.success("User deleted successfully!");
         } catch (error) {
-            console.error("Error deleting user:", error);
+            toast.error("Error deleting user",error)
         }
     };
 
@@ -68,7 +85,7 @@ function UsersTable() {
     const handleUpdate = async () => {
         if (!editUserData.id) return;
         try {
-            await update(ref(database, `users/${editUserData.id}`), {
+            await updateDoc(doc(database, `users/${editUserData.id}`), {
                 name: editUserData.name,
                 email: editUserData.email,
                 phone: editUserData.phone,
@@ -78,10 +95,11 @@ function UsersTable() {
             setEditModal(false);
             setShowModal(false);
         } catch (error) {
-            console.error("Error updating user:", error);
+            toast.error("Error updating user",error)
         }
     };
     return (
+        <div>
         <div className='md:ml-44 md:p-6 p-2 min-h-screen'>
             <div className=" max-w-screen-xl md:ml-20">
                 <h1 className=" mb-10 text-2xl font-bold text-gray-900">Users</h1>
@@ -146,7 +164,7 @@ function UsersTable() {
                                                     Delete
                                                 </button>
                                                 <button
-                                                onClick={() => openEditModal(user)} className="bg-yellow-600 rounded-lg text-white h-8 w-24">
+                                                    onClick={() => openEditModal(user)} className="bg-yellow-600 rounded-lg text-white h-8 w-24">
                                                     Edit
                                                 </button>
                                             </div>
@@ -182,35 +200,36 @@ function UsersTable() {
                         </div>
                     )}
                     {editModal && (
-                    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                        <div className="bg-white p-6 rounded-lg shadow-lg">
-                            <h2 className="text-xl font-semibold mb-4">Edit User</h2>
-                            <input type="text" name="name" value={editUserData.name} onChange={handleEditChange} className="block w-full mb-2 p-2 border rounded" placeholder="Name" />
-                            <input type="email" name="email" value={editUserData.email} onChange={handleEditChange} className="block w-full mb-2 p-2 border rounded" placeholder="Email" />
-                            <input type="text" name="phone" value={editUserData.phone} onChange={handleEditChange} className="block w-full mb-2 p-2 border rounded" placeholder="Phone" />
-                            <button onClick={handleUpdate} className="bg-yellow-600 text-white px-4 py-2 rounded-lg mt-2">Update</button>
-                            <button
+                        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                            <div className="bg-white p-6 rounded-lg shadow-lg">
+                                <h2 className="text-xl font-semibold mb-4">Edit User</h2>
+                                <input type="text" name="name" value={editUserData.name} onChange={handleEditChange} className="block w-full mb-2 p-2 border rounded" placeholder="Name" />
+                                <input type="email" name="email" value={editUserData.email} onChange={handleEditChange} className="block w-full mb-2 p-2 border rounded" placeholder="Email" />
+                                <input type="text" name="phone" value={editUserData.phone} onChange={handleEditChange} className="block w-full mb-2 p-2 border rounded" placeholder="Phone" />
+                                <div className='flex justify-between'>
+                                    <button onClick={handleUpdate} className="bg-yellow-600 text-white px-4 py-2 rounded-lg">Update</button>
+                                    <button
                                         onClick={() => setEditModal(false)}
                                         className="bg-gray-400 text-white px-4 py-2 rounded-lg">
                                         Cancel
                                     </button>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
                     <ToastContainer
                         position="bottom-center"
-                        autoClose={2000}
+                        autoClose={1200}
+                        limit={1}
                         hideProgressBar={false}
-                        newestOnTop={false}
-                        closeOnClick
-                        rtl={false}
-                        pauseOnFocusLoss
-                        draggable
-                        pauseOnHover
                     />
                 </div>
             </div>
+            
         </div>
+        
+        </div>
+        
     )
 }
 

@@ -1,13 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useContext } from 'react'
 import { FaUser, FaEllipsisV, FaBars, FaTimes, FaChevronDown, FaTachometerAlt, FaSignOutAlt, FaHistory } from "react-icons/fa";
 import { BsCart4 } from "react-icons/bs";
-// import logo from "../assets/logo.png"
+import 'react-toastify/dist/ReactToastify.css';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth, database } from '../FirebaseConfig';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { get, onValue, ref } from 'firebase/database';
 import { toast } from 'react-toastify';
-import { FaEllipsisVertical } from 'react-icons/fa6';
+import { collection, doc, getDoc, onSnapshot } from 'firebase/firestore';
+import { CartContext } from '../context/CartContext';
 
 function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin }) {
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -15,18 +15,19 @@ function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin }) {
   const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState(false);
   const [isAccountDropdownOpen, setAccountDropdownOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
-  const [userName, setUserName] = useState(""); 
+  const [userName, setUserName] = useState("");
   const toggleMobileDropdown = () => setIsMobileDropdownOpen(!isMobileDropdownOpen);
   const dropdownRef = useRef(null); // For dropdown
   const iconRef = useRef(null); // For icon
+  const { cart } = useContext(CartContext);
 
   const toggleMobileMenu1 = () => {
     setMobileMenuOpen(!isMobileMenuOpen);
   };
 
   const handleLogoutAndCloseMenu = async () => {
-    await handleLogout(); // Perform logout
-    toggleMobileMenu(); // Close the sidebar
+    await handleLogout(); 
+    toggleMobileMenu(); 
   };
 
   useEffect(() => {
@@ -63,44 +64,39 @@ function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
+        await user.reload(); // Ensure latest email verification status
+        user = auth.currentUser; // Refresh user state        
+
+        if (!user.emailVerified) {
+          // toast.error("Please verify your email before logging in.");
+          await signOut(auth);
+          localStorage.removeItem("userId");
+          sessionStorage.clear();
+          setIsAuth(false);
+          setIsAdmin(false);
+          setAccountDropdownOpen(false);
+          return;
+        }
+
         setIsAuth(true);
         setAccountDropdownOpen(false);
         localStorage.setItem("userId", user.uid);
 
         // Fetch user role
-        const userRef = ref(database, `users/${user.uid}`);
-        const snapshot = await get(userRef);
-        const userData = snapshot.val();
+        const userRef = doc(database, "users", user.uid);
+        const snapshot = await getDoc(userRef);
+        const userData = snapshot.data();
         if (userData) {
-          setIsAdmin(userData?.role === 'admin');
-          setUserName(userData.name || "User"); // Fallback if name is missing
+          setIsAdmin(userData?.role === "admin");
+          setUserName(userData.name || "User");
         }
-       
-
-        // Fetch cart count from Firebase
-        const cartRef = ref(database, `users/${user.uid}/cart`);
-        onValue(cartRef, (snapshot) => {
-          if (snapshot.exists()) {
-            setCartCount(Object.keys(snapshot.val()).length);
-          } else {
-            setCartCount(0);
-          }
-        });
-      } else {
-        setIsAuth(false);
-        setIsAdmin(false);
-        localStorage.removeItem("userId");
-
-        // Fetch cart count from session storage for unlogged users
-        const sessionCart = JSON.parse(sessionStorage.getItem("cart")) || [];
-        setCartCount(sessionCart.length);
       }
     });
 
     return () => unsubscribe();
   }, []);
 
-
+  
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -115,8 +111,8 @@ function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin }) {
   };
 
   return (
-    <div>
-      <header className="bg-gradient-to-r from-white to-yellow-600 py-2 px-3 relative">
+    <div className=''>
+      <header className="top-2 bg-gradient-to-r from-white to-yellow-600 py-2 px-3 relative">
         <div className="mx-auto flex justify-between items-center">
 
           <div className='flex md:ml-5'>
@@ -142,9 +138,9 @@ function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin }) {
             {!isAdmin && (
               <Link to="/cart" className="text-black hover:text-yellow-700 mb-1 relative">
                 <BsCart4 />
-                {cartCount > 0 && (
+                {cart.length > 0 && (
                   <span className="absolute -top-2.5 -right-3.5 bg-white text-black text-xs  rounded-full px-1.5">
-                    {cartCount}
+                    {cart.length}
                   </span>
                 )}
               </Link>
@@ -158,8 +154,8 @@ function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin }) {
                   className="text-black cursor-pointer flex items-center hover:text-yellow-700"
                 >
                   <FaUser className='hover:text-yellow-700' />
-                  <span className="ml-2 hover:text-yellow-700">{userName}</span>
-                  <FaChevronDown className={`ml-1 transition-transform ${isAccountDropdownOpen ? 'rotate-180' : ''}`} />
+                  <span className="ml-2 hover:text-yellow-700 bg-white bg-opacity-50 px-2  rounded-full">{userName.charAt(0)}</span>
+                  <FaChevronDown className={`ml-1 transition-transform size-2 ${isAccountDropdownOpen ? 'rotate-180' : ''}`} />
                 </div>
                 {isAccountDropdownOpen && (
                   <div
@@ -187,6 +183,7 @@ function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin }) {
                         <Link
                           to="/oh"
                           className="dropdown-item"
+                          onClick={()=>setAccountDropdownOpen(false)}
                         > <FaHistory />
                           Order History
                         </Link>
@@ -247,15 +244,15 @@ function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin }) {
             </Link>
             {!isAdmin && (
               <Link to="/cart" className="text-white hover:text-yellow-400 relative" onClick={toggleMobileMenu1}>
-              <BsCart4 />
-              {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-white text-black text-xs  rounded-full px-1">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
+                <BsCart4 />
+                {cart.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-white text-black text-xs  rounded-full px-1">
+                    {cart.length}
+                  </span>
+                )}
+              </Link>
             )}
-            
+
             {isAuth ? (
               <div className="w-full">
                 <div
@@ -263,7 +260,7 @@ function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin }) {
                   className="flex cursor-pointer"
                 >
                   <FaUser />
-                  <span className="ml-2">My Account</span>
+                  <span className="ml-2">{userName}</span>
 
                   <FaChevronDown
                     className={`ml-1 transform ${isMobileDropdownOpen ? "rotate-180" : "rotate-0"
@@ -284,6 +281,7 @@ function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin }) {
                     ) : (
                       <Link
                         to="/oh"
+                        
                         className="block text-white hover:text-yellow-400" onClick={toggleMobileMenu1}
                       >
                         Order History
@@ -300,7 +298,9 @@ function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin }) {
               </div>
             ) : (
               <button
-                onClick={() => navigate("/login")}
+                onClick={() => {
+                  toggleMobileMenu()
+                  navigate("/login")}}
                 className="text-white hover:text-yellow-400"
               >
                 Login

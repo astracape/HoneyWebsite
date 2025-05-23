@@ -262,3 +262,14 @@
 .mobile-dropdown .dropdown-item:hover {
   color: #fbbf24; /* Yellow-400 */
 }
+
+@keyframes marquee {
+  from { transform: translateX(100%); }
+  to { transform: translateX(-100%); }
+}
+
+.animate-marquee {
+  display: flex;
+  white-space: nowrap;
+  animation: marquee 10s linear infinite;
+}

@@ -4,18 +4,31 @@ import img1 from "../../assets/history1.png"
 
 import { onValue, ref } from 'firebase/database';
 import { database } from '../../FirebaseConfig';
+import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
+import { toast } from 'react-toastify';
 
 function BlogPage() {
   const [blogs, setBlogs] = useState([]);
 
   useEffect(() => {
-    const blogsRef = ref(database, 'blogs');
-    onValue(blogsRef, (snapshot) => {
-      const data = snapshot.val();
-      const blogList = data ? Object.entries(data).map(([id, blog]) => ({ id, ...blog })) : [];
-      setBlogs(blogList);
-    });
-  }, []);
+    const fetchBlogs = async () => {
+        try {
+            const blogsRef = collection(database, 'blogs');
+            const snapshot = await getDocs(blogsRef); // Await the query snapshot
+
+            const blogList = snapshot.docs.map(doc => ({
+                id: doc.id, // Get the document ID
+                ...doc.data(), // Spread the document data
+            }));
+
+            setBlogs(blogList);
+        } catch (error) {
+           toast.error("Error fetching blogs")
+        }
+    };
+
+    fetchBlogs();
+}, []);
 
 
   return (
@@ -39,14 +52,14 @@ function BlogPage() {
         </div>
       </section>
 
-      <div className="2xl:p-10 p-5 flex flex-col justify-center items-center mx-auto 2xl:mt-10">
+      <div className="2xl:px-20 lg:px-10 p-5  flex flex-col justify-center items-center mx-auto 2xl:mt-10">
         <div>
           <h1 className="text-xl md:text-2xl font-semibold italic text-center">
             Did you know that honey has been part of humans' diet for thousands of
             years?
           </h1>
         </div>
-        <div className="md:px-10 px-4 mt-4 mx-auto items-center">
+        <div className="md:px-4 px-4 mt-4 mx-auto items-center">
           <p className="text-md md:text-lg 2xl:text-xl text-center text-orange-900">
             Honey is the oldest foodstuff. It has been used as a major sweetener in
             the ancient world until sugarcane was cultivated. This is why since
@@ -56,8 +69,8 @@ function BlogPage() {
         </div>
       </div>
 
-      <div className="mx-auto py-10 px-4 md:px-10 lg:px-32">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      <div className="mx-auto py-10 px-4 md:px-5 lg:px-20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 lg:p-10">
           {blogs.map((blog, index) => {
             // Pattern 1
             if (index % 6 === 0) {
@@ -70,10 +83,10 @@ function BlogPage() {
                     <img
                       src={blog.image}
                     
-                      className="w-full object-cover rounded-lg shadow-lg"
+                      className="w-full h-auto object-cover rounded-lg shadow-lg"
                     />
                   </div>
-                  <div className="col-span-2 p-4">
+                  <div className="col-span-2 p-4 my-auto">
                     <p className="text-gray-400 text-xs md:text-sm mb-2">
                     {new Date(blog.date).toLocaleDateString("en-GB")}
                     </p>
@@ -92,7 +105,7 @@ function BlogPage() {
                   <img
                     src={blog.image}
 
-                    className="w-full h-96   object-cover rounded-lg shadow-lg"
+                    className="w-full h-96 object-cover rounded-lg shadow-lg"
                   />
                   <div className="p-4">
 
@@ -114,7 +127,7 @@ function BlogPage() {
                   <img
                     src={blog.image}
                     alt={blog.title}
-                    className="w-full h-32 md:h-auto object-cover rounded-lg shadow-lg"
+                    className=" 2xl:w-full  object-cover rounded-lg shadow-lg"
                   />
                   <div className=" p-4">
                     <p className="text-gray-400 text-xs md:text-sm mb-2">
@@ -135,8 +148,8 @@ function BlogPage() {
                   key={blog.id}
                   className="col-span-1 md:col-span-3 md:grid md:grid-cols-3 gap-4"
                 >
-                  <div className="col-span-2 order-2 md:order-1  p-4">
-                    <h2 className="text-lg md:text-2xl font-bold">{blog.title}</h2>
+                  <div className="col-span-2 order-2 md:order-1  p-4 my-auto">
+                    
                     <p className="text-gray-400 text-xs md:text-sm mb-2">
                     {new Date(blog.date).toLocaleDateString("en-GB")}
                     </p>
@@ -149,7 +162,7 @@ function BlogPage() {
                     <img
                       src={blog.image}
                       alt={blog.title}
-                      className="w-full object-cover rounded-lg shadow-lg"
+                      className=" 2xl:w-full object-cover rounded-lg shadow-lg"
                     />
                   </div>
                 </div>
@@ -165,7 +178,7 @@ function BlogPage() {
                   <img
                     src={blog.image}
                  
-                    className="w-full h-96 object-cover rounded-lg shadow-lg"
+                    className="h-96 w-full object-cover rounded-lg shadow-lg"
                   />
                   <div className="p-4">
                     <p className="text-gray-400 text-xs md:text-sm mb-2">
@@ -183,6 +196,11 @@ function BlogPage() {
             else if (index % 6 === 5) {
               return (
                 <div key={blog.id} className="col-span-1">
+                   <img
+                    src={blog.image}
+                    alt={blog.title}
+                    className=" md:h-auto object-cover rounded-lg shadow-lg"
+                  />
                   <div className=" p-4 bg-orange-200 rounded-lg shadow-lg">
                     <p className="text-gray-400 text-xs md:text-sm mb-2">
                     {new Date(blog.date).toLocaleDateString("en-GB")}

@@ -5,6 +5,8 @@ import img from "../../assets/oatmeal-cookies-honey-jar-isolated-pastel-backgrou
 import { useParams } from 'react-router-dom';
 import { database } from '../../FirebaseConfig';
 import { get, ref } from 'firebase/database';
+import { doc, getDoc } from 'firebase/firestore';
+import { toast } from 'react-toastify';
 
 function FullBlogPage() {
   const { id } = useParams();
@@ -13,13 +15,13 @@ function FullBlogPage() {
   useEffect(() => {
     const fetchBlog = async () => {
       try {
-        const blogRef = ref(database, `blogs/${id}`);
-        const snapshot = await get(blogRef);
+        const blogRef = doc(database, `blogs/${id}`);
+        const snapshot = await getDoc(blogRef);
         if (snapshot.exists()) {
-          setBlog(snapshot.val());
+          setBlog(snapshot.data());
         }
       } catch (error) {
-        console.error("Error fetching blog details:", error);
+        toast.error("Error fetching blog detail")
       }
     };
     fetchBlog();

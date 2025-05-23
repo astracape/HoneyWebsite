@@ -2,7 +2,7 @@
 
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getDatabase } from 'firebase/database';
+import { getFirestore } from 'firebase/firestore';
 import { getAuth } from "firebase/auth";
 import { getStorage } from 'firebase/storage';
 // TODO: Add SDKs for Firebase products that you want to use
@@ -10,7 +10,7 @@ import { getStorage } from 'firebase/storage';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCciU7QWukCT8LT3ipxXy3e1Iws4r7waWw",
+  apiKey:import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: "honey-8e04f.firebaseapp.com",
   projectId: "honey-8e04f",
   storageBucket: "honey-8e04f.appspot.com",
@@ -20,7 +20,7 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const database = getDatabase(app);
+const database = getFirestore(app);
  const auth = getAuth(app);
 const storage = getStorage(app);
 

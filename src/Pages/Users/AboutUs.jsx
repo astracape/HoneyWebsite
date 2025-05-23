@@ -1,13 +1,48 @@
-import React from 'react'
+import React, { useState } from 'react'
 import img from "../../assets/bg2.png"
 import bee from "../../assets/image5.png"
 import bee1 from "../../assets/bee123.png"
 import img2 from "../../assets/Untitled.png"
-import honeyspice from "../../assets/image6.png"
+import honeyspice from "../../assets/honeycape.webp"
 import img3 from "../../assets/bee-fly-dotted-route-pattern-vector_638603-453.jpg"
 
 import { GiCogLock, GiHoneyJar } from "react-icons/gi";
+import { Link } from 'react-router-dom'
+import { addDoc, collection } from 'firebase/firestore'
+import { database } from '../../FirebaseConfig'
+import { toast, ToastContainer } from 'react-toastify'
 function AboutUs() {
+    const [email, setEmail] = useState("");
+    const [name, setName] = useState('');
+    const [queries, setQueries] = useState('');
+
+    const handleContact = async () => {
+        if (!name || !email || !queries) {
+            toast.warn("Please fill all fieds.");
+            return;
+        }
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(email)) {
+            toast.warn("Please enter a valid email address.");
+            return;
+        }
+        try {
+            await addDoc(collection(database, "contactus"), {
+                name,
+                email,
+                queries,
+                timestamp: new Date(),
+            });
+           
+            setEmail("")
+            setName("")
+            setQueries("")
+            toast.success("Thank you! We'll be in touch.");
+        } catch (error) {
+            console.error("Error submitting contact:", error);
+            toast.error("Something went wrong. Please try again.");
+        }
+    };
     return (
         <div>
 
@@ -27,7 +62,7 @@ function AboutUs() {
                     <div className="relative z-10 max-w-4xl mx-auto">
                         <h2 className="text-4xl font-bold mb-6 text-yellow-700">Our Story</h2>
                         <p className="text-lg mb-4">
-                        Our story began started with a few hives nestled in our family farm. What began as a passion for beekeeping quickly grew into a commitment to sharing the pure, raw honey that bees so beautifully create. We have grown to share pure, raw, and natural Western Ghats honey with the world.
+                            Our story began started with a few hives nestled in our family farm. What began as a passion for beekeeping quickly grew into a commitment to sharing the pure, raw honey that bees so beautifully create. We have grown to share pure, raw, and natural Western Ghats honey with the world.
                             Harvested from the vast rubber farms and forest regions of Kanyakumari, our honey is unprocessed, cold-spun, and coarsely filtered to maintain the pure taste and natural benefits.
                         </p>
                         <p className="text-lg mb-4">We are passionate about producing and promoting farm-fresh honey and spices.</p>
@@ -99,9 +134,24 @@ function AboutUs() {
                     <section className="py-16 px-5 bg-yellow-600 text-black text-center rounded-t-3xl mt-16">
                         <h2 className="text-3xl font-bold mb-4">Want to Learn More About Us?</h2>
                         <p className="mb-6">Feel free to reach out for any questions, queries, or collaboration ideas.</p>
-                        <div className=''>
-                            <input type="email" placeholder="Enter your email" className="px-4 py-3 rounded-lg text-gray-900  mb-4 focus:ring-0 w-44" /></div>
-                        <button className="bg-white text-black px-6 py-3 rounded-lg font-semibold hover:bg-yellow-600 my-auto">Contact Us</button>
+                        <div className='flex flex-col items-center space-y-4'>
+                            <input
+                                type="text"
+                                placeholder="Enter your name"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                className="px-4 py-3 rounded-lg text-gray-900 focus:ring-0 w-72"
+                                required
+                            />
+                            <input type="email"  pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} className="px-4 py-3 rounded-lg text-gray-900  mb-4 focus:ring-0 w-72" required/>
+                            <textarea
+                                placeholder="Enter your queries"
+                                value={queries}
+                                onChange={(e) => setQueries(e.target.value)}
+                                className="px-4 py-3 rounded-lg text-gray-900 focus:ring-0 w-72 h-32"
+                            />
+                            <button onClick={handleContact} className="bg-white text-black px-6 py-3 rounded-lg font-semibold hover:bg-yellow-600 my-auto w-72">Contact Us</button>
+                        </div>
                     </section>
                 </section>
 
@@ -192,9 +242,16 @@ function AboutUs() {
                 <section className="py-16 bg-yellow-100 text-black text-center">
                     <h2 className="text-4xl font-bold mb-6">Join Us in Our Journey!</h2>
                     <p className="text-lg mb-8 p-3">Experience the best of honey and spices today.</p>
-                    <a href="/productpage" className="bg-white text-black px-6 py-3 rounded-full border-4 border-black font-bold hover:bg-yellow-500 transition">Shop Now</a>
+                    <Link to="/productpage" className="bg-white text-black px-6 py-3 rounded-full border-4 border-black font-bold hover:bg-yellow-500 transition">Shop Now</Link>
                 </section>
             </div>
+             <ToastContainer
+                                position="bottom-center"
+                                autoClose={1200}
+                                hideProgressBar={false}
+                                newestOnTop={true}
+                                limit={1}
+                            />
         </div>
 
     )

@@ -1,20 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { ToastContainer } from 'react-toastify'
 import { useNavigate } from 'react-router-dom';
 import imgSuccess from "../assets/success.png"
 
 function SuccessPage() {
     const navigate = useNavigate();
-
-    // useEffect(() => {
-    //     // Redirect after 5 seconds
-    //     const timeout = setTimeout(() => {
-    //         navigate('/');
-    //     }, 5000);
-
-        // Cleanup timeout if component is unmounted before redirect
-        // return () => clearTimeout(timeout);
-    // }, [navigate]);
   return (
     <div>
          <div className="h-screen flex items-center justify-center p-8">

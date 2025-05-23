@@ -1,6 +1,7 @@
 import { sendPasswordResetEmail } from 'firebase/auth';
 import React, { useState } from 'react'
-import {  useNavigate } from 'react-router-dom';
+import 'react-toastify/dist/ReactToastify.css';
+import {  Link, useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import img from "../assets/bee1.png";
 import { auth } from '../FirebaseConfig';
@@ -50,9 +51,9 @@ function ForgotPassword() {
                     </button>
                 </form>
                 <div className='mt-3'>
-                    <a href='/login' className='text-yellow-800 underline text-xs text-center md:text-base md:text-left'>
+                    <Link to='/login' className='text-yellow-800 underline text-xs text-center md:text-base md:text-left'>
                         Back to Login
-                    </a>
+                    </Link>
                 </div>
             </div>
             <ToastContainer

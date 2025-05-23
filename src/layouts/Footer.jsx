@@ -29,11 +29,11 @@ function Footer() {
                     <div>
                         <h2 className="font-semibold text-lg mb-3 underline">Quick Links</h2>
                         <ul className="space-y-2">
-                            <li><a href="/" className="hover:text-yellow-400">Home</a></li>
-                            <li><a href="/productpage" className="hover:text-yellow-400">Our products</a></li>
-                            <li><a href="/aboutus" className="hover:text-yellow-400">About us</a></li>
-                            <li><a href="/blog" className="hover:text-yellow-400">Blogs</a></li>
-                            <li><a href="/oh" className="hover:text-yellow-400">Order History</a></li>
+                            <li><Link to="/" className="hover:text-yellow-400">Home</Link></li>
+                            <li><Link to="/productpage" className="hover:text-yellow-400">Our products</Link></li>
+                            <li><Link to="/aboutus" className="hover:text-yellow-400">About us</Link></li>
+                            <li><Link to="/blog" className="hover:text-yellow-400">Blogs</Link></li>
+                            <li><Link to="/oh" className="hover:text-yellow-400">Order History</Link></li>
 
                         </ul>
                     </div>
@@ -42,10 +42,10 @@ function Footer() {
                     <div>
                         <h2 className="font-semibold text-lg mb-3 underline">Our Products</h2>
                         <ul className="space-y-2">
-                            <li><a href="/productpage" className="hover:text-yellow-400">Wild Honey</a></li>
-                            <li><a href="/productpage" className="hover:text-yellow-400">Western Ghats Spices</a></li>
-                            <li><a href="/productpage" className="hover:text-yellow-400">Oils</a></li>
-                            <li><a href="/productpage" className="hover:text-yellow-400">Coconut</a></li>
+                            <li><Link to="/productpage" className="hover:text-yellow-400">Wild Honey</Link></li>
+                            <li><Link to="/productpage" className="hover:text-yellow-400">Western Ghats Spices</Link></li>
+                            <li><Link to="/productpage" className="hover:text-yellow-400">Oils</Link></li>
+                            <li><Link to="/productpage" className="hover:text-yellow-400">Coconut</Link></li>
 
 
                         </ul>
@@ -60,12 +60,12 @@ function Footer() {
                         </div>
                         <div className="mt-5 flex gap-4 justify-center lg:justify-start">
 
-                            <a href="https://www.instagram.com/p/DFkN530ISpo/" target="_blank" rel="noopener noreferrer">
+                            <Link to="https://www.instagram.com/p/DFkN530ISpo/" target="_blank" rel="noopener noreferrer">
                                 <img src="https://firebasestorage.googleapis.com/v0/b/honey-8e04f.appspot.com/o/toolzin.com-DFkN530ISpo-1.jpg?alt=media&token=128f5236-96be-4350-b031-5c2c199d28ff" alt="Instagram Reel" className="rounded-lg w-20 h-24 object-cover hover:scale-105 transition-transform" />
-                            </a>
-                            <a href="https://www.instagram.com/p/DFnKw8by0OI/" target="_blank" rel="noopener noreferrer">
+                            </Link>
+                            <Link to="https://www.instagram.com/p/DFnKw8by0OI/" target="_blank" rel="noopener noreferrer">
                                 <img src="https://firebasestorage.googleapis.com/v0/b/honey-8e04f.appspot.com/o/toolzin.com-DFnKw8by0OI-1.jpg?alt=media&token=0f7ff118-b56a-4f91-b191-d1ca0a9cf5b1" alt="Instagram Reel" className="rounded-lg w-20 h-24 object-cover hover:scale-105 transition-transform" />
-                            </a>
+                            </Link>
                         </div>
 
                     </div>

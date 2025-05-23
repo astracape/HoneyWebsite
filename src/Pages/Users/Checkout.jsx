@@ -1,19 +1,25 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import img1 from "../../assets/Group 70.png"
 import { Country, State, City } from 'country-state-city';
+import 'react-toastify/dist/ReactToastify.css';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../../FirebaseConfig';
+import { auth, database } from '../../FirebaseConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
-import { getDatabase, onValue, push, ref, remove, set } from 'firebase/database';
-
+import { addDoc, collection, deleteDoc, doc, getDocs, setDoc } from 'firebase/firestore';
+import { CartContext } from '../../context/CartContext';
+import { ShippingContext } from '../../context/ShippingContext';
+import { CouponContext } from '../../context/CouponContext';
+import { useCheckout } from '../../context/CheckoutContext';
 
 function Checkout() {
-    const [cartItems, setCartItems] = useState([]);
-    const [formData, setFormData] = useState({
+    const { cart } = useContext(CartContext)
+    const { updateShipping, checkoutData,setUseSameAddress, setBillingComplete } = useCheckout();
+   const useSameAddress = checkoutData.useSameAddress;
+    const [formData, setFormData] = useState(checkoutData.shipping ||{
         firstName: '',
         lastName: '',
-        country: '',
+        country: 'India',
         state: '',
         city: '',
         address: '',
@@ -22,58 +28,125 @@ function Checkout() {
         phone: '',
         email: '',
         paymentMethod: '',
+        shippingType: '',
     });
     // console.log(Country.getAllCountries())
+    const { shippingTypes, fetchShippingRate, fetchShippingTypes, shippingRate, loading: shippingLoading,
+        error: shippingError, } = useContext(ShippingContext);
     const navigate = useNavigate()
     const [country, setCountry] = useState(null);
     const [user, setUser] = useState()
     const [state, setState] = useState(null);
-    const [city, setCity] = useState(null);
+    const [city, setCity] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prevData) => ({ ...prevData, [name]: value }));
-    };
-
+    const indianStates = State.getStatesOfCountry("IN");
+    const { discountAmount, applyCoupon } = useContext(CouponContext)
+    const { getTotalWeight, getCartTotalWeight } = useContext(CartContext)
+    const [couponCode, setCouponCode] = useState("");
+    const [billingData, setBillingData] = useState(null);
     useEffect(() => {
-        onAuthStateChanged(auth, (currentUser) => {
-            if (currentUser) {
-                setUser(currentUser);
-
-                // Fetch cart items from the database for the logged-in user
-                const db = getDatabase();
-                const cartRef = ref(db, `users/${currentUser.uid}/cart`);
-                onValue(cartRef, (snapshot) => {
-                    if (snapshot.exists()) {
-                        const cartData = snapshot.val();
-                        setCartItems(Object.values(cartData)); // Convert Firebase object to array
-                    } else {
-                        setCartItems([]); // No cart items for logged user
-                    }
-                });
-            } else {
-                // Use sessionStorage for guests
-                const cart = JSON.parse(sessionStorage.getItem("cart")) || [];
-                setCartItems(cart);
+        window.scrollTo(0, 0);
+        fetchShippingTypes();
+        
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+            setUser(currentUser);
+            if (!currentUser) {
+                navigate('/login');
             }
         });
+        return () => unsubscribe();
     }, []);
+const handleUseSameAddressChange = (e) => {
+  setUseSameAddress(e.target.checked);
+};
+ 
+    useEffect(() => {
+        if (formData.state && formData.shippingType) {
+            fetchShippingRate(formData.state, formData.shippingType);
+        }
+    }, [formData.state, formData.shippingType]);
+// useEffect(() => {
+//   if (checkoutData.billing) {
+//     setBillingData(checkoutData.billing);
+//   }
+// }, [checkoutData.billing]);
+ 
+    useEffect(() => {
+        if (state && country) {
+            const cities = City.getCitiesOfState(country.isoCode, state);
+            setCity(cities);
+        }
+    }, [state, country]);
 
+    const handleInputChange = async (e) => {
+        const { name, value } = e.target;
+        const updatedForm = { ...formData, [name]: value };
+        setFormData(updatedForm);
+        console.log("Trying to match: region =", state, "| type =", shippingType);
+
+        if (
+            (name === "state" || name === "shippingType") &&
+            updatedForm.state &&
+            updatedForm.shippingType
+        ) {
+            await fetchShippingRate(updatedForm.state, updatedForm.shippingType);
+        }
+    };
+
+    const calculateFinalTotal = () => {
+        const subtotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
+        const total = subtotal + (shippingRate || 0) - (discountAmount || 0);
+        return total > 0 ? total : 0;
+    };
+    console.log(shippingRate)
+    const validateForm = () => {
+        const requiredFields = [
+            'firstName', 'lastName', 'country', 'state',
+            'city', 'address', 'pinCode', 'phone',
+            'email', 'paymentMethod', 'shippingType'
+        ];
+
+        for (const field of requiredFields) {
+            if (!formData[field]) {
+                toast.error(`Please fill in ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`);
+                return false;
+            }
+        }
+
+        if (cart.length === 0) {
+            toast.error("Your cart is empty");
+            return false;
+        }
+
+        return true;
+    };
+   
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (isSubmitting) return; // Prevent duplicate submissions
-        setIsSubmitting(true);
-
-        // Early return if user is not logged in
+        updateShipping(formData);
+        if (isSubmitting) return;
+        if (!validateForm()) return;
         if (!user) {
             toast.warning("Please log in to place your order");
             navigate("/login");
-            setIsSubmitting(false);
             return;
         }
 
-        const orderDetails = createOrderDetails(formData, cartItems);
+        // Redirect to billing page if needed
+        // if (!useSameAddress && !billingData) {
+        //     navigate('/billing', { state: { shippingData: formData } });
+        //     return;
+        // }
+if (!checkoutData.useSameAddress && !checkoutData.billingComplete) {
+    navigate('/billing');
+    return;
+  }
+ // Reset billing complete flag if needed
+  if (checkoutData.useSameAddress && checkoutData.billingComplete) {
+    setBillingComplete(false);
+  }
+        setIsSubmitting(true);
+        const orderDetails = createOrderDetails();
 
         try {
             if (formData.paymentMethod === "Razorpay") {
@@ -82,83 +155,143 @@ function Checkout() {
                 await handleCashOnDelivery(orderDetails);
             }
         } catch (error) {
-            console.error("Error placing order:", error);
             toast.error("Error placing order. Please try again.");
         } finally {
-            setIsSubmitting(false); // Reset submission flag
+            setIsSubmitting(false);
         }
     };
 
-    // Helper function to create order details
-    const createOrderDetails = (formData, cartItems) => {
-        return {
-            user: {
-                firstName: formData.firstName,
-                lastName: formData.lastName,
-                email: formData.email,
-                phone: formData.phone,
-                address: formData.address,
-                apartment: formData.apartment,
-                city: formData.city,
-                state: formData.state,
-                country: formData.country,
-                pinCode: formData.pinCode,
-            },
-            // cartItems,
-            cartItems: cartItems.map(item => ({
-                ...item,
-                // Store the total price per item based on quantity
-            })),
-            // totalAmount: cartItems.reduce((total, item) => total + parseFloat(item.price), 0),
-            totalAmount: cartItems.length ? cartItems.reduce((total, item) => {
-                const price = parseFloat(item.price);
-                return total + (isNaN(price) ? 0 : price);
-            }, 0) : 0,
-            
-            paymentMethod: formData.paymentMethod,
-            orderStatus: "Pending",
-            timestamp: new Date().toISOString(),
-        };
-    };
+    // const createOrderDetails = () => {
+    //     const timestamp = Date.now().toString().slice(-6);
+    //     const randomString = Math.random().toString(36).substring(2, 6).toUpperCase();
+    //     const orderId = `ORD-${timestamp}-${randomString}`;
 
-    // Helper function for Razorpay payment
+    //     return {
+    //         orderId,
+    //         userId: user.uid,
+    //         shippingAddress: {
+    //             firstName: formData.firstName, 
+    //             lastName: formData.lastName,
+    //             address: `${formData.address}${formData.apartment ? ', ' + formData.apartment : ''}`,
+    //             city: formData.city,
+    //             state: formData.state,
+    //             country: formData.country,
+    //             pinCode: formData.pinCode,
+    //         },
+    //         billingAddress: useSameAddress ? {
+    //             firstName: formData.firstName, 
+    //             lastName: formData.lastName,
+    //             address: `${formData.address}${formData.apartment ? ', ' + formData.apartment : ''}`,
+    //             city: formData.city,
+    //             state: formData.state,
+    //             country: formData.country,
+    //             pinCode: formData.pinCode,
+    //         } : {
+    //             address: `${billingData.address}${billingData.apartment ? ', ' + billingData.apartment : ''}`,
+    //             city: billingData.city,
+    //             state: billingData.state,
+    //             country: billingData.country,
+    //             pinCode: billingData.pinCode,
+    //         },
+    //         items: cart.map(item => ({
+    //             id: item.id,
+    //             name: item.name,
+    //             price: item.price,
+    //             quantity: item.quantity,
+    //             imageUrl: item.imageUrl,
+    //             weight: item.weight
+    //         })),
+    //         subtotal: cart.reduce((total, item) => total + item.price * item.quantity, 0),
+    //         shipping: shippingRate || 0,
+    //         discount: discountAmount || 0,
+    //         total: calculateFinalTotal(),
+    //         paymentMethod: formData.paymentMethod,
+    //         status: "Pending",
+    //         createdAt: new Date().toISOString(),
+    //     };
+    // };
+    const createOrderDetails = () => {
+    const timestamp = Date.now().toString().slice(-6);
+    const randomString = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const orderId = `ORD-${timestamp}-${randomString}`;
+
+    // Get billing data from context instead of local state
+    const billingAddressData = useSameAddress ? formData : checkoutData.billing;
+
+    return {
+        orderId,
+        userId: user.uid,
+        shippingAddress: {
+            firstName: formData.firstName, 
+            lastName: formData.lastName,
+            address: `${formData.address}${formData.apartment ? ', ' + formData.apartment : ''}`,
+            city: formData.city,
+            state: formData.state,
+            country: formData.country,
+            pinCode: formData.pinCode,
+            phone: formData.phone,
+            email: formData.email
+        },
+        billingAddress: {
+            firstName: billingAddressData.firstName, 
+            lastName: billingAddressData.lastName,
+            address: `${billingAddressData.address}${billingAddressData.apartment ? ', ' + billingAddressData.apartment : ''}`,
+            city: billingAddressData.city,
+            state: billingAddressData.state,
+            country: billingAddressData.country,
+            pinCode: billingAddressData.pinCode,
+            phone: billingAddressData.phone,
+            email: billingAddressData.email
+        },
+        items: cart.map(item => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            imageUrl: item.imageUrl,
+            weight: item.weight
+        })),
+        subtotal: cart.reduce((total, item) => total + item.price * item.quantity, 0),
+        shipping: shippingRate || 0,
+        discount: discountAmount || 0,
+        total: calculateFinalTotal(),
+        paymentMethod: formData.paymentMethod,
+        status: "Pending",
+        createdAt: new Date().toISOString(),
+    };
+};
+
     const handleRazorpayPayment = async (orderDetails) => {
-        const orderAmount = orderDetails.totalAmount * 100; // Convert to paise
+        const orderAmount = orderDetails.total * 100;
         const options = {
-            key: "rzp_test_b5Ry0nM29Awoau",
+            key: import.meta.env.VITE_RAZORPAY_API_KEY,
             amount: orderAmount,
             currency: "INR",
-            name: "Honey Store",
-            description: "Test Transaction",
+            name: "Your Store Name",
+            description: "Order Payment",
             image: "https://example.com/logo.png",
             handler: async (response) => {
-                // On successful payment
                 await saveOrderToDatabase(orderDetails);
                 toast.success("Order Placed Successfully!");
-                navigate("/successpage");
+                navigate("/success");
             },
             prefill: {
                 name: `${orderDetails.user.firstName} ${orderDetails.user.lastName}`,
                 email: orderDetails.user.email,
                 contact: orderDetails.user.phone,
             },
-            notes: {
-                address: orderDetails.user.address,
-            },
             theme: {
-                color: "#F37254",
+                color: "#ca8a04",
             },
         };
 
         const rzp = new window.Razorpay(options);
         rzp.on("payment.failed", (response) => {
-            console.error("Payment Failed:", response.error);
             toast.error("Payment Failed. Please try again.");
         });
         rzp.open();
     };
 
-    // Helper function for Cash on Delivery
     const handleCashOnDelivery = async (orderDetails) => {
         await saveOrderToDatabase(orderDetails);
         await clearUserCart(user.uid);
@@ -166,46 +299,49 @@ function Checkout() {
         navigate("/successpage");
     };
 
-    // Helper function to save order to Firebase
-    // const saveOrderToDatabase = async (orderDetails) => {
-    //     const db = getDatabase();
-    //     const ordersRef = ref(db, `orders/${user.uid}`); // Centralized orders node
-
-    //     // Push the order to the 'orders' node, with the userId included in the order
-    //     const newOrderRef = push(ordersRef);  // Generate unique ID for order
-    //     const orderData = {
-    //         ...orderDetails,
-    //         userId: user.uid, // Store the userId with the order
-    //     };
-
-    //     await set(newOrderRef, orderData); // Save the order with the userId in the database
-    // };
-    // Helper function to save order to Firebase with a short readable order ID
-const saveOrderToDatabase = async (orderDetails) => {
-    const db = getDatabase();
-
-    // Generate a short custom order ID
-    const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
-    const randomString = Math.random().toString(36).substring(2, 6).toUpperCase(); // 4-char random string
-    const orderId = `ORD-${timestamp}-${randomString}`; // Example: ORD-654321-ABCD
-
-    const orderData = {
-        ...orderDetails,
-        userId: user.uid, // Store user ID
-        orderId: orderId, // Store custom order ID
+    const saveOrderToDatabase = async (orderDetails) => {
+        try {
+            await setDoc(doc(database, "orders", orderDetails.orderId), orderDetails);
+            return true;
+        } catch (error) {
+            console.error("Error saving order:", error);
+            toast.error("Failed to save order. Please try again.");
+            return false;
+        }
     };
 
-    // Save order with custom order ID as key
-    await set(ref(db, `orders/${user.uid}/${orderId}`), orderData);
-};
-
-
-    // Helper function to clear user's cart from Firebase
     const clearUserCart = async (uid) => {
-        const db = getDatabase();
-        const userCartRef = ref(db, `users/${uid}/cart`);
-        await remove(userCartRef);
+        const userCartRef = collection(database, `users/${uid}/cart`);
+        try {
+            const querySnapshot = await getDocs(userCartRef);
+            const deletePromises = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
+            await Promise.all(deletePromises);
+        } catch (error) {
+            console.error("Error clearing cart:", error);
+        }
     };
+    const handleApplyCoupon = async () => {
+        try {
+            // Fetch coupons from Firestore
+            const querySnapshot = await getDocs(collection(database, "coupons"));
+            const coupons = querySnapshot.docs.map(doc => doc.data());
+
+            // Find the entered coupon in Firestore data
+            const coupon = coupons.find(c => c.code === couponCode);
+
+            if (coupon) {
+                applyCoupon(coupon);
+                localStorage.setItem("appliedCoupon", JSON.stringify(coupon));
+                alert("Coupon applied successfully!");
+            } else {
+                toast.error("Invalid coupon code.");
+            }
+        } catch (error) {
+            console.error("Error fetching coupons:", error);
+            toast.error("Error applying coupon.");
+        }
+    };
+    
 
     return (
         <div>
@@ -219,142 +355,124 @@ const saveOrderToDatabase = async (orderDetails) => {
                 <div className="mb-8">
 
 
-                    <h3 className="text-2xl font-semibold mb-4">Billing Details</h3>
+                    <h3 className="text-2xl font-semibold mb-4 px-3 border-l-4 border-yellow-600">Shipping Details</h3>
                     <form onSubmit={handleSubmit}>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-                            <div className="flex flex-col">
-                                <label htmlFor="firstName" className="text-gray-700">First Name *</label>
-                                <input
-                                    type="text"
-                                    id="firstName"
-                                    name="firstName"
-                                    className="mt-2 px-4 py-2 border rounded-md w-full"
-                                    required
-                                    onChange={handleInputChange}
-                                    pattern="[A-Za-z\s]{2,50}"
-                                    title="Name must contain only letters and be 2-50 characters long."
-                                />
-                            </div>
-                            <div className="flex flex-col">
-                                <label htmlFor="lastName" className="text-gray-700">Last Name *</label>
-                                <input
-                                    type="text"
-                                    id="lastName"
-                                    name="lastName"
-                                    className="mt-2 px-4 py-2 border rounded-md w-full"
-                                    onChange={handleInputChange}
-                                    required
-                                    pattern="[A-Za-z\s]{2,50}"
-                                    title="Name must contain only letters and be 2-50 characters long."
-                                />
-                            </div>
-                        </div>
-
-
-
-                        <div className="flex flex-col mt-4">
-                            <label htmlFor="country" className="text-gray-700">Country / Region *</label>
+                        <div className="mb-4">
+                            <label htmlFor="shippingType" className="block font-medium mb-1">
+                                Shipping Type
+                            </label>
                             <select
-                                id="country"
-                                name="country"
-                                value={country?.isoCode || ""}
-                                onChange={(e) => {
-                                    const selectedCountry = Country.getAllCountries().find(c => c.isoCode === e.target.value);
-                                    setCountry(selectedCountry);
-                                    setFormData((prevData) => ({
-                                        ...prevData,
-                                        country: selectedCountry ? selectedCountry.name : '',
-                                    }));
-                                }}
-                                className="mt-2 px-4 py-2 border rounded-md w-full"
-                                required
+                                id="shippingType"
+                                name='shippingType'
+                                value={formData.shippingType}
+                                onChange={handleInputChange}
+                                className="w-full border px-3 py-2 rounded"
                             >
-                                <option value="">Select Country</option>
-                                {Country.getAllCountries().map((c) => (
-                                    <option key={c.isoCode} value={c.isoCode}>
-                                        {c.name}
+                                <option value="">Select a Shipping Type</option>
+                                {shippingTypes.map((type) => (
+                                    <option key={type.id} value={type.name}>
+                                        {type.name}
                                     </option>
                                 ))}
                             </select>
                         </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
 
-                        <div className="flex flex-col mt-4">
-                            <label htmlFor="address" className="text-gray-700">Street Address *</label>
-                            <input
-                                type="text"
-                                id="address"
-                                name="address"
-                                className="mt-2 px-4 py-2 border rounded-md w-full"
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </div>
-
-                        <div className="flex flex-col mt-4">
-                            <label htmlFor="apartment" className="text-gray-700">Apartment, Suite, Unit, etc. (optional)</label>
-                            <input
-                                type="text"
-                                id="apartment"
-                                value={formData.apartment}
-                                name="apartment"
-                                onChange={handleInputChange}
-                                className="mt-2 px-4 py-2 border rounded-md w-full"
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
 
                             <div className="flex flex-col">
-                                <label htmlFor="state" className="text-gray-700">State *</label>
+                                <label htmlFor="firstName" className="text-gray-700 self-start">First Name *</label>
+                                <input
+                                    type="text"
+                                    id="firstName"
+                                    name="firstName" className="mt-2 px-4 py-2 border rounded-md w-full" required onChange={handleInputChange} pattern="[A-Za-z\s]{2,50}" title="Name must contain only letters and be 2-50 characters long."
+                                />
+                            </div>
+                            <div className="flex flex-col">
+                                <label htmlFor="lastName" className="text-gray-700 self-start">Last Name *</label>
+                                <input
+                                    type="text"
+                                    id="lastName" name="lastName" className="mt-2 px-4 py-2 border rounded-md w-full" onChange={handleInputChange} required pattern="[A-Za-z\s]{2,50}"
+                                    title="Name must contain only letters and be 2-50 characters long."
+                                />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                            <div className="flex flex-col mt-4">
+                                <label htmlFor="country" className="text-gray-700 self-start">Country / Region *</label>
                                 <select
-                                    id="state"
-                                    name="state"
-                                    value={state?.isoCode || ""}
+                                    id="country" name="country" value={country?.isoCode || ""}
                                     onChange={(e) => {
-                                        const selectedState = State.getStatesOfCountry(country?.isoCode).find(s => s.isoCode === e.target.value);
-                                        setState(selectedState);
+                                        const selectedCountry = Country.getAllCountries().find(c => c.isoCode === e.target.value);
+                                        setCountry(selectedCountry);
+                                        setState(null); // Reset state when country changes
+                                        setCity(null);
                                         setFormData((prevData) => ({
                                             ...prevData,
-                                            state: selectedState ? selectedState.name : '',
+                                            country: selectedCountry ? selectedCountry.name : '',
                                         }));
                                     }}
+                                    className="mt-2 px-4 py-2 border rounded-md w-full" required
+                                >
+                                    <option value="">Select Country</option>
+                                    {Country.getAllCountries().map((c) => (
+                                        <option key={c.isoCode} value={c.isoCode}>
+                                            {c.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="flex flex-col mt-4">
+                                <label htmlFor="address" className="text-gray-700 self-start">Street Address *</label>
+                                <input
+                                    type="text" id="address" name="address" className="mt-2 px-4 py-2 border rounded-md w-full" onChange={handleInputChange} required
+                                />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                            <div className="flex flex-col mt-4">
+                                <label htmlFor="apartment" className="text-gray-700 self-start">Apartment, Suite, Unit, etc. (optional)</label>
+                                <input
+                                    type="text"
+                                    id="apartment" value={formData.apartment} name="apartment" onChange={handleInputChange} className="mt-2 px-4 py-2 border rounded-md w-full"
+                                />
+                            </div>
+
+
+
+                            <div className="flex flex-col mt-4">
+                                <label htmlFor="state" className="text-gray-700 self-start">State *</label>
+
+                                <select
+                                    name="state"
+                                    value={formData.state}
+                                    onChange={handleInputChange}
                                     className="mt-2 px-4 py-2 border rounded-md w-full"
                                     required
                                 >
                                     <option value="">Select State</option>
-                                    {country &&
-                                        State.getStatesOfCountry(country.isoCode).map((s) => (
-                                            <option key={s.isoCode} value={s.isoCode}>
-                                                {s.name}
-                                            </option>
-                                        ))}
-                                </select>
-                            </div>
-                            <div className="flex flex-col">
-                                <label htmlFor="city" className="text-gray-700">Town / City *</label>
-                                <select
-                                    id="city"
-                                    name="city"
-                                    value={formData.city}
-                                    onChange={handleInputChange
-                                    }
-                                    className="mt-2 px-4 py-2 border rounded-md w-full"
-                                    required
-                                >
-                                    <option value="">Select City</option>
-                                    {state &&
-                                        City.getCitiesOfState(country.isoCode, state.isoCode).map((c) => (
-                                            <option key={c.name} value={c.name}>
-                                                {c.name}
-                                            </option>
-                                        ))}
+                                    {indianStates.map((state) => (
+                                        <option key={state.isoCode} value={state.name}>
+                                            {state.name}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                            <div className="flex flex-col mt-4">
+                                <label htmlFor="city" className="text-gray-700 self-start">Town / City *</label>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                            <div className="flex flex-col">
-                                <label htmlFor="pinCode" className="text-gray-700">PIN Code *</label>
+                                <input
+                                    type="text"
+                                    id="city" value={formData.city} name="city" onChange={handleInputChange} className="mt-2 px-4 py-2 border rounded-md w-full"
+                                />
+                            </div>
+
+
+
+                            <div className="flex flex-col mt-4">
+                                <label htmlFor="pinCode" className="text-gray-700 self-start">PIN Code *</label>
                                 <input
                                     type="text"
                                     id="pinCode"
@@ -363,37 +481,53 @@ const saveOrderToDatabase = async (orderDetails) => {
                                     className="mt-2 px-4 py-2 border rounded-md w-full"
                                     required
                                 />
+
                             </div>
-                            <div className="flex flex-col">
-                                <label htmlFor="phone" className="text-gray-700">Phone *</label>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                            <div className="flex flex-col mt-4">
+                                <label htmlFor="phone" className="text-gray-700 self-start">Phone *</label>
                                 <input
                                     type="text"
                                     id="phone"
                                     name="phone"
+                                    placeholder='+91 Phone Number'
+                                    onChange={handleInputChange}
+                                    className="mt-2 px-4 py-2 border rounded-md w-full"
+                                    maxLength={14}
+                                    minLength={10}
+                                    pattern="\+?[0-9\s\-\(\)]*"
+                                    inputMode='numeric'
+                                    required
+                                />
+                            </div>
+
+
+                            <div className="flex flex-col mt-4">
+                                <label htmlFor="email" className="text-gray-700 self-start">Email address *</label>
+                                <input
+                                    type="email"
+                                    id="email"
+                                    name="email"
                                     onChange={handleInputChange}
                                     className="mt-2 px-4 py-2 border rounded-md w-full"
                                     required
                                 />
                             </div>
                         </div>
-
-                        <div className="flex flex-col mt-4">
-                            <label htmlFor="email" className="text-gray-700">Email address *</label>
-                            <input
-                                type="email"
-                                id="email"
-                                name="email"
-                                onChange={handleInputChange}
-                                className="mt-2 px-4 py-2 border rounded-md w-full"
-                                required
-                            />
-                        </div>
-
-
-
-
                         <div className="mt-6">
-                            <h3 className="text-xl font-semibold mb-4">Payment Methods</h3>
+                            <label className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    checked={useSameAddress}
+                                    onChange={handleUseSameAddressChange}
+                                    className="mr-2"
+                                />
+                                Billing address is the same as shipping address
+                            </label>
+                        </div>
+                        <div className="mt-6">
+                            <h3 className="text-xl font-semibold mb-4 px-3 border-l-4 border-yellow-600">Payment Methods</h3>
                             <div className="flex space-x-4">
                                 <label className="flex items-center">
                                     <input
@@ -417,8 +551,6 @@ const saveOrderToDatabase = async (orderDetails) => {
                                 </label>
                             </div>
                         </div>
-
-
                         <button
                             type="submit"
                             className="mt-8 py-3 px-6 bg-yellow-600 text-white font-semibold rounded-md w-1/3"
@@ -428,37 +560,121 @@ const saveOrderToDatabase = async (orderDetails) => {
                     </form>
                 </div>
 
+                <div className="mt-8 bg-white  overflow-hidden">
+                    <div className=" border-b p-3">
+                        <h3 className="text-2xl font-semibold text-gray-800 px-3 border-l-4 border-yellow-600">Your Order Summary</h3>
+                    </div>
 
-                <div className="mt-8 border-t pt-8">
-                    <h3 className="text-xl font-semibold mb-4">Your Order</h3>
-                    {cartItems.map((item, index) => (
-                        <div className="flex justify-between mt-2" key={index}>
-                            <span>{item.name}</span>
-                            <span>₹{item.price}</span>
+                    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead className="bg-gray-50">
+                                    <tr className="text-left text-gray-600">
+                                        <th className="px-6 py-4 font-medium uppercase text-sm">Product</th>
+                                        <th className="px-6 py-4 font-medium uppercase text-sm">Quantity</th>
+                                        <th className="px-6 py-4 font-medium uppercase text-sm">Weight</th>
+                                        <th className="px-6 py-4 font-medium uppercase text-sm text-right">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                    {cart.map((item, index) => (
+                                        <tr key={index} className="hover:bg-gray-50 transition-colors">
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-4">
+                                                    <img
+                                                        src={item.imageUrl}
+                                                        className="w-14 h-14 rounded-lg object-cover border border-gray-200"
+                                                        alt={item.name}
+                                                    />
+                                                    <div>
+                                                        <span className="font-medium text-gray-800 block">{item.name}</span>
+
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-gray-600">
+                                                <div className="flex items-center">
+                                                    <span className="mr-2">{item.quantity}</span>
+                                                    <span className="text-gray-400">×</span>
+                                                    <span className="ml-2">₹{item.price}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-gray-600">
+                                                {getTotalWeight(item.weight, item.quantity)}
+                                            </td>
+                                            <td className="px-6 py-4 text-right font-medium text-gray-800">
+                                                ₹{(item.price * item.quantity).toFixed(2)}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
-                    ))}
 
+                        <div className='grid grid-cols-1 lg:grid-cols-2 gap-8 p-6'>
+                            <div className="p-5 rounded-lg">
+                                <h3 className="text-lg font-medium text-gray-700 border-l-4 border-yellow-600 px-3 mb-6">DISCOUNT/PROMO CODE</h3>
+                                <div className="flex gap-3">
+                                    <input
+                                        type="text"
+                                        value={couponCode}
+                                        onChange={(e) => setCouponCode(e.target.value)}
+                                        placeholder="Enter Coupon Code"
+                                        className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                                    />
+                                    <button
+                                        onClick={handleApplyCoupon}
+                                        className="bg-white border-dashed border-yellow-600 border-2 text-black px-5 py-3 rounded-lg font-semibold hover:bg-yellow-50 transition-colors whitespace-nowrap"
+                                    >
+                                        Apply Code
+                                    </button>
+                                </div>
+                                {discountAmount > 0 && (
+                                    <div className="mt-3 text-green-600 text-sm">
+                                        Coupon applied successfully!
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="p-5 rounded-lg">
+                                <h3 className="text-lg font-medium text-gray-700 border-l-4 border-yellow-600 px-3 mb-6">ORDER SUMMARY</h3>
+                                <div className="space-y-4">
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Subtotal</span>
+                                        <span className="font-medium">₹{cart.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Total Weight</span>
+                                        <span className="font-medium">{getCartTotalWeight(cart)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Shipping</span>
+                                        <span className="font-medium">₹{shippingRate.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Discount</span>
+                                        <span className="font-medium text-green-600">-₹{discountAmount.toFixed(2)}</span>
+                                    </div>
+                                    <div className="pt-4 mt-4 border-t border-gray-200">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-lg font-semibold text-gray-800">Total</span>
+                                            <span className="text-xl font-bold text-yellow-600">₹{calculateFinalTotal().toFixed(2)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <ToastContainer
                 position="bottom-center"
-                autoClose={5000}
+                autoClose={1200}
                 hideProgressBar={false}
                 newestOnTop={true}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-            // toastStyle={{
-            //     borderRadius: "8px",
-            //     border:"",
-            //     padding: "15px",
-            //   }}
+                limit={1}
             />
         </div>
-
     )
 }
-
 export default Checkout

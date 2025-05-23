@@ -21,6 +21,8 @@ import { FaHouse, FaBoxOpen } from "react-icons/fa6";
 import { get, ref } from 'firebase/database'
 import { database } from '../../FirebaseConfig'
 import { Link } from "react-router-dom"
+import { collection, doc, getDocs } from 'firebase/firestore'
+import { toast } from 'react-toastify'
 
 function HomePage() {
     const [blogs, setBlogs] = useState([]);
@@ -28,21 +30,21 @@ function HomePage() {
     useEffect(() => {
         const fetchBlogs = async () => {
             try {
-                const blogsRef = ref(database, 'blogs');
-                const snapshot = await get(blogsRef);
+                const blogsRef = collection(database, 'blogs');
+                const snapshot = await getDocs(blogsRef);
 
-                if (snapshot.exists()) {
-                    const blogData = snapshot.val();
-                    const blogArray = Object.keys(blogData).map(key => {
-                        return { id: key, ...blogData[key] };
-                    });
+                if (!snapshot.empty) {
+                    const blogArray = snapshot.docs.map(doc => ({
+                        id: doc.id, // Get document ID
+                        ...doc.data(), // Get document data
+                    }));
 
 
                     const latestBlogs = blogArray.slice(-2); // Get the last two blogs
                     setBlogs(latestBlogs);
                 }
             } catch (error) {
-                console.error('Error fetching blogs: ', error);
+                toast.error("Error fetching blogs")
             }
         };
 
@@ -66,9 +68,9 @@ function HomePage() {
                             Pure, Raw, and Unfiltered Honey Direct from Farms
                         </p>
 
-                        <a href="/productpage" className="mt-16 bg-yellow-600 hover:scale-95 md:w-96 w-48 h-8  md:h-16 text-black font-bold rounded-lg shadow-lg transition duration-300 flex items-center justify-center text-base md:text-2xl">
+                        <Link to="/productpage" className="mt-16 bg-yellow-600 hover:scale-95 md:w-96 w-48 h-8  md:h-16 text-black font-bold rounded-lg shadow-lg transition duration-300 flex items-center justify-center text-base md:text-2xl">
                             Shop Now
-                        </a>
+                        </Link>
 
                     </div>
                 </div>
@@ -290,12 +292,12 @@ function HomePage() {
                                         <div className="text-gray-700 text-base mb-4 line-clamp-3">
                                             <div dangerouslySetInnerHTML={{ __html: blog.description }} />
                                         </div>
-                                        <a
-                                            href={`/fullblog/${blog.id}`}
+                                        <Link
+                                            to={`/fullblog/${blog.id}`}
                                             className="text-yellow-600 font-semibold hover:underline self-start"
                                         >
                                             Read More
-                                        </a>
+                                        </Link>
                                     </div>
                                 </div>
                             ))}
@@ -340,9 +342,9 @@ function HomePage() {
                 <section className="relative h-96 bg-cover bg-center p-5" style={{ backgroundImage: `url(${im52})` }}>
                     <div>
                         <h1 className='text-4xl font-bold text-center'>Our Certifications</h1>
-                        <div className='grid grid-cols-2  place-items-center mt-10'>
+                        <div className='  place-items-center mt-10'>
                             <img src={certificate} className='w-24 h-24 p-1 rounded-full border-4 border-black'></img>
-                            <img src={certificate1} className='w-24 h-24 p-1 rounded-full border-4 border-black'></img>
+                            {/* <img src={certificate1} className='w-24 h-24 p-1 rounded-full border-4 border-black'></img> */}
 
                         </div>
                     </div>

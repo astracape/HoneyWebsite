@@ -1,67 +1,69 @@
-import { getDatabase, onValue, ref } from 'firebase/database';
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth } from '../FirebaseConfig';
-import img from "../assets/composition-with-delicious-fermented-drinks.jpg"
-import ohh from "../assets/ohh.png"
+import { auth, database } from '../FirebaseConfig';
+import img from "../assets/composition-with-delicious-fermented-drinks.jpg";
+import { collection, onSnapshot, orderBy, query, where } from 'firebase/firestore';
+
 function OrderHistory() {
-  const [orders, setOrders] = useState([null]);
-  const [currentPage, setCurrentPage] = useState(0);
+  const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const navigate = useNavigate();
-  const itemsPerPage = 3;
+
   useEffect(() => {
-    const user = auth.currentUser; // Get the current logged-in user
-
-    // if (!user) {
-    //   // Redirect to login if the user is not logged in
-    //   navigate("/login");
-    //   return;
-    // }
-    if (user) {
-      console.log("Current User UID:", user.uid);
-    } else {
-      console.log("No user is currently logged in.");
-    }
-
-    const db = getDatabase();
-    const ordersRef = ref(db, `orders/${user.uid}`);
-
-    const unsubscribe = onValue(ordersRef, (snapshot) => {
-      if (snapshot.exists()) {
-        console.log("Orders Data:", snapshot.val());
-        const data = snapshot.val();
-        console.log("No orders found for user:", user.uid);
-        const userOrders = Object.entries(data).map(([id, value]) => ({
-          id,
-          ...value,
-        }));
-        const sortedOrders = [...userOrders].sort((a, b) =>
-          new Date(b.timestamp || 0) - new Date(a.timestamp || 0)
-        )
-        setOrders(sortedOrders);
-      } else {
-        setOrders([]); // No orders found
+    const unsubscribeAuth = auth.onAuthStateChanged((user) => {
+      if (!user) {
+        console.log("No user is currently logged in.");
+        setOrders([]);
+        setLoadingOrders(false);
+        return;
       }
-      setLoadingOrders(false);
+
+      const ordersRef = collection(database, "orders");
+      const ordersQuery = query(
+        ordersRef,
+        where("userId", "==", user.uid),
+          orderBy("createdAt", "desc")
+      );
+
+      const unsubscribeOrders = onSnapshot(ordersQuery, (snapshot) => {
+        const userOrders = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            orderId: data.orderId,
+            // Use total instead of totalAmount if that's what's in your database
+            totalAmount: data.total || data.totalAmount,
+            timestamp: data.createdAt || data.timestamp,
+            orderStatus: data.status || data.orderStatus,
+            cartItems: data.items || data.cartItems || [],
+            user: data.user || {},
+            shippingAddress: data.shippingAddress || {},
+            billingAddress: data.billingAddress || {}
+          };
+        });
+        setOrders(userOrders);
+        setLoadingOrders(false);
+      });
+
+      return () => unsubscribeOrders();
     });
 
-    return () => unsubscribe(); // Clean up the listener on component unmount
-  }, [navigate]);
+    return () => unsubscribeAuth();
+  }, []);
 
-  // if (loadingOrders) {
-  //   return <p className="text-center text-gray-500">Loading your order history...</p>;
-  // }
+  const formatDate = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-GB", {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
+    } catch (e) {
+      return "Unknown date";
+    }
+  };
 
-  // if (orders.length === 0) {
-  //   return <p className="text-center text-gray-600 mt-64 md:mt-96">No orders found.</p>;
-  // }
-  // const pageCount = Math.ceil(sortedProducts.length / itemsPerPage);
-  // const currentItems = sortedProducts.slice(
-  //     currentPage * itemsPerPage,
-  //     currentPage * itemsPerPage + itemsPerPage
-
-  // )
   return (
     <div>
       <div className="relative h-96 bg-cover bg-center" style={{ backgroundImage: `url(${img})` }}>
@@ -70,10 +72,7 @@ function OrderHistory() {
         </div>
       </div>
 
-      <div className="container  mx-auto px-6 py-12 max-w-6xl border-t-2 p-3 mt-4">
-        {/* <div>
-          <img src={ohh} className='rounded-lg w-96 h-96 p-3 border-2'></img>
-        </div> */}
+      <div className="container mx-auto px-6 py-12 max-w-6xl border-t-2 p-3 mt-4">
         {loadingOrders ? (
           <p className="text-center text-gray-500">Loading...</p>
         ) : orders.length === 0 ? (
@@ -88,44 +87,57 @@ function OrderHistory() {
                 <div className="flex flex-wrap justify-between items-center border-b border-gray-300 pb-4 mb-4">
                   <div>
                     <p className="text-xs md:text-base font-semibold text-gray-800">
-                      Order ID: <span className="text-yellow-600 text-xs md:text-base">{order.id}</span>
+                      Order ID: <span className="text-yellow-600 text-xs md:text-base">{order.orderId}</span>
                     </p>
                     <p className="text-sm text-gray-500">
-                      Date: {new Date(order.timestamp).toLocaleDateString("en-GB")}
+                      Date: {formatDate(order.timestamp)}
                     </p>
                   </div>
                   <p className="text-lg font-bold text-gray-900">
-                    ₹{order.totalAmount}
+                    ₹{order.totalAmount?.toFixed(2) || '0.00'}
                   </p>
                 </div>
+                
                 <div className="grid gap-4">
-                  {(order.cartItems ? Object.values(order.cartItems) : []).map(
-                    (item, index) => (
-                      <div key={index} className="flex items-center gap-4">
-                        <img
-                          src={item.imageUrl || "placeholder-image.jpg"}
-                          alt={item.name}
-                          className="w-16 h-16 rounded-lg object-cover shadow-md"
-                        />
-                        <div className="flex-1">
-                          <h3 className="text-xs md:text-sm font-medium text-gray-700">
-                            {item.name}
-                          </h3>
-                          <p className="text-sm text-gray-500">
-                            Quantity: {item.quantity} | ₹{item.price}
+                  {order.cartItems?.map((item, index) => (
+                    <div key={index} className="flex items-center gap-4">
+                      <img
+                        src={item.imageUrl || "placeholder-image.jpg"}
+                        alt={item.name}
+                        className="w-16 h-16 rounded-lg object-cover shadow-md"
+                        onError={(e) => {
+                          e.target.src = "placeholder-image.jpg";
+                        }}
+                      />
+                      <div className="flex-1">
+                        <h3 className="text-xs md:text-sm font-medium text-gray-700">
+                          {item.name}
+                        </h3>
+                        <p className="text-sm text-gray-500">
+                          Quantity: {item.quantity} | ₹{item.price}
+                        </p>
+                        {item.weight && (
+                          <p className="text-xs text-gray-400">
+                            Weight: {item.weight}
                           </p>
-                        </div>
-                        <button
-                          className="text-yellow-600 hover:underline text-xs md:text-sm border-l-2 p-3"
-                          onClick={() => navigate(`/singleproduct/${item.id}`)}
-                        >
-                          View Product
-                        </button>
+                        )}
                       </div>
-                    )
-                  )}
+                      <button
+                        className="text-yellow-600 hover:underline text-xs md:text-sm border-l-2 p-3"
+                        onClick={() => navigate(`/singleproduct/${item.id}`)}
+                      >
+                        View Product
+                      </button>
+                    </div>
+                  ))}
                 </div>
-                <div className="mt-4 text-right">
+                
+                <div className="mt-4 flex justify-between items-center">
+                  <div>
+                    <p className="text-sm text-gray-600">
+                      Shipped to: {order.shippingAddress?.city}, {order.shippingAddress?.state}
+                    </p>
+                  </div>
                   <span
                     className={`inline-block text-sm font-semibold px-3 py-1 rounded-full 
                       ${order.orderStatus === "Pending"
@@ -151,9 +163,8 @@ function OrderHistory() {
           </div>
         )}
       </div>
-
     </div>
-  )
+  );
 }
 
-export default OrderHistory
+export default OrderHistory;

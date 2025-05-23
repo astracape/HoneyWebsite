@@ -2,7 +2,10 @@ import React, { useEffect, useState } from 'react'
 import { database } from '../../FirebaseConfig';
 import { onValue, ref, remove, update } from 'firebase/database';
 import ReactQuill from 'react-quill';
+import 'react-toastify/dist/ReactToastify.css';
 import { toast, ToastContainer } from 'react-toastify';
+import { Link } from 'react-router-dom';
+import { collection, deleteDoc, doc, getDocs, updateDoc } from 'firebase/firestore';
 
 function ViewBlogs() {
     const [blogs, setBlogs] = useState([]);
@@ -10,42 +13,47 @@ function ViewBlogs() {
         const [selectedBlogId, setSelectedBlogId] = useState(null);
     
 
-    useEffect(() => {
-        const blogsRef = ref(database, 'blogs');
-        onValue(blogsRef, (snapshot) => {
-            const data = snapshot.val();
-            const blogList = data ? Object.entries(data).map(([id, blog]) => ({ id, ...blog })) : [];
-            setBlogs(blogList);
-        });
-    }, []);
+        useEffect(() => {
+            const fetchBlogs = async () => {
+                try {
+                    const blogsRef = collection(database, 'blogs'); // Correct reference to collection
+                    const snapshot = await getDocs(blogsRef); // Correct way to fetch data
+        
+                    if (!snapshot.empty) {
+                        const blogList = snapshot.docs.map(doc => ({
+                            id: doc.id, // Extract document ID
+                            ...doc.data(), // Extract document fields
+                        }));
+                        setBlogs(blogList);
+                    } else {
+                        setBlogs([]);
+                    }
+                } catch (error) {
+                    toast.error("Error fetching blogs")
+                }
+            };
+        
+            fetchBlogs();
+        }, []);
+       
 
     const confirmDelete = (blogId) => {
         setSelectedBlogId(blogId);
         setShowModal(true);
     };
 
-    // const handleRemove = (blogId) => {
-    //     const blogRef = ref(database, `blogs/${selectedBlogId}`);
-    //     remove(blogRef)
-    //         .then(() => {
-
-    //             setBlogs(blogs.filter((blog) => blog.id !== blogId));
-    //         })
-    //         .catch((error) => {
-    //             console.error("Error removing blog: ", error);
-    //         });
-    // };
+  
     const handleRemove = async () => {
             if (!selectedBlogId) return;
     
             try {
-                await remove(ref(database, `users/${selectedBlogId}`));
-                setUsers(users.filter(user => user.id !== selectedUserId));
+                await deleteDoc(doc(database, "blogs", selectedBlogId));
+                setBlogs(blogs.filter(blog => blog.id !== selectedBlogId));
                 setShowModal(false);
-                setSelectedUserId(null);
-                toast.success("User deleted successfully!");
+                setSelectedBlogId(null);
+                toast.success("Blog deleted successfully!");
             } catch (error) {
-                console.error("Error deleting user:", error);
+                toast.error("Failed to delete the blog")
             }
         };
 
@@ -55,13 +63,12 @@ function ViewBlogs() {
 
     const handleSave = async (blogId, updatedBlog) => {
         try {
-            const blogRef = ref(database, `blogs/${blogId}`);
-            await update(blogRef, updatedBlog);
+            const blogRef = doc(database, "blogs",blogId);
+            await updateDoc(blogRef, updatedBlog);
 
             setBlogs(blogs.map(blog => blog.id === blogId ? { ...updatedBlog, id: blogId, isEditing: false } : blog));
             toast.success("Blog updated successfully!");
         } catch (error) {
-            console.error("Error updating blog:", error);
             toast.error("Failed to update the blog. Please try again.");
         }
     };
@@ -129,12 +136,12 @@ function ViewBlogs() {
                                         className="text-gray-700 text-base mb-4 line-clamp-3"
                                         dangerouslySetInnerHTML={{ __html: blog.description }}
                                     />
-                                    <a
-                                        href={`/fullblog/${blog.id}`}
+                                    <Link
+                                        to={`/fullblog/${blog.id}`}
                                         className="text-yellow-600 self-start font-semibold hover:underline"
                                     >
                                         Read More
-                                    </a>
+                                    </Link>
                                     <div className="flex gap-4 mt-4 self-start">
                                         <button
                                             onClick={() => handleEditToggle(blog.id)}
