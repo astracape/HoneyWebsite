@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import 'flowbite';
 import { Link } from 'react-router-dom';
-import { FaBox, FaShippingFast, FaNewspaper, FaClipboardList, FaBars, FaTimes, FaProductHunt, FaBoxes, FaSms, FaVoicemail } from 'react-icons/fa';
+import { FaBox, FaShippingFast, FaNewspaper, FaClipboardList, FaBars, FaTimes, FaProductHunt, FaBoxes, FaSms, FaVoicemail, FaEnvelope } from 'react-icons/fa';
+import { FaEnvelopesBulk } from 'react-icons/fa6';
 
 function SideBar() {
    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -108,7 +109,7 @@ function SideBar() {
                   </li>
                   <li>
                      <Link to="/contactreq" className="flex items-center p-2 text-white">
-                     <FaVoicemail className="mr-2" />
+                     <FaEnvelopesBulk className="mr-2" />
                         <span className="flex-1 ms-3 whitespace-nowrap"> Contact Requests</span>
                      </Link>
                   </li>
@@ -194,7 +195,7 @@ function SideBar() {
                   </li>
                   <li>
                      <Link to="/contactreq" className="flex items-center p-2 text-white">
-                     <FaVoicemail className="mr-2" />
+                     <FaEnvelope className="mr-2" />
                         <span   onClick={closeDrawer} className="flex-1 ms-3 whitespace-nowrap"> Contact Requests</span>
                      </Link>
                   </li>

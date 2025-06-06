@@ -14,9 +14,9 @@ import { useCheckout } from '../../context/CheckoutContext';
 
 function Checkout() {
     const { cart } = useContext(CartContext)
-    const { updateShipping, checkoutData,setUseSameAddress, setBillingComplete } = useCheckout();
-   const useSameAddress = checkoutData.useSameAddress;
-    const [formData, setFormData] = useState(checkoutData.shipping ||{
+    const { updateShipping, checkoutData, setUseSameAddress, setBillingComplete } = useCheckout();
+    const useSameAddress = checkoutData.useSameAddress;
+    const [formData, setFormData] = useState(checkoutData.shipping || {
         firstName: '',
         lastName: '',
         country: 'India',
@@ -47,7 +47,7 @@ function Checkout() {
     useEffect(() => {
         window.scrollTo(0, 0);
         fetchShippingTypes();
-        
+
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
             if (!currentUser) {
@@ -56,21 +56,21 @@ function Checkout() {
         });
         return () => unsubscribe();
     }, []);
-const handleUseSameAddressChange = (e) => {
-  setUseSameAddress(e.target.checked);
-};
- 
+    const handleUseSameAddressChange = (e) => {
+        setUseSameAddress(e.target.checked);
+    };
+
     useEffect(() => {
         if (formData.state && formData.shippingType) {
             fetchShippingRate(formData.state, formData.shippingType);
         }
     }, [formData.state, formData.shippingType]);
-// useEffect(() => {
-//   if (checkoutData.billing) {
-//     setBillingData(checkoutData.billing);
-//   }
-// }, [checkoutData.billing]);
- 
+    // useEffect(() => {
+    //   if (checkoutData.billing) {
+    //     setBillingData(checkoutData.billing);
+    //   }
+    // }, [checkoutData.billing]);
+
     useEffect(() => {
         if (state && country) {
             const cities = City.getCitiesOfState(country.isoCode, state);
@@ -120,7 +120,7 @@ const handleUseSameAddressChange = (e) => {
 
         return true;
     };
-   
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         updateShipping(formData);
@@ -137,14 +137,14 @@ const handleUseSameAddressChange = (e) => {
         //     navigate('/billing', { state: { shippingData: formData } });
         //     return;
         // }
-if (!checkoutData.useSameAddress && !checkoutData.billingComplete) {
-    navigate('/billing');
-    return;
-  }
- // Reset billing complete flag if needed
-  if (checkoutData.useSameAddress && checkoutData.billingComplete) {
-    setBillingComplete(false);
-  }
+        if (!checkoutData.useSameAddress && !checkoutData.billingComplete) {
+            navigate('/billing');
+            return;
+        }
+        // Reset billing complete flag if needed
+        if (checkoutData.useSameAddress && checkoutData.billingComplete) {
+            setBillingComplete(false);
+        }
         setIsSubmitting(true);
         const orderDetails = createOrderDetails();
 
@@ -161,76 +161,91 @@ if (!checkoutData.useSameAddress && !checkoutData.billingComplete) {
         }
     };
 
-    
+
     const createOrderDetails = () => {
-    const timestamp = Date.now().toString().slice(-6);
-    const randomString = Math.random().toString(36).substring(2, 6).toUpperCase();
-    const orderId = `ORD-${timestamp}-${randomString}`;
+        const timestamp = Date.now().toString().slice(-6);
+        const randomString = Math.random().toString(36).substring(2, 6).toUpperCase();
+        const orderId = `ORD-${timestamp}-${randomString}`;
 
-    // Get billing data from context instead of local state
-    const billingAddressData = useSameAddress ? formData : checkoutData.billing;
+        // Get billing data from context instead of local state
+        const billingAddressData = useSameAddress ? formData : checkoutData.billing;
 
-    return {
-        orderId,
-        userId: user.uid,
-        shippingAddress: {
-            firstName: formData.firstName, 
-            lastName: formData.lastName,
-            address: `${formData.address}${formData.apartment ? ', ' + formData.apartment : ''}`,
-            city: formData.city,
-            state: formData.state,
-            country: formData.country,
-            pinCode: formData.pinCode,
-            phone: formData.phone,
-            email: formData.email
-        },
-        billingAddress: {
-            firstName: billingAddressData.firstName, 
-            lastName: billingAddressData.lastName,
-            address: `${billingAddressData.address}${billingAddressData.apartment ? ', ' + billingAddressData.apartment : ''}`,
-            city: billingAddressData.city,
-            state: billingAddressData.state,
-            country: billingAddressData.country,
-            pinCode: billingAddressData.pinCode,
-            phone: billingAddressData.phone,
-            email: billingAddressData.email
-        },
-        items: cart.map(item => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            imageUrl: item.imageUrl,
-            weight: item.weight
-        })),
-        subtotal: cart.reduce((total, item) => total + item.price * item.quantity, 0),
-        shipping: shippingRate || 0,
-        discount: discountAmount || 0,
-        total: calculateFinalTotal(),
-        paymentMethod: formData.paymentMethod,
-        status: "Pending",
-        createdAt: new Date().toISOString(),
+        return {
+            orderId,
+            userId: user.uid,
+            shippingAddress: {
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                address: `${formData.address}${formData.apartment ? ', ' + formData.apartment : ''}`,
+                city: formData.city,
+                state: formData.state,
+                country: formData.country,
+                pinCode: formData.pinCode,
+                phone: formData.phone,
+                email: formData.email
+            },
+            billingAddress: {
+                firstName: billingAddressData.firstName,
+                lastName: billingAddressData.lastName,
+                address: `${billingAddressData.address}${billingAddressData.apartment ? ', ' + billingAddressData.apartment : ''}`,
+                city: billingAddressData.city,
+                state: billingAddressData.state,
+                country: billingAddressData.country,
+                pinCode: billingAddressData.pinCode,
+                phone: billingAddressData.phone,
+                email: billingAddressData.email
+            },
+            items: cart.map(item => ({
+                id: item.id,
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity,
+                imageUrl: item.imageUrl,
+                weight: item.weight
+            })),
+            subtotal: cart.reduce((total, item) => total + item.price * item.quantity, 0),
+            shipping: shippingRate || 0,
+            discount: discountAmount || 0,
+            total: calculateFinalTotal(),
+            paymentMethod: formData.paymentMethod,
+            status: "Pending",
+            createdAt: new Date().toISOString(),
+        };
     };
-};
 
     const handleRazorpayPayment = async (orderDetails) => {
-        const orderAmount = orderDetails.total * 100;
+         try {
+        const orderAmount = orderDetails.total;
+     const response = await fetch('https://us-central1-honey-8e04f.cloudfunctions.net/createOrder',
+             {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                amount: orderAmount,
+               
+            }),
+        });
+     const data = await response.json();
+
         const options = {
             key: import.meta.env.VITE_RAZORPAY_API_KEY,
             amount: orderAmount,
             currency: "INR",
-            name: "Your Store Name",
+            name: "Cape Naturals-Honey&Spices",
             description: "Order Payment",
-            image: "https://example.com/logo.png",
+            image: "/logo123.png",
+    order_id: data.id,
             handler: async (response) => {
                 await saveOrderToDatabase(orderDetails);
                 toast.success("Order Placed Successfully!");
                 navigate("/success");
             },
             prefill: {
-                name: `${orderDetails.user.firstName} ${orderDetails.user.lastName}`,
-                email: orderDetails.user.email,
-                contact: orderDetails.user.phone,
+                name: `${orderDetails.billingAddress.firstName} ${orderDetails.billingAddress.lastName}`,
+                email: orderDetails.billingAddress.email,
+                contact: orderDetails.billingAddress.phone,
             },
             theme: {
                 color: "#ca8a04",
@@ -242,8 +257,12 @@ if (!checkoutData.useSameAddress && !checkoutData.billingComplete) {
             toast.error("Payment Failed. Please try again.");
         });
         rzp.open();
+     } catch (error) {
+        console.error("Payment initiation failed", error);
+        toast.error("Payment initiation failed");
+    }
     };
-
+    
     const handleCashOnDelivery = async (orderDetails) => {
         await saveOrderToDatabase(orderDetails);
         await clearUserCart(user.uid);
@@ -293,7 +312,7 @@ if (!checkoutData.useSameAddress && !checkoutData.billingComplete) {
             toast.error("Error applying coupon.");
         }
     };
-    
+
 
     return (
         <div>
@@ -478,28 +497,71 @@ if (!checkoutData.useSameAddress && !checkoutData.billingComplete) {
                                 Billing address is the same as shipping address
                             </label>
                         </div>
+                        
                         <div className="mt-6">
                             <h3 className="text-xl font-semibold mb-4 px-3 border-l-4 border-yellow-600">Payment Methods</h3>
-                            <div className="flex space-x-4">
-                                <label className="flex items-center">
+
+                            {/* Razorpay Payment Option */}
+                            <div className="mb-4 p-4 border rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                                <label className="flex items-start cursor-pointer">
                                     <input
                                         type="radio"
                                         name="paymentMethod"
                                         value="Razorpay"
                                         onChange={handleInputChange}
-                                        className="mr-2"
+                                        className="mt-1 mr-3"
                                     />
-                                    Razorpay (Credit/Debit Card / UPI)
+                                    <div className="flex-1">
+                                        
+                                        <div className="mt-2 text-sm text-gray-600">
+                                            <p>Pay via UPI, Credit/Debit Cards, Wallets, or NetBanking</p>
+                                            <p className="mt-1 italic text-gray-500">
+                                                After clicking "Place Order", you will be redirected to Razorpay to complete your purchase securely.
+                                            </p>
+                                        </div>
+                                        <div className="mt-2 flex items-center space-x-2">
+                                            <img
+                                                src="https://cdn.iconscout.com/icon/free/png-512/free-upi-logo-icon-download-in-svg-png-gif-file-formats--unified-payments-interface-payment-money-transfer-logos-icons-1747946.png?f=webp&w=512"
+                                                alt="UPI"
+                                                className="h-8"
+                                            />
+                                            <img
+                                                src="https://cdn.iconscout.com/icon/free/png-512/free-visa-logo-icon-download-in-svg-png-gif-file-formats--online-payment-brand-logos-pack-icons-226460.png?f=webp&w=512"
+                                                alt="Visa"
+                                                className="h-8"
+                                            />
+                                            <img
+                                                src="https://cdn.iconscout.com/icon/free/png-512/free-mastercard-logo-icon-download-in-svg-png-gif-file-formats--technology-social-media-vol-1-pack-logos-icons-3030047.png?f=webp&w=512"
+                                                alt="Mastercard"
+                                                className="h-8"
+                                            />
+                                            
+                                            <img
+                                                src="https://cdn.iconscout.com/icon/free/png-512/free-payment-icon-download-in-svg-png-gif-file-formats--rupay-card-pay-bank-transaction-methods-pack-e-commerce-shopping-icons-51318.png?f=webp&w=512"
+                                                alt="RuPay"
+                                                className="h-8"
+                                            />
+                                        </div>
+                                    </div>
                                 </label>
-                                <label className="flex items-center">
+                            </div>
+
+                            {/* Cash on Delivery Option */}
+                            <div className="p-4 border rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                                <label className="flex items-start cursor-pointer">
                                     <input
                                         type="radio"
                                         name="paymentMethod"
                                         value="Cash on Delivery"
                                         onChange={handleInputChange}
-                                        className="mr-2"
+                                        className="mt-1 mr-3"
                                     />
-                                    Cash on Delivery
+                                    <div className="flex-1">
+                                        <div className="font-medium text-gray-800">Cash on Delivery</div>
+                                        <div className="mt-1 text-sm text-gray-600">
+                                            Pay in cash when your order is delivered
+                                        </div>
+                                    </div>
                                 </label>
                             </div>
                         </div>

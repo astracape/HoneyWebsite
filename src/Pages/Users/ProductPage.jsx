@@ -140,7 +140,7 @@ const [searchTerm,setSearchTerm]=useState("")
 
 
             <div className="flex flex-col md:flex-row gap-6 p-4 md:mt-10">
-                <div className="w-full md:w-1/4 self-start p-2 space-y-6">
+                <div className="w-full md:w-1/4 self-start min-w-[250px] p-2 space-y-6">
                     <div className="bg-white shadow-lg rounded-lg p-4">
                     <input
                     type="text"
@@ -192,7 +192,7 @@ const [searchTerm,setSearchTerm]=useState("")
                 
 
                 {/* Product Grid */}
-                <div className={`flex-1 relative p-5 ${!loading && currentItems.length > 0 ? 'md:border-l-2 md:border-t-2' : ''}`}>
+                <div className={`flex-1 w-full  relative p-5 ${!loading && currentItems.length > 0 ? 'md:border-l-2 md:border-t-2' : ''}`}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 relative">
                         {loading ? (
                             <p className="text-center mt-6 text-lg text-gray-600 col-span-full">Loading products...</p>

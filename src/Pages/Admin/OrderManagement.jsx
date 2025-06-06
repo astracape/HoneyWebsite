@@ -294,7 +294,7 @@ function OrderManagement() {
                                                     </td>
                                                     <td className="px-6 py-4 text-sm text-gray-800">{order.id}</td>
                                                     <td className="px-6 py-4 text-sm text-gray-800">
-                                                        {`${order.user?.firstName || "N/A"} ${order.user?.lastName || ""}`}
+                                                        {`${order.billingAddress?.firstName || "N/A"} ${order.billingAddress?.lastName || ""}`}
                                                     </td>
                                                     <td className="px-6 py-4 text-sm text-gray-800">
                                                         ₹{order.total}

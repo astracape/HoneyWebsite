@@ -10,7 +10,7 @@ function OrderDetails() {
     const { orderId } = useParams();
     const [orderDetails, setOrderDetails] = useState(null);
     const [loading, setLoading] = useState(true);
-  
+
 
     const database = getFirestore();
     useEffect(() => {
@@ -55,14 +55,15 @@ function OrderDetails() {
                 {/* Print Button */}
                 <div className="flex justify-end mb-6 p-5">
                     <button
-                        onClick={() => {
-                            const printContent = document.getElementById("printable").innerHTML;
-                            const originalContent = document.body.innerHTML;
+                        // onClick={() => {
+                        //     const printContent = document.getElementById("printable").innerHTML;
+                        //     const originalContent = document.body.innerHTML;
 
-                            document.body.innerHTML = printContent;
-                            window.print();
-                            document.body.innerHTML = originalContent;
-                        }}
+                        //     document.body.innerHTML = printContent;
+                        //     window.print();
+                        //     document.body.innerHTML = originalContent;
+                        // }}
+                        onClick={() => window.print()}
                         className="bg-yellow-600 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-yellow-700 transition duration-300"
                     >
                         Print Order
@@ -78,11 +79,11 @@ function OrderDetails() {
                                 <p className="text-gray-700">
                                     <span className="font-semibold">Status:</span>
                                     <span className={`ml-2 px-2 py-1 rounded-full ${orderDetails.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                            orderDetails.status === 'processing' ? 'bg-blue-100 text-blue-800' :
-                                                orderDetails.status === 'shipped' ? 'bg-purple-100 text-purple-800' :
-                                                    orderDetails.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                                                        orderDetails.status === 'completed' ? 'bg-gray-100 text-gray-800' :
-                                                            'bg-red-100 text-red-800'
+                                        orderDetails.status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                                            orderDetails.status === 'shipped' ? 'bg-purple-100 text-purple-800' :
+                                                orderDetails.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                                                    orderDetails.status === 'completed' ? 'bg-gray-100 text-gray-800' :
+                                                        'bg-red-100 text-red-800'
                                         }`}>
                                         {orderDetails.status}
                                     </span>
@@ -94,9 +95,9 @@ function OrderDetails() {
                             <div className="mb-6 p-4 border rounded-lg">
                                 <h4 className="text-lg font-semibold mb-3 text-yellow-600 border-b pb-2">Shipping Address</h4>
                                 <div className="text-gray-700 space-y-2">
-                                    <p><span className="font-medium">Name:</span> {orderDetails.user.firstName} {orderDetails.user.lastName}</p>
-                                    <p><span className="font-medium">Email:</span> {orderDetails.user.email}</p>
-                                    <p><span className="font-medium">Phone:</span> {orderDetails.user.phone}</p>
+                                    <p><span className="font-medium">Name:</span> {orderDetails.shippingAddress.firstName} {orderDetails.shippingAddress.lastName}</p>
+                                    <p><span className="font-medium">Email:</span> {orderDetails.shippingAddress.email}</p>
+                                    <p><span className="font-medium">Phone:</span> {orderDetails.shippingAddress.phone}</p>
                                     <p><span className="font-medium">Address:</span> {orderDetails.shippingAddress.address}</p>
                                     <p><span className="font-medium">City:</span> {orderDetails.shippingAddress.city}</p>
                                     <p><span className="font-medium">State:</span> {orderDetails.shippingAddress.state}</p>
@@ -105,14 +106,14 @@ function OrderDetails() {
                                 </div>
                             </div>
 
-                       
+
                             {orderDetails.billingAddress && (
                                 <div className="mb-6 p-4 border rounded-lg">
                                     <h4 className="text-lg font-semibold mb-3 text-yellow-600 border-b pb-2">Billing Address</h4>
                                     <div className="text-gray-700 space-y-2">
-                                        <p><span className="font-medium">Name:</span> {orderDetails.user.firstName} {orderDetails.user.lastName}</p>
-                                        <p><span className="font-medium">Email:</span> {orderDetails.user.email}</p>
-                                        <p><span className="font-medium">Phone:</span> {orderDetails.user.phone}</p>
+                                        <p><span className="font-medium">Name:</span> {orderDetails.billingAddress.firstName} {orderDetails.billingAddress.lastName}</p>
+                                        <p><span className="font-medium">Email:</span> {orderDetails.billingAddress.email}</p>
+                                        <p><span className="font-medium">Phone:</span> {orderDetails.billingAddress.phone}</p>
                                         <p><span className="font-medium">Address:</span> {orderDetails.billingAddress.address}</p>
                                         <p><span className="font-medium">City:</span> {orderDetails.billingAddress.city}</p>
                                         <p><span className="font-medium">State:</span> {orderDetails.billingAddress.state}</p>
@@ -128,7 +129,7 @@ function OrderDetails() {
                                 <img src={img} className='w-64 h-64 rounded-full border-4 border-yellow-600 object-cover' alt="Order" />
                             </div>
 
-                         
+
                             <div className="bg-gray-50 p-4 rounded-lg">
                                 <h4 className="text-lg font-semibold mb-3 text-yellow-600 border-b pb-2">Order Summary</h4>
                                 <div className="space-y-2 mb-4">
@@ -163,6 +164,8 @@ function OrderDetails() {
                                     <th className="py-3 px-4 font-medium text-black">Product</th>
                                     <th className="py-3 px-4 font-medium text-black">Price</th>
                                     <th className="py-3 px-4 font-medium text-black">Quantity</th>
+                                    <th className="py-3 px-4 font-medium text-black">Shipping Rate</th>
+
                                     <th className="py-3 px-4 font-medium text-black">Total</th>
                                 </tr>
                             </thead>
@@ -179,8 +182,15 @@ function OrderDetails() {
                                             )}
                                             <span className="font-medium">{item.name}</span>
                                         </td>
-                                        <td className="py-4 px-4 text-gray-700">{item.quantity}</td>
+
+
+
                                         <td className="py-4 px-4 text-gray-700">₹{Number(item.price).toFixed(2)}</td>
+                                        <td className="py-4 px-4 text-gray-700">{item.quantity}</td>
+                                        {/* <td className='py-4 px-4 text-gray-700'>{item.shipping}</td> */}
+                                   
+                                        <td className='py-4 px-4 text-gray-700'>₹{orderDetails.shipping?.toFixed(2) || '0.00'}</td>
+
                                         <td className="py-4 px-4 text-gray-700 font-medium">
                                             ₹{total.toFixed(2)}
                                         </td>

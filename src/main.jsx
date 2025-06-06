@@ -6,6 +6,7 @@ import { CartProvider } from './context/CartContext.jsx'
 import { ShippingProvider } from './context/ShippingContext.jsx'
 import { CouponProvider } from './context/CouponContext.jsx'
 import { CheckoutProvider } from './context/CheckoutContext.jsx'
+import 'flowbite';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
