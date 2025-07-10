@@ -21,9 +21,10 @@ function ProductPage() {
     const navigate = useNavigate()
     const location = useLocation();
     const [loading, setLoading] = useState(true);
-    const { addToCart } = useContext(CartContext);
+    const { cart,addToCart } = useContext(CartContext);
     const [loadedProductIds, setLoadedProductIds] = useState(new Set());
-const [searchTerm,setSearchTerm]=useState("")
+    const [searchTerm, setSearchTerm] = useState("")
+     const [showCartSidebar, setShowCartSidebar] = useState(false);
     const itemsPerPage = 12;
 
     useEffect(() => {
@@ -42,7 +43,7 @@ const [searchTerm,setSearchTerm]=useState("")
                 const categoryList = querySnapshot.docs.map(doc => ({
                     id: doc.id,
                     name: doc.data()?.category || ""
-                })).filter(cat => cat.name);
+                })).filter((item) => item.name !== "Gifting Options");
 
                 setCategories([{ id: "all", name: "All" }, ...categoryList]);
             } catch (error) {
@@ -66,10 +67,12 @@ const [searchTerm,setSearchTerm]=useState("")
                 console.log("Checking doc id:", categoryId, "against selectedCategory:", selectedCategory);
 
                 if (selectedCategory === "all" || selectedCategory === categoryId) {
-                    const categoryProducts = productList.map(product => ({
-                        ...product,
-                        category: categoryId,
-                    }));
+                    const categoryProducts = productList
+                        .filter(product => !product.isGift)
+                        .map(product => ({
+                            ...product,
+                            category: categoryId,
+                        }));
                     console.log("Loaded products for", categoryId, categoryProducts);
                     newProducts = [...newProducts, ...categoryProducts];
                 }
@@ -91,14 +94,14 @@ const [searchTerm,setSearchTerm]=useState("")
     const auth = getAuth();
 
     const filteredProducts = products
-    .filter((product) =>
-        selectedCategory === 'all' || product.category === selectedCategory
-    )
-    .filter((product) =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+        .filter((product) =>
 
-  
+            selectedCategory === 'all' || product.category === selectedCategory
+        )
+        .filter((product) => !product.isGift)
+        .filter((product) => product.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
     const sortedProducts = [...filteredProducts].sort((a, b) => {
         if (sortOrder === "lowToHigh") return a.price - b.price;
         if (sortOrder === "highToLow") return b.price - a.price;
@@ -137,18 +140,78 @@ const [searchTerm,setSearchTerm]=useState("")
                 </div>
             </div>
 
+<button 
+                onClick={() => setShowCartSidebar(true)}
+                className="fixed bottom-6 right-6 bg-red-700 text-white p-4 rounded-full shadow-lg z-40 hover:bg-red-800 transition-colors"
+            >
+                <ShoppingCartIcon className="h-6 w-6" />
+                {cart.length > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-yellow-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
+                        {cart.length}
+                    </span>
+                )}
+            </button>
 
+            {/* Cart Sidebar */}
+            {showCartSidebar && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end">
+                    <div className="bg-white w-full max-w-md h-full overflow-y-auto">
+                        <div className="p-4 border-b sticky top-0 bg-white z-10">
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-xl font-bold">Your Cart ({cart.length})</h3>
+                                <button 
+                                    onClick={() => setShowCartSidebar(false)}
+                                    className="text-gray-500 hover:text-gray-700 text-2xl"
+                                >
+                                    &times;
+                                </button>
+                            </div>
+                        </div>
+                        <div className="p-4 space-y-4">
+                            {cart.length > 0 ? (
+                                cart.map((item) => (
+                                    <div key={item.id} className="flex gap-3 border-b pb-3">
+                                        <img 
+                                            src={item.imageUrl} 
+                                            className="w-16 h-16 object-cover rounded" 
+                                            alt={item.name}
+                                        />
+                                        <div className="flex-1">
+                                            <h4 className="font-medium">{item.name}</h4>
+                                            <p className="text-gray-600">₹{item.price} × {item.quantity}</p>
+                                            <p className="text-sm text-gray-500">{item.weight}</p>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="text-center text-gray-500 py-10">Your cart is empty</p>
+                            )}
+                        </div>
+                        <div className="p-4 border-t sticky bottom-0 bg-white">
+                            <button 
+                                onClick={() => {
+                                    setShowCartSidebar(false);
+                                    navigate('/cart');
+                                }}
+                                className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition-colors"
+                            >
+                                See Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="flex flex-col md:flex-row gap-6 p-4 md:mt-10">
                 <div className="w-full md:w-1/4 self-start min-w-[250px] p-2 space-y-6">
                     <div className="bg-white shadow-lg rounded-lg p-4">
-                    <input
-                    type="text"
-                    placeholder="Search products..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    className="px-4 py-2 border rounded-md mb-6 border-yellow-600"
-                />
+                        <input
+                            type="text"
+                            placeholder="Search products..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="px-4 py-2 border rounded-md mb-6 border-yellow-600"
+                        />
                         <h2 className="text-lg font-semibold text-gray-800 mb-4">Categories:</h2>
                         <div className="flex  flex-col gap-2 ">
 
@@ -161,7 +224,7 @@ const [searchTerm,setSearchTerm]=useState("")
                                         setCurrentPage(0);
                                         navigate(`?category=${category.id}`);
                                     }}
-                                    
+
                                     className={`py-2 px-4 text-left rounded-md font-medium transition-all duration-300 text-sm flex items-center gap-3 w-full 
       ${selectedCategory === category.id
                                             ? "bg-gradient-to-r from-red-900 to-red-700 text-white shadow-md"
@@ -189,13 +252,19 @@ const [searchTerm,setSearchTerm]=useState("")
                         </select>
                     </div>
                 </div>
-                
+
 
                 {/* Product Grid */}
                 <div className={`flex-1 w-full  relative p-5 ${!loading && currentItems.length > 0 ? 'md:border-l-2 md:border-t-2' : ''}`}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 relative">
                         {loading ? (
-                            <p className="text-center mt-6 text-lg text-gray-600 col-span-full">Loading products...</p>
+                            <div className="flex items-center justify-center py-20">
+                                {/* Simple spinner without separate component*/}
+                                <div className="w-16 h-16 border-4 border-gray-300 border-t-yellow-500 rounded-full animate-spin">
+                                </div>
+                                <p className="text-center mt-6 text-lg text-gray-600 col-span-full">Loading products...</p>
+
+                            </div>
                         ) : currentItems.length > 0 ? (
                             currentItems.map((product, index) => (
                                 <div key={index} className="bg-white shadow-lg rounded-xl overflow-hidden transition-transform transform hover:scale-105 hover:shadow-2xl p-4 relative">
@@ -240,7 +309,7 @@ const [searchTerm,setSearchTerm]=useState("")
                 hideProgressBar={false}
                 limit={1}
             />
-            {showPopup && (
+            {/* {showPopup && (
                 <div
                     data-aos="fade-up"
                     data-aos-duration="600"
@@ -259,7 +328,40 @@ const [searchTerm,setSearchTerm]=useState("")
                         View Cart
                     </button>
                 </div>
-            )}
+            )} */}
+{showPopup && (
+  <div
+    className="fixed bottom-4 left-0 right-0 mx-auto bg-brandyellow rounded-lg shadow-xl z-50 max-w-sm w-[90%]"
+    data-aos="fade-up"
+    data-aos-duration="300"
+  >
+    <div className="p-3 flex items-center justify-between">
+      <div className="flex items-center overflow-hidden flex-1">
+        <div className="bg-green-100 p-2 rounded-full mr-2 flex-shrink-0">
+          <svg 
+            className="w-5 h-5 text-green-600" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <span className="text-gray-800 font-medium text-sm truncate">
+          Added to cart
+        </span>
+      </div>
+      <button 
+        onClick={() => setShowPopup(false)}
+        className="text-black hover:text-gray-600 flex-shrink-0 ml-2"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  </div>
+)}
 
         </div>
     )

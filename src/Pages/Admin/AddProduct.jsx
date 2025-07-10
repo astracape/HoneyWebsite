@@ -16,6 +16,7 @@ function AddProduct() {
     const [previewImage, setPreviewImage] = useState('');
     const [productWeightValue, setProductWeightValue] = useState('');
     const [productWeightUnit, setProductWeightUnit] = useState('g');
+    const [isGift, setIsGift] = useState(false);
 
 
 
@@ -41,105 +42,107 @@ function AddProduct() {
     }, []);
 
     const addProduct = async () => {
-    if (!productImage || !productCategory) {
-        toast.error("Please select an image and category");
-        return;
-    }
-
-    const trimmedName = productName.trim().toLowerCase();
-    const trimmedWeight = `${productWeightValue}${productWeightUnit}`.trim().toLowerCase();
-
-    if (!trimmedName) {
-        toast.error("Product name cannot be empty");
-        return;
-    }
-
-    try {
-        setUploading(true);
-
-        // Step 1: Reference to the category document in Firestore
-        const categoryRef = doc(database, "products", productCategory);
-        const categorySnapshot = await getDoc(categoryRef);
-
-        // Step 2: Check if the product already exists in the `products` array
-        if (categorySnapshot.exists()) {
-            const existingProducts = categorySnapshot.data().products || [];
-
-            const isNameExists = existingProducts.some(
-                (product) => product.name.toLowerCase() === trimmedName&&
-                product.weight.toLowerCase()===trimmedWeight
-            );
-
-            if (isNameExists) {
-                toast.error("A product and size already exists in this category.");
-                setUploading(false);
-                return;
-            }
+        if (!productImage || !productCategory ||!productWeightValue ||!productWeightUnit ||!productPrice) {
+            toast.error("Please enter all details");
+            return;
         }
 
-        // Step 3: Upload image to Firebase Storage
-        const imageRef = storageRef(storage, `product_images/${productImage.name}`);
-        const uploadTask = uploadBytesResumable(imageRef, productImage);
+        const trimmedName = productName.trim().toLowerCase();
+        const trimmedWeight = `${productWeightValue}${productWeightUnit}`.trim().toLowerCase();
 
-        uploadTask.on(
-            'state_changed',
-            null,
-            (error) => {
-                console.error("Upload failed", error);
-                setUploading(false);
-                toast.error("Image upload failed");
-            },
-            async () => {
-                try {
-                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+        if (!trimmedName) {
+            toast.error("Product name cannot be empty");
+            return;
+        }
 
-                    const timestamp = new Date().getTime();
-                    const newProduct = {
-                        id: crypto.randomUUID(),
-                        name: trimmedName,
-                        weight: trimmedWeight,
-                        price: productPrice,
-                        description: productDescription,
-                        imageUrl: downloadURL,
-                        timestamp,
-                        categoryId: productCategory,
-                    };
+        try {
+            setUploading(true);
 
-                    // Step 4: Add the product to the category document in Firestore
-                    if (!categorySnapshot.exists()) {
-                        await setDoc(categoryRef, { products: [newProduct] });
-                    } else {
-                        await updateDoc(categoryRef, {
-                            products: arrayUnion(newProduct),
-                        });
-                    }
+            // Step 1: Reference to the category document in Firestore
+            const categoryRef = doc(database, "products", productCategory);
+            const categorySnapshot = await getDoc(categoryRef);
 
-                    toast.success("Product added successfully");
 
-            
-                    setProductName('');
-                    setProductWeightValue('');
-                    setProductPrice('');
-                    setProductDescription('');
-                    setProductCategory('');
-                    setProductImage(null);
-                    setPreviewImage(null);
-                    document.getElementById("productImageInput").value = "";
+            // Step 2: Check if the product already exists in the `products` array
+            if (categorySnapshot.exists()) {
+                const existingProducts = categorySnapshot.data().products || [];
+
+                const isNameExists = existingProducts.some(
+                    (product) => product.name.toLowerCase() === trimmedName &&
+                        product.weight.toLowerCase() === trimmedWeight
+                );
+
+                if (isNameExists) {
+                    toast.error("A product and size already exists in this category.");
                     setUploading(false);
-
-                } catch (error) {
-                    console.error("Error details:", error.message);
-                    toast.error("Error adding product");
-                    setUploading(false);
+                    return;
                 }
             }
-        );
-    } catch (error) {
-        console.error("Firestore error:", error.message);
-        toast.error("Error checking product name");
-        setUploading(false);
-    }
-};
+
+
+            // Step 3: Upload image to Firebase Storage
+            const imageRef = storageRef(storage, `product_images/${productImage.name}`);
+            const uploadTask = uploadBytesResumable(imageRef, productImage);
+
+            uploadTask.on(
+                'state_changed',
+                null,
+                (error) => {
+                    console.error("Upload failed", error);
+                    setUploading(false);
+                    toast.error("Image upload failed");
+                },
+                async () => {
+                    try {
+                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                        const timestamp = new Date().getTime();
+                        const newProduct = {
+                            id: crypto.randomUUID(),
+                            name: trimmedName,
+                            weight: trimmedWeight,
+                            price: productPrice,
+                            description: productDescription,
+                            imageUrl: downloadURL,
+                            timestamp,
+                            categoryId: productCategory,
+                            isGift
+                        };
+
+                        // Step 4: Add the product to the category document in Firestore
+                        if (!categorySnapshot.exists()) {
+                            await setDoc(categoryRef, { products: [newProduct] });
+                        } else {
+                            await updateDoc(categoryRef, {
+                                products: arrayUnion(newProduct),
+                            });
+                        }
+
+                        toast.success("Product added successfully");
+
+
+                        setProductName('');
+                        setProductWeightValue('');
+                        setProductPrice('');
+                        setProductDescription('');
+                        setProductCategory('');
+                        setProductImage(null);
+                        setPreviewImage(null);
+                        document.getElementById("productImageInput").value = "";
+                        setUploading(false);
+
+                    } catch (error) {
+                        console.error("Error details:", error.message);
+                        toast.error("Error adding product");
+                        setUploading(false);
+                    }
+                }
+            );
+        } catch (error) {
+            console.error("Firestore error:", error.message);
+            toast.error("Error checking product name");
+            setUploading(false);
+        }
+    };
 
     return (
         <div>
@@ -147,7 +150,7 @@ function AddProduct() {
             <div className='lg:ml-64'>
                 <div className='flex flex-col gap-4 md:p-5'>
 
-                    <h1 className='text-2xl lg:text-3xl font-bold px-3 border-l-4 border-yellow-600'>Add Your Products Here! </h1>
+                    <h1 className='text-2xl lg:text-3xl font-bold px-3 border-l-4 border-brandyellow'>Add Your Products Here! </h1>
 
                     <input type="text"
                         placeholder="Name"
@@ -206,6 +209,21 @@ function AddProduct() {
                             <option key={catry.id} value={catry.id}>{catry.category}</option>
                         ))}
                     </select>
+                   <div className='w-3/4 mb-4'>
+    <p className='text-gray-700 font-semibold mb-2'>Please select if this is a gift</p>
+    <label className='flex items-center gap-2'>
+        <input
+            type='checkbox'
+            checked={isGift}
+            onChange={(e) => setIsGift(e.target.checked)}
+            required
+        />
+        Is Gift?
+    </label>
+</div>
+
+
+
                     <div className='w-3/4 flex justify-between'>
 
                         <input type="file"
@@ -225,7 +243,7 @@ function AddProduct() {
                     </div>
                     <button
                         onClick={addProduct}
-                        className={`px-4 py-2  w-3/4 bg-yellow-600 text-white rounded-lg ${uploading && 'opacity-50'}`}
+                        className={`px-4 py-2  w-3/4 bg-brandyellow text-white rounded-lg ${uploading && 'opacity-50'}`}
                         disabled={uploading}
                     >
                         {uploading ? 'Uploading...' : 'Add Product'}

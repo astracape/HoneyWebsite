@@ -207,7 +207,7 @@ function OrderManagement() {
                                         value={searchquery}
                                         onChange={(e) => setSearchquery(e.target.value)}
                                     />
-                                    <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-yellow-600 px-6 py-2 text-white rounded-md">
+                                    <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-brandyellow px-6 py-2 text-white rounded-md">
                                         Search
                                     </button>
                                 </form>
@@ -234,7 +234,7 @@ function OrderManagement() {
 
                                 <button
                                     onClick={handleBulkStatusUpdate}
-                                    className="bg-yellow-600 text-white px-4 py-2 rounded-md"
+                                    className="bg-brandyellow text-white px-4 py-2 rounded-md"
                                     disabled={selectedorder.length === 0}
                                 >
                                     Apply to Selected
@@ -244,7 +244,7 @@ function OrderManagement() {
                             <div className=" bg-white overflow-x-auto shadow-md rounded-lg">
                                 <table className="min-w-full table-auto">
                                     <thead>
-                                        <tr className="bg-yellow-600">
+                                        <tr className="bg-brandyellow">
                                             <th className="px-6 py-3 text-left text-sm font-semibold text-black">
                                                 <input
                                                     type="checkbox"
@@ -320,7 +320,7 @@ function OrderManagement() {
                                                     <td className="px-6 py-4 text-sm text-yellow-700 cursor-pointer">
                                                         <button
                                                             onClick={() => viewOrderDetails(order.id)}
-                                                            className="underline hover:text-yellow-600"
+                                                            className="underline hover:text-brandyellow"
                                                         >
                                                             View Details
                                                         </button>

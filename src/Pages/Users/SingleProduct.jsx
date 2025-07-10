@@ -87,7 +87,7 @@ function SingleProduct() {
         <div className=' flex flex-col justify-center items-start space-y-6 border-l-2 pl-8'>
           <h1 className="text-3xl font-bold ">{product.name}</h1>
           <p className="text-xl font-semibold mt-4 ">{product.price}</p>
-          <p className="text-gray-500 font-semibold mt-4 ">KG: {product.weight}</p>
+          <p className="text-gray-500 font-semibold mt-4 ">Weight: {product.weight}</p>
 
           <p className="text-gray-500 mt-2">Category: {product.category}</p>
 

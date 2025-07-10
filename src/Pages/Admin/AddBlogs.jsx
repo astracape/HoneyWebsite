@@ -124,7 +124,7 @@ function AddBlogs() {
                         <button
                             onClick={addBlog}
                             type="submit"
-                            className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                            className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brandyellow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
                         >
                             Publish Blog
                         </button>

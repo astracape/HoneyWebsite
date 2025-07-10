@@ -5,6 +5,7 @@ import './App.css'
 import AOS from "aos";
 import "aos/dist/aos.css";
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import './index.css'; 
 
 import NavBar from './Pages/NavBar';
 import HomePage from './Pages/Users/HomePage'
@@ -47,6 +48,7 @@ import ContactRequest from './Pages/Admin/ContactRequest';
 import BillingDetails from './Pages/Users/BillingDetailsForm';
 import BillingDetailsForm from './Pages/Users/BillingDetailsForm';
 import BillingWrapper from './Pages/Users/BillingWrapper';
+import GiftHamper from './Pages/Users/GiftHamper';
 
 
 
@@ -105,7 +107,8 @@ function App() {
         <CouponBanner />
         <NavBar isAuth={isAuth} setIsAuth={setIsAuth} isAdmin={isAdmin} setIsAdmin={setIsAdmin} />
         <Suspense fallback={<div className="flex items-center justify-center h-screen"><BounceLoader color="#FFA500" size={50} /></div>}>
-          <Routes>
+         <div className="pt-24">
+          <Routes >
             {/* Admin Routes */}
             <Route path="/sidebar" element={<AdminRoute element={<><SideBar /></>} isAuth={isAuth} isAdmin={isAdmin} />} />
             <Route path="/addproduct" element={<AdminRoute element={<><SideBar /><AddProduct /></>} isAuth={isAuth} isAdmin={isAdmin} />} />
@@ -161,6 +164,10 @@ function App() {
               path="/productpage"
               element={<><ProductPage /><Footer /></>}
             />
+             <Route
+              path="/gifting"
+              element={<><GiftHamper /><Footer /></>}
+            />
             <Route
               path="/couponlist"
               element={<><CouponList /><Footer /></>}
@@ -201,6 +208,7 @@ function App() {
               element={<><FullBlogPage /><Footer /></>}
             />
           </Routes>
+          </div>
         </Suspense>
       </BrowserRouter>
     </>

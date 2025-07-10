@@ -21,7 +21,7 @@ function Footer() {
                         <div className=" space-y-2 mt-5">
                             <p>Location: 26/57E ,  Palliyadi, Kanyakumari District. TN 629169</p>
                             <p>Phone: +918015396203</p>
-                            <p>Email: info.capztone@gmail.com</p>
+                            <p>EmailId: info.capztone@gmail.com</p>
                         </div>
                     </div>
 

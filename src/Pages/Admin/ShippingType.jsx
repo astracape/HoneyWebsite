@@ -2,7 +2,7 @@ import { addDoc, collection } from 'firebase/firestore';
 import React, { useState } from 'react'
 import { database } from '../../FirebaseConfig';
 
-function ShippingType() {
+function ShippingType({fetchShippingTypes}) {
     const [shippingType, setShippingType] = useState("");
    const [description, setDescription] = useState("");
    const [loading, setLoading] = useState(false);
@@ -24,6 +24,7 @@ function ShippingType() {
          setMessage("Shipping type added successfully!");
          setShippingType("");
          setDescription("");
+            fetchShippingTypes();
       } catch (error) {
          console.error("Error adding shipping type:", error);
          setMessage("Error adding shipping type.");
@@ -70,7 +71,7 @@ function ShippingType() {
   {/* Submit Button */}
   <button
     onClick={handleAddShippingType}
-    className="md:w-2/4 w-full px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition-all"
+    className="md:w-2/4 w-full px-4 py-2 bg-brandyellow text-white rounded-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition-all"
     disabled={loading}
   >
     {loading ? "Adding..." : "Add Shipping Type"}

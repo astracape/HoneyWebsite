@@ -3,19 +3,17 @@ import React, { useEffect, useState } from 'react';
 import { database } from '../../FirebaseConfig';
 import emailjs from '@emailjs/browser';
 
+const BRAND_NAME = import.meta.env.VITE_BRAND_NAME || 'CapeNaturals';
+
 function ContactRequest() {
     const [contacts, setContacts] = useState([]);
     const [selectedContact, setSelectedContact] = useState(null);
-    const [emailContent, setEmailContent] = useState({
-        subject: '',
-        message: ''
-    });
+    const [emailContent, setEmailContent] = useState({ subject: '', message: '' });
     const [isSending, setIsSending] = useState(false);
     const [status, setStatus] = useState({ type: '', message: '' });
     const [sentEmails, setSentEmails] = useState(new Set());
-    const [filter, setFilter] = useState('all'); // 'all', 'new', 'replied'
+    const [filter, setFilter] = useState('all');
 
-    // Initialize EmailJS and load sent emails
     useEffect(() => {
         emailjs.init(import.meta.env.VITE_EMAILJS_PUBLIC_KEY);
         const savedSentEmails = localStorage.getItem('sentEmails');
@@ -27,14 +25,14 @@ function ContactRequest() {
     useEffect(() => {
         const fetchContacts = async () => {
             try {
-                const querySnapshot = await getDocs(collection(database, "contactus"));
+                const querySnapshot = await getDocs(collection(database, 'contactus'));
                 const contactData = querySnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data(),
                 }));
                 setContacts(contactData);
             } catch (error) {
-                console.error("Error fetching contacts:", error);
+                console.error('Error fetching contacts:', error);
                 setStatus({ type: 'error', message: 'Failed to load contacts' });
             }
         };
@@ -44,8 +42,8 @@ function ContactRequest() {
     const handleContactSelect = (contact) => {
         setSelectedContact(contact);
         setEmailContent({
-            subject: `Re: Your contact request from ${new Date(contact.timestamp?.seconds * 1000).toLocaleDateString()}`,
-            message: `Dear ${contact.name || 'Customer'},\n\nThank you for reaching out to us regarding "${contact.subject || 'your inquiry'}".\n\n`
+            subject: `Hi ${contact.name}, thanks for contacting ${BRAND_NAME}`,
+            message: `Dear ${contact.name || 'Customer'},\n\nThank you for reaching out to us regarding "${contact.subject || 'your inquiry'}".\n\n We appreciate your patience and will get back to you shortly.\n\nBest regards,\n${BRAND_NAME} Team`
         });
         setStatus({ type: '', message: '' });
     };
@@ -64,10 +62,11 @@ function ContactRequest() {
                 import.meta.env.VITE_EMAILJS_SERVICE_ID,
                 import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
                 {
+                    to_name: selectedContact.name || 'Customer',
                     to_email: selectedContact.email,
-                    from_name: 'Capenaturals',
+                    from_name: BRAND_NAME,
                     subject: emailContent.subject,
-                    message: emailContent.message,
+                    queries: selectedContact.message || selectedContact.queries || 'No query provided',
                 }
             );
 
@@ -76,12 +75,6 @@ function ContactRequest() {
             localStorage.setItem('sentEmails', JSON.stringify([...updatedSentEmails]));
 
             setStatus({ type: 'success', message: 'Email sent successfully!' });
-            setEmailContent({ subject: '', message: '' });
-            
-            setTimeout(() => {
-                setSelectedContact(null);
-                setStatus({ type: '', message: '' });
-            }, 3000);
         } catch (error) {
             console.error('Failed to send email:', error);
             setStatus({ type: 'error', message: 'Failed to send email. Please try again.' });
@@ -93,138 +86,111 @@ function ContactRequest() {
     const handleDeleteContact = async (contactId) => {
         if (window.confirm('Are you sure you want to delete this contact request?')) {
             try {
-                await deleteDoc(doc(database, "contactus", contactId));
+                await deleteDoc(doc(database, 'contactus', contactId));
                 setContacts(contacts.filter(contact => contact.id !== contactId));
-                setStatus({ type: 'success', message: 'Contact request deleted successfully!' });
-                
                 if (sentEmails.has(contactId)) {
-                    const updatedSentEmails = new Set(sentEmails);
-                    updatedSentEmails.delete(contactId);
-                    setSentEmails(updatedSentEmails);
-                    localStorage.setItem('sentEmails', JSON.stringify([...updatedSentEmails]));
+                    const updated = new Set(sentEmails);
+                    updated.delete(contactId);
+                    setSentEmails(updated);
+                    localStorage.setItem('sentEmails', JSON.stringify([...updated]));
                 }
-                
-                if (selectedContact?.id === contactId) {
-                    setSelectedContact(null);
-                }
+                setStatus({ type: 'success', message: 'Contact deleted successfully.' });
+                if (selectedContact?.id === contactId) setSelectedContact(null);
             } catch (error) {
-                console.error("Error deleting contact:", error);
-                setStatus({ type: 'error', message: 'Failed to delete contact request' });
+                setStatus({ type: 'error', message: 'Failed to delete contact' });
             }
         }
     };
 
-    const isEmailSent = (contactId) => sentEmails.has(contactId);
+    const isEmailSent = (id) => sentEmails.has(id);
 
-    // Filter contacts based on current filter
     const filteredContacts = contacts
-    .filter(contact => {
-      if (filter === 'all') return true;
-      if (filter === 'new') return !isEmailSent(contact.id);
-      if (filter === 'replied') return isEmailSent(contact.id);
-      return true;
-    })
-    .sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
-  
+        .filter(contact => {
+            if (filter === 'all') return true;
+            if (filter === 'new') return !isEmailSent(contact.id);
+            if (filter === 'replied') return isEmailSent(contact.id);
+            return true;
+        })
+        .sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
 
     return (
         <div className="lg:ml-64 p-6 min-h-screen bg-gray-50">
-            <div className="max-w-6xl mx-auto">
-                <h2 className="text-3xl font-bold mb-6 text-gray-800">Contact Requests</h2>
+            <div className="max-w-7xl mx-auto">
+                <div className="flex justify-between items-center mb-8">
+                    <h2 className="text-2xl font-semibold text-gray-800">Contact Inquiries</h2>
+                    <div className="text-sm text-gray-500">
+                        {filteredContacts.length} of {contacts.length} requests shown
+                    </div>
+                </div>
 
                 {status.message && (
-                    <div className={`mb-4 p-4 rounded border-t-2 ${status.type === 'error' ? 'bg-red-100 text-red-700 border-t-2 border-red-500' : 'bg-green-100 text-green-700 border-green-500'}`}>
+                    <div className={`mb-6 p-4 rounded-md ${status.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'}`}>
                         {status.message}
                     </div>
                 )}
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Contact List - Recent Requests */}
-                    <div className="lg:col-span-1 bg-white shadow rounded-lg overflow-hidden">
-                        <div className="p-4 bg-yellow-600 text-white">
-                            <div className="flex justify-between items-center mb-2">
-                                <h3 className="text-lg font-semibold">Recent Requests</h3>
-                                <div className="text-xs bg-yellow-500 px-2 py-1 rounded">
-                                    {filteredContacts.length} shown • {contacts.length} total
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    {/* Sidebar - Contact List */}
+                    <div className="lg:col-span-4 bg-white rounded-lg border border-gray-200 overflow-hidden">
+                        <div className="p-4 border-b border-gray-200">
+                            <div className="flex items-center justify-between">
+                                <h3 className="font-medium text-gray-700">Recent Messages</h3>
+                                <div className="flex space-x-1">
+                                    {['all', 'new', 'replied'].map(type => (
+                                        <button
+                                            key={type}
+                                            onClick={() => setFilter(type)}
+                                            className={`px-3 py-1 text-xs rounded-full ${filter === type
+                                                ? 'bg-brandyellow text-white'
+                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                                        >
+                                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                                        </button>
+                                    ))}
                                 </div>
-                            </div>
-                            <div className="flex space-x-2">
-                                <button
-                                    onClick={() => setFilter('all')}
-                                    className={`text-xs px-2 py-1 rounded ${filter === 'all' ? 'bg-white text-yellow-600' : 'bg-yellow-500 text-white'}`}
-                                >
-                                    All
-                                </button>
-                                <button
-                                    onClick={() => setFilter('new')}
-                                    className={`text-xs px-2 py-1 rounded ${filter === 'new' ? 'bg-white text-yellow-600' : 'bg-yellow-500 text-white'}`}
-                                >
-                                    New
-                                </button>
-                                <button
-                                    onClick={() => setFilter('replied')}
-                                    className={`text-xs px-2 py-1 rounded ${filter === 'replied' ? 'bg-white text-yellow-600' : 'bg-yellow-500 text-white'}`}
-                                >
-                                    Replied
-                                </button>
                             </div>
                         </div>
-                        <div className="divide-y divide-gray-200 max-h-[600px] overflow-y-auto">
+
+                        <div className="divide-y divide-gray-100 max-h-[700px] overflow-y-auto">
                             {filteredContacts.length === 0 ? (
-                                <div className="p-4 text-gray-500">
-                                    {filter === 'all' 
-                                        ? 'No contact requests yet.' 
-                                        : filter === 'new' 
-                                            ? 'No new contact requests.' 
-                                            : 'No replied contact requests.'}
+                                <div className="p-6 text-center text-gray-500">
+                                    <p>No contact requests found</p>
                                 </div>
                             ) : (
-                                filteredContacts.map((contact) => (
+                                filteredContacts.map(contact => (
                                     <div
                                         key={contact.id}
-                                        className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors relative ${selectedContact?.id === contact.id ? 'bg-indigo-50' : ''}`}
+                                        className={`p-4 cursor-pointer transition-colors ${selectedContact?.id === contact.id
+                                            ? 'bg-blue-50'
+                                            : 'hover:bg-gray-50'}`}
+                                        onClick={() => handleContactSelect(contact)}
                                     >
-                                        {/* Status indicator dot */}
-                                        <div className={`absolute top-9 left-3 h-2.5 w-2.5 rounded-full ${isEmailSent(contact.id) ? '' : 'bg-green-500'}`}></div>
-                                        
-                                        <div className="ml-5">
-                                            <div className="flex justify-between items-start pr-3">
-                                                <div onClick={() => handleContactSelect(contact)} className="flex-1">
-                                                    <h4 className="font-medium text-gray-900">{contact.name || 'No Name'}</h4>
-                                                    <p className="text-sm text-gray-600">{contact.email}</p>
+                                        <div className="flex justify-between">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center space-x-2">
+                                                    <h4 className="font-medium text-gray-900 truncate">{contact.name}</h4>
+                                                    {isEmailSent(contact.id) && (
+                                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                                            Replied
+                                                        </span>
+                                                    )}
                                                 </div>
-                                                <span className="text-xs text-gray-500 whitespace-nowrap">
-                                                    {new Date(contact.timestamp?.seconds * 1000).toLocaleDateString()}
-                                                </span>
+                                                <p className="text-sm text-gray-600 truncate">{contact.subject || '(No subject)'}</p>
+                                                <p className="text-xs text-gray-500 mt-1">
+                                                    {new Date(contact.timestamp?.seconds * 1000).toLocaleString()}
+                                                </p>
                                             </div>
-                                            <div onClick={() => handleContactSelect(contact)}>
-                                                {contact.subject && (
-                                                    <p className="mt-1 text-sm font-medium text-gray-900">
-                                                        {contact.subject}
-                                                    </p>
-                                                )}
-                                                {contact.message && (
-                                                    <p className="mt-2 text-sm text-gray-500 line-clamp-2">
-                                                        {contact.message}
-                                                    </p>
-                                                )}
-                                                {isEmailSent(contact.id) && (
-                                                    <div className="mt-2 flex items-center text-xs text-green-600">
-                                                        <svg className="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                                        </svg>
-                                                        Replied
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="mt-3 flex justify-end space-x-2">
-                                                <button
-                                                    onClick={() => handleDeleteContact(contact.id)}
-                                                    className="text-xs px-2 py-1 bg-red-100 text-red-800 rounded hover:bg-red-200"
-                                                >
-                                                    Delete
-                                                </button>
-                                            </div>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDeleteContact(contact.id);
+                                                }}
+                                                className="text-gray-400 hover:text-red-500 ml-2"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                                </svg>
+                                            </button>
                                         </div>
                                     </div>
                                 ))
@@ -232,99 +198,123 @@ function ContactRequest() {
                         </div>
                     </div>
 
-                    {/* Email Composition Panel */}
-                    <div className="lg:col-span-2 bg-white shadow rounded-lg overflow-hidden">
+                    {/* Main Content - Message View */}
+                    <div className="lg:col-span-8 bg-white rounded-lg border border-gray-200 overflow-hidden flex flex-col">
                         {selectedContact ? (
                             <>
-                                <div className="p-4 bg-yellow-600 text-white flex justify-between items-center">
-                                    <div className="flex items-center">
-                                        <h3 className="text-lg font-semibold">Reply to {selectedContact.name || selectedContact.email}</h3>
+                                {/* Message Header - Compact */}
+                                <div className="p-4 border-b border-gray-200 bg-gray-50 w-full">
+                                    <div>
+                                        <h3 className="font-semibold text-gray-800">
+                                            {selectedContact.subject || 'No Subject'}
+                                        </h3>
+                                        <p className="text-sm text-gray-600 mt-1">
+                                            From: {selectedContact.name} &lt;{selectedContact.email}&gt;
+                                        </p>
                                     </div>
-                                    {isEmailSent(selectedContact.id) && (
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            <svg className="-ml-0.5 mr-1.5 h-2 w-2 text-green-400" fill="currentColor" viewBox="0 0 8 8">
-                                                <circle cx="4" cy="4" r="3" />
-                                            </svg>
-                                            Response Sent
-                                        </span>
-                                    )}
+                                    <div className="text-sm text-gray-500">
+                                        {new Date(selectedContact.timestamp?.seconds * 1000).toLocaleString()}
+                                    </div>
                                 </div>
-                                <div className="p-6 space-y-4">
-                                    <div>
-                                        <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
-                                            Subject
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="subject"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                            value={emailContent.subject}
-                                            onChange={(e) => setEmailContent({ ...emailContent, subject: e.target.value })}
-                                        />
+
+                                {/* Original Message - Focused */}
+                                <div className="flex-1 p-6 overflow-y-auto">
+                                    <div className="max-w-3xl p-6">
+                                        <div className="prose max-w-none">
+                                            <p className="whitespace-pre-line text-gray-700">
+                                                {selectedContact.message || selectedContact.queries}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
-                                            Message
-                                        </label>
-                                        <textarea
-                                            id="message"
-                                            rows="8"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                            value={emailContent.message}
-                                            onChange={(e) => setEmailContent({ ...emailContent, message: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="flex justify-end space-x-3">
-                                        <button
-                                            onClick={() => setSelectedContact(null)}
-                                            className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            onClick={handleSendEmail}
-                                            disabled={isSending || isEmailSent(selectedContact.id)}
-                                            className={`px-4 py-2 rounded-md text-white ${isSending ? 'bg-yellow-400' : isEmailSent(selectedContact.id) ? 'bg-gray-400 cursor-not-allowed' : 'bg-yellow-600 hover:bg-yellow-700'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
-                                        >
-                                            {isSending ? (
-                                                <span className="flex items-center">
-                                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </div>
+
+                                {/* Reply Section - Prominent */}
+                                <div className="border-t border-gray-200 bg-white w-full p-4">
+                                    {/* <div className="w-full"> */}
+                                    <div className="mb-6 w-full">
+                                        <h4 className="text-lg font-semibold text-gray-800 mb-3">Reply to Customer</h4>
+                                        {isEmailSent(selectedContact.id) ? (
+                                            <div className="bg-green-50 border-l-4 border-green-400 p-4 rounded">
+                                                <div className="flex items-center text-green-700">
+                                                    <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                                     </svg>
-                                                    Sending...
-                                                </span>
-                                            ) : isEmailSent(selectedContact.id) ? 'Already Sent' : 'Send Email'}
-                                        </button>
+                                                    <span className="font-medium">Reply sent successfully</span>
+                                                </div>
+                                                <div className="mt-3 p-3 bg-white rounded border border-green-100">
+                                                    <pre className="whitespace-pre-wrap font-sans text-gray-700">{emailContent.message}</pre>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="grid grid-cols-1 gap-4">
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                                                        <input
+                                                            type="text"
+                                                            value={emailContent.subject}
+                                                            onChange={e => setEmailContent({ ...emailContent, subject: e.target.value })}
+                                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                            placeholder={`Re: ${selectedContact.subject || 'Your inquiry'}`}
+                                                        />
+                                                    </div>
+
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                                                        <textarea
+                                                            rows={8}
+                                                            value={emailContent.message}
+                                                            onChange={e => setEmailContent({ ...emailContent, message: e.target.value })}
+                                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[250px]"
+                                                            placeholder={`Dear ${selectedContact.name.split(' ')[0]},\n\nThank you for contacting us...`}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="mt-6 flex justify-end space-x-3">
+                                                    <button
+                                                        onClick={() => setEmailContent({ subject: '', message: '' })}
+                                                        className="px-5 py-2.5 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50"
+                                                    >
+                                                        Discard
+                                                    </button>
+                                                    <button
+                                                        onClick={handleSendEmail}
+                                                        disabled={isSending}
+                                                        className={`px-6 py-2.5 rounded-lg font-medium text-white ${isSending ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'} shadow-sm`}
+                                                    >
+                                                        {isSending ? (
+                                                            <>
+                                                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                                </svg>
+                                                                Sending...
+                                                            </>
+                                                        ) : 'Send Reply'}
+                                                    </button>
+                                                </div>
+                                            </>
+                                        )}
                                     </div>
+                                    {/* </div> */}
                                 </div>
                             </>
                         ) : (
-                            <div className="p-8 text-center">
-                                <svg
-                                    className="mx-auto h-12 w-12 text-gray-400"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    aria-hidden="true"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                                    />
-                                </svg>
-                                <h3 className="mt-2 text-lg font-medium text-gray-900">No contact selected</h3>
-                                <p className="mt-1 text-sm text-gray-500">
-                                    Select a contact request from the list to compose a reply.
-                                </p>
+                            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+                                <div className="max-w-md">
+                                    <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                                    </svg>
+                                    <h3 className="mt-3 text-lg font-medium text-gray-900">No message selected</h3>
+                                    <p className="mt-1 text-sm text-gray-500">Choose a customer message from the list to view and respond</p>
+                                </div>
                             </div>
                         )}
                     </div>
                 </div>
             </div>
-        </div>
+        </div>  
     );
 }
 

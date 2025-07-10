@@ -68,54 +68,29 @@ function Loginpage() {
             }
 
         } catch (error) {
-            console.error("Login Error:", error);
-            toast.error("Login failed. Please check your email and password.");
+            console.error("Login error:", error);
+    console.log("Error code:", error.code);
+
+    switch (error.code) {
+        case "auth/user-not-found":
+        case "auth/invalid-credential": 
+            toast.error("No account found with this email.Please Register!");
+            break;
+        case "auth/invalid-email":
+            toast.error("The email address is not valid.");
+            break;
+        case "auth/too-many-requests":
+            toast.error("Too many failed attempts. Try again later.");
+            break;
+        default:
+            toast.error(`Login failed. ${error.message}`);
+    }
         }
     };
 
     return (
         <div>
-            {/* <div className='grid grid-cols-1 md:grid-cols-2 gap-4 p-10'>
-                <div>
-                  
-                </div>
-                <div className=' my-auto lg:border-l-2 lg:p-5'>
-                    <form onSubmit={handleLogin}>
-                        <h1 className='font-bold text-2xl md:text-3xl mb-5'>Login your account</h1>
-                        <input
-                         type='email' 
-                         name='email' 
-                         placeholder='Email'
-                         value={email}
-                         onChange={(e) => setEmail(e.target.value)}
-                         className='rounded-lg p-5 md:w-3/4 border-0 w-full border-l-4 border-[#5a3a01] mt-3 focus:ring-0  focus:border-[#5a3a01] focus:outline-none' />
-                        <div className="relative mt-5 gap-6">
-                            <input
-                                type={showPassword ? 'text' : 'password'}
-                                name='password'
-                                placeholder='Password'
-                                onChange={(e) => setPassword(e.target.value)}
-                                value={password}
-                                className='p-5 rounded-lg md:w-3/4 border-0 border-l-4 border-[#5a3a01] focus:ring-0  focus:border-[#5a3a01] focus:outline-none pr-10'
-                            />
-
-                            <span
-                                className="absolute left-2/3 top-1/2 transform -translate-y-1/2 cursor-pointer text-[#5a3a01]"
-                                onClick={() => setShowPassword(!showPassword)}
-                            >
-                                {showPassword ? <FaEyeSlash /> : <FaEye />}
-                            </span>
-                        </div>
-                        <button className='bg-[#5a3a01] rounded-lg w-full md:w-3/4 mt-5 h-10 text-white'>Submit</button>
-                    </form>
-                    <div className=' mt-3 flex flex-col'>
-                        <Link to='/reg' className='text-yellow-800 underline text-xs md:text-base md:text-left mt-5 self-start'>Don't have an account?Signup</Link>
-                        <Link to='/forgotpwd' className='text-yellow-800 underline text-xs md:text-base mt-3 self-start'>Forgot Password?</Link>
-
-                        </div>
-                        
-                </div>
-            </div> */}
+            
            <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
   <div className="w-full max-w-md">
     <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
@@ -192,7 +167,7 @@ function Loginpage() {
           
           <button
             type="submit"
-            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-colors duration-200"
+            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-brandyellow hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-colors duration-200"
           >
             Sign In
           </button>

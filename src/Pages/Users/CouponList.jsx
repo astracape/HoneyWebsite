@@ -64,7 +64,7 @@ function CouponList({ onCheckValid }) {
   }, [onCheckValid]);
 
   return (
-    <div className="fixed top-0 left-0 w-screen h-6 z-50 bg-yellow-600 animate-slide-down">
+    <div className="fixed top-0 left-0 w-screen h-6 z-50 bg-brandyellow animate-slide-down">
       <div className="flex items-center h-full overflow-hidden">
         <div className="flex items-center space-x-8 px-4 animate-marquee whitespace-nowrap">
           {coupons.length > 0 ? (

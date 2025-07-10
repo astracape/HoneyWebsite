@@ -4,6 +4,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { database } from '../../FirebaseConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { collection, deleteDoc, doc, onSnapshot, orderBy, updateDoc } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from "firebase/functions";
 import { getAuth } from 'firebase/auth';
 
 function UsersTable() {
@@ -48,34 +49,83 @@ function UsersTable() {
         setEditUserData(user);
         setEditModal(true);
     };
+    // const confirmDelete = (userId) => {
+    //     console.log("🧼 Confirm Delete Clicked:", userId);
+    //     setSelectedUserId(userId);
+    //     setShowModal(true);
+    // };
     const confirmDelete = (userId) => {
-        setSelectedUserId(userId);
-        setShowModal(true);
-    };
+  if (!userId || typeof userId !== "string") {
+    console.error("❌ Invalid userId passed to confirmDelete:", userId);
+    return;
+  }
 
-    const handleDelete = async () => {
-        if (!selectedUserId) return;
+  console.log("🧼 Confirm Delete Clicked:", userId);
+  setSelectedUserId(userId);
+  setShowModal(true);
+};
 
-        try {
-            const userRef = doc(database, "users", selectedUserId);
-            // Delete user from Firestore
-            await deleteDoc(userRef);
+const handleDelete = async () => {
+  if (!selectedUserId) {
+    console.error("🚫 No user ID selected!");
+    return;
+  }
 
-            // Remove from Firebase Authentication
-            const auth = getAuth();
-            const user = auth.currentUser 
+  console.log("🔍 Selected UID to delete:", selectedUserId);
 
-            if (user && user.uid === selectedUserId) {
-                await deleteUser(user); // Delete user from Firebase Authentication
-            }
-            setUsers(users.filter(user => user.id !== selectedUserId));
-            setShowModal(false);
-            setSelectedUserId(null);
-            toast.success("User deleted successfully!");
-        } catch (error) {
-            toast.error("Error deleting user",error)
-        }
-    };
+  try {
+    const response = await fetch("https://us-central1-honey-8e04f.cloudfunctions.net/deleteUserCompletelyv2", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ uid: selectedUserId })
+    });
+
+    const result = await response.json();
+    console.log("✅ Delete result:", result);
+
+    if (response.ok) {
+         setUsers(users.filter(u => u.id !== selectedUserId));
+      setShowModal(false);
+      setSelectedUserId(null);
+     
+      toast.success("User deleted successfully.");
+    } else {
+      toast.error(result.error || "Failed to delete user.");
+    }
+
+  } catch (error) {
+    console.error("🔥 Error:", error);
+    toast.error(`Failed to delete user: ${error.message}`);
+  }
+};
+
+
+
+    // const handleDelete = async () => {
+    //     if (!selectedUserId) return;
+
+    //     try {
+    //         const userRef = doc(database, "users", selectedUserId);
+    //         // Delete user from Firestore
+    //         await deleteDoc(userRef);
+
+    //         // Remove from Firebase Authentication
+    //         const auth = getAuth();
+    //         const user = auth.currentUser 
+
+    //         if (user && user.uid === selectedUserId) {
+    //             await deleteUser(user); // Delete user from Firebase Authentication
+    //         }
+    //         setUsers(users.filter(user => user.id !== selectedUserId));
+    //         setShowModal(false);
+    //         setSelectedUserId(null);
+    //         toast.success("User deleted successfully!");
+    //     } catch (error) {
+    //         toast.error("Error deleting user",error)
+    //     }
+    // };
 
     const handleEditChange = (e) => {
         const { name, value } = e.target;
@@ -116,14 +166,14 @@ function UsersTable() {
                         value={searchquery}
                         onChange={(e) => setSearchquery(e.target.value)}
                     />
-                    <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-yellow-600 px-6 py-2 text-white rounded-md">
+                    <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-brandyellow px-6 py-2 text-white rounded-md">
                         Search
                     </button>
                 </form>
                 <div className=" bg-white overflow-x-auto shadow-md rounded-lg">
                     <table className="min-w-full table-auto">
                         <thead>
-                            <tr className="bg-yellow-600">
+                            <tr className="bg-brandyellow">
                                 <th className="md:px-6 md:py-3 text-left text-sm font-semibold text-black">
                                     User ID
                                 </th>
@@ -164,7 +214,7 @@ function UsersTable() {
                                                     Delete
                                                 </button>
                                                 <button
-                                                    onClick={() => openEditModal(user)} className="bg-yellow-600 rounded-lg text-white h-8 w-24">
+                                                    onClick={() => openEditModal(user)} className="bg-brandyellow rounded-lg text-white h-8 w-24">
                                                     Edit
                                                 </button>
                                             </div>

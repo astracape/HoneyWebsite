@@ -192,7 +192,7 @@ function BillingDetailsForm({ shippingData, onComplete }) {
                 </div>
 
         
-                <div className="mt-8 flex justify-between">
+                <div className="mt-8 flex justify-between gap-2">
                     <button
                         type="button"
                         onClick={() => navigate('/checkout')}

@@ -211,7 +211,7 @@ function ShippingMethod() {
       {activeTab === "types" && (
         <div className="p-4 space-y-6">
           <div className="bg-white p-4 rounded-lg">
-            <ShippingType />
+            <ShippingType fetchShippingTypes={fetchShippingTypes}/>
           </div>
 
           <div className="bg-white p-4 md:p-6 overflow-hidden border rounded-lg">
@@ -227,7 +227,7 @@ function ShippingMethod() {
                 />
                 <button
                   type="submit"
-                  className="h-10 px-3 rounded-r-md bg-yellow-600 text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  className="h-10 px-3 rounded-r-md bg-brandyellow text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
                 >
                   <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -271,7 +271,7 @@ function ShippingMethod() {
                           </>
                         ) : (
                           <>
-                            <button onClick={() => handleEditType(type)} className="bg-yellow-600 text-white px-3 py-1 rounded hover:bg-yellow-700">Edit</button>
+                            <button onClick={() => handleEditType(type)} className="bg-brandyellow text-white px-3 py-1 rounded hover:bg-yellow-700">Edit</button>
                             <button onClick={() => handleDeleteType(type.id)} className="ml-2 bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">Delete</button>
                           </>
                         )}
@@ -315,7 +315,7 @@ function ShippingMethod() {
               <input type="number" value={shippingRate} onChange={(e) => setShippingRate(e.target.value)} placeholder="Shipping Rate (₹)" className="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all" required />
               <input type="text" value={shippingTime} onChange={(e) => setShippingTime(e.target.value)} placeholder="Shipping Time" className="w-full border rounded  border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all" required />
               <input type="text" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="Weight (kg)" className="w-full border rounded p-2  border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all " required />
-              <button type="submit" className="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">Add Shipping Method</button>
+              <button type="submit" className="bg-brandyellow text-white px-4 py-2 rounded hover:bg-yellow-700">Add Shipping Method</button>
             </form>
           </div>
 
@@ -332,7 +332,7 @@ function ShippingMethod() {
                 />
                 <button
                   type="submit"
-                  className="h-10 px-3 rounded-r-md bg-yellow-600 text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  className="h-10 px-3 rounded-r-md bg-brandyellow text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
                 >
                   <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -407,7 +407,7 @@ function ShippingMethod() {
                             </>
                           ) : (
                             <>
-                              <button onClick={() => handleEdit(method)} className="bg-yellow-600 text-white px-3 py-1 rounded hover:bg-yellow-700">Edit</button>
+                              <button onClick={() => handleEdit(method)} className="bg-brandyellow text-white px-3 py-1 rounded hover:bg-yellow-700">Edit</button>
                               <button onClick={() => handleDelete(method.id)} className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">Delete</button>
                             </>
                           )}

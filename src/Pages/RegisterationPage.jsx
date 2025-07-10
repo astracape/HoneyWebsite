@@ -25,7 +25,12 @@ function RegisterationPage() {
             const user = userCredential.user;
 
             await sendEmailVerification(user);
-            toast.info("Verification email sent. Please check your inbox.");
+            toast.info("Verification email sent. Please check your inbox.",
+              {
+                  autoClose: false,
+  closeOnClick: true,
+              }
+            );
 
             console.log("User registered:", user);
 
@@ -42,67 +47,39 @@ function RegisterationPage() {
             });
             await signOut(auth);
         // toast.warning("Please verify your email before logging in.");
-        navigate("/login");
+       setTimeout(() => {
+  navigate("/login");
+}, 5000);
+          }
 
+        // } catch (error) {
+        //     console.log('Registration error:', error.code,error.message);
+        //     toast.error('Failed to register. Please check your details.');
+        // }
+        catch (error) {
+    console.log('Registration error:', error.code, error.message);
 
-        } catch (error) {
-            console.log('Registration error:', error.code,error.message);
-            toast.error('Failed to register. Please check your details.');
-        }
+    let message = 'Failed to register. Please try again.';
+
+    if (error.code === 'auth/email-already-in-use') {
+        message = 'Email is already registered. Please use a different email or login.';
+    } else if (error.code === 'auth/invalid-email') {
+        message = 'Invalid email format.';
+    } else if (error.code === 'auth/weak-password') {
+        message = 'Password should be at least 6 characters.';
+    } else if (error.code === 'auth/network-request-failed') {
+        message = 'Network error. Please check your connection.';
+    }
+
+    toast.error(message);
+}
+
     };
 
     return (
         <div>
            
-            {/* <div className='grid grid-cols-1 md:grid-cols-2 gap-4 p-10'>
-                <div>
-                 
-                </div>
-                
-                <div className="register-page my-auto">
-                    <form onSubmit={handleRegister} className='flex flex-col justify-start'>
-                        <h2 className='font-bold text-2xl md:text-3xl mb-5'>Create an Account</h2>
-                        <input
-                            type="text"
-                            placeholder="Name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                            className='rounded-lg p-5 md:w-3/4 border-0 border-l-4 border-[#5a3a01] mt-3 focus:ring-0  focus:border-[#5a3a01] focus:outline-none'
-
-                        />
-                        <input
-                            type="email"
-                            placeholder="Email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            className='rounded-lg p-5 md:w-3/4 border-0 border-l-4 border-[#5a3a01] mt-3 focus:ring-0  focus:border-[#5a3a01] focus:outline-none'
-
-                        />
-                        <input
-                            type="password"
-                            placeholder="Password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            className='rounded-lg p-5 md:w-3/4 border-0 border-l-4 border-[#5a3a01] mt-3 focus:ring-0  focus:border-[#5a3a01] focus:outline-none'
-
-                        />
-                        <input type="tel" id="phone" name="phone" pattern="\[0-9\s\-\(\)]*" maxLength={10} minLength={10} className='rounded-lg p-5 md:w-3/4 border-0 border-l-4 border-[#5a3a01] mt-3 focus:ring-0  focus:border-[#5a3a01] focus:outline-none'
-                         value={phone}
-                         onChange={(e) => setPhone(e.target.value)}
-                         required placeholder="Enter your Phone Number"/>
-
-                            <button type="submit" className='bg-[#5a3a01] rounded-lg w-full md:w-3/4 mt-5 h-10 text-white'>Register</button>
-                            <div className=' mt-3'>
-                                <Link to='/login' className='text-yellow-800 underline text-xs text-center md:text-base md:text-left'>already have an account?Signin</Link></div>
-
-                    </form>
-
-                    <ToastContainer autoClose={5000}/>
-                </div>
-            </div> */}
+            
             <div className="min-h-screen flex items-center justify-center bg-[#f8f5f0] p-4">
   <div className="w-full max-w-4xl">
     <div className="grid grid-cols-1 md:grid-cols-2 bg-white rounded-2xl shadow-lg overflow-hidden border border-amber-100">
@@ -200,7 +177,7 @@ function RegisterationPage() {
                 pattern="[0-9]{10}"
                 maxLength={10}
                 minLength={10}
-                placeholder="1234567890"
+                placeholder="9757896756"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 required
@@ -208,10 +185,19 @@ function RegisterationPage() {
               />
             </div>
           </div>
-          
+           <div className="flex items-center justify-between">
+                     
+                      
+                      <Link 
+                        to="/forgotpwd" 
+                        className="text-sm font-medium text-amber-800 hover:text-amber-500"
+                      >
+                        Forgot password?
+                      </Link>
+                    </div>
           <button
             type="submit"
-            className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-colors duration-200 mt-6"
+            className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-brandyellow hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-colors duration-200 mt-6"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -230,7 +216,18 @@ function RegisterationPage() {
         </div>
       </div>
     </div>
-    <ToastContainer autoClose={5000} />
+    <ToastContainer
+                   position="bottom-center"
+                  //  autoClose={3000}
+                   hideProgressBar={false}
+                   newestOnTop={false}
+                   closeOnClick
+                   rtl={false}
+                   pauseOnFocusLoss
+                   draggable
+                   pauseOnHover
+                   limit={1}
+               />
   </div>
 </div>
         </div >

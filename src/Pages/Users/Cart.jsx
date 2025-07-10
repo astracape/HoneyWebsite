@@ -4,7 +4,7 @@ import { getAuth } from 'firebase/auth';
 import { database } from '../../FirebaseConfig';
 import { collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import { CartContext } from '../../context/CartContext';
 import Pagination from '../../Pagination/Pagination';
 import { useNavigate } from 'react-router-dom';
@@ -19,30 +19,9 @@ function Cart() {
     const itemsPerPage = 10;
     const auth = getAuth();
     const indianStates = State.getStatesOfCountry("IN");
-
+    const [deleteModal, setDeleteModal] = useState({ show: false, item: null });
     const changeQuantity = (productId, change) => {
         updateQuantity(productId, change);
-    };
-    const handleApplyCoupon = async () => {
-        try {
-            // Fetch coupons from Firestore
-            const querySnapshot = await getDocs(collection(database, "coupons"));
-            const coupons = querySnapshot.docs.map(doc => doc.data());
-
-            // Find the entered coupon in Firestore data
-            const coupon = coupons.find(c => c.code === couponCode);
-
-            if (coupon) {
-                applyCoupon(coupon);
-                localStorage.setItem("appliedCoupon", JSON.stringify(coupon));
-                alert("Coupon applied successfully!");
-            } else {
-                toast.error("Invalid coupon code.");
-            }
-        } catch (error) {
-            console.error("Error fetching coupons:", error);
-            toast.error("Error applying coupon.");
-        }
     };
 
     const navigate = useNavigate();
@@ -61,22 +40,6 @@ function Cart() {
         return cart.reduce((total, item) => total + item.price * item.quantity, 0);
     };
 
-    const getTotalWeight = (weightString, quantity) => {
-        if (!weightString || !quantity) return '0';
-
-        const unit = weightString.replace(/[0-9.]/g, '').toLowerCase(); // g or kg
-        const value = parseFloat(weightString);
-
-        if (isNaN(value)) return '0';
-
-        const weightInGrams = unit === 'kg' ? value * 1000 : value;
-        const totalGrams = weightInGrams * quantity;
-
-        return totalGrams >= 1000
-            ? `${(totalGrams / 1000).toFixed(2)}kg`
-            : `${totalGrams}g`;
-    };
-
     const handleRemove = (productId) => {
         removeFromCart(productId);
         //Update cart state after deletion
@@ -87,16 +50,18 @@ function Cart() {
         currentPage * itemsPerPage,
         currentPage * itemsPerPage + itemsPerPage
     );
-    // useEffect(() => {
-    //     if (selectedRegion) {
-    //         fetchShippingRate(selectedRegion);
-    //         localStorage.setItem("selectedRegion", selectedRegion);
-    //     }
-    // }, [selectedRegion]);
+ 
 
     const handlePageChange = ({ selected }) => {
         setCurrentPage(selected);
     };
+const confirmRemove = () => {
+    if (deleteModal.item) {
+        handleRemove(deleteModal.item.id);
+        setDeleteModal({ show: false, item: null });
+    }
+};
+
     return (
         <div>
             <div className="flex flex-col">
@@ -109,10 +74,11 @@ function Cart() {
 
                 <div className="w-full max-w-6xl mx-auto px-6 py-8 ">
                     <div className='h-24 mt-10'>
-                        <h2 className="text-3xl font-bold text-gray-800 my-6 border-l-4 border-yellow-600 pl-3 ">Items in Your Cart</h2>
+                        <h2 className="text-3xl font-bold text-gray-800 my-6 border-l-4 border-brandyellow pl-3 ">Items in Your Cart</h2>
                     </div>
                     {cart.length > 0 ? (
                         <div className="">
+
                             <div className='overflow-x-auto'>
                                 <table className="w-full table-auto">
                                     <thead>
@@ -152,13 +118,13 @@ function Cart() {
                                                     </div>
                                                 </td>
                                                 <td className="py-4 px-4 text-center text-gray-700">{item.weight}</td>
-                                                {/* <td className="py-4 px-4 text-center text-gray-700">{getTotalWeight(item.weight, item.quantity)}</td> */}
 
-                                                <td className="py-4 px-4 text-center text-gray-700">₹{item.price}</td>
-                                                <td className="py-4 px-4 text-center text-gray-700">₹{item.price * item.quantity}</td>
+
+                                                <td className="py-4 px-4 text-center text-gray-700">₹{(item.price).toLocaleString("en-IN")}</td>
+                                                <td className="py-4 px-4 text-center text-gray-700">₹{(item.price * item.quantity).toLocaleString("en-IN")}</td>
                                                 <td className="py-4 px-4 text-center">
                                                     <button
-                                                        onClick={() => handleRemove(item.id)}
+                                                        onClick={() => setDeleteModal({ show: true, item })}
                                                         className="text-red-500 text-2xl hover:text-red-700"
                                                     >
                                                         &times;
@@ -181,74 +147,92 @@ function Cart() {
                                     </p>
                                 </div>
                             </div>
-                            <div className="mt-6 flex justify-end gap-6">
-                                {/* <div>
-                                    <h3 className="text-lg font-medium text-gray-700 border-l-2 border-yellow-600 px-3">DISCOUNT/PROMO CODE</h3>
-                                    <input type="text" value={couponCode} onChange={(e) => setCouponCode(e.target.value)} placeholder="Enter Coupon Code" className="mt-6 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500" />
-                                    <button onClick={handleApplyCoupon} className="mt-3 w-full border-dashed border-yellow-600 border-2 text-black p-3 rounded-lg font-semibold">Apply Coupon</button>
-                                </div>
+                            <div className="mt-6 flex flex-col md:flex-row justify-between items-center gap-4">
 
-                                <div className="bg-white p-6 ">
-                                    <label className="block text-gray-700 text-sm font-medium mb-2">Region</label> */}
-                                {/* <select
-                                        value={selectedRegion}
-                                        onChange={(e) => setSelectedRegion(e.target.value)}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500"
-                                        required
-                                    >
-                                        <option value="">Select region</option>
-                                        <option value="Tamil Nadu">Tamil Nadu</option>
-                                        <option value="Karnataka">Karnataka</option>
-                                        <option value="Other States">Other States</option>
-                                    </select> */}
-                                {/* <select
-                                        value={selectedRegion}
-                                        onChange={(e) => setSelectedRegion(e.target.value)}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500"
-                                        required
-                                    >
-                                        <option value="">Select State</option>
-                                        {indianStates.map((state) => (
-                                            <option key={state.isoCode} value={state.name}>
-                                                {state.name}
-                                            </option>
-                                        ))}
-                                    </select> */}
-
-                                <div className="flex justify-between py-2 text-gray-700 font-semibold mt-4">
-                                    <span>Subtotal:</span>
-                                    <span>₹{calculateTotal()}</span>
-                                </div>
-                                {/* <div className="flex justify-between py-2 text-gray-700">
-                                        <span>Shipping:</span>
-                                        <span>₹{shippingRate}</span>
-                                    </div>
-                                    <div className="flex justify-between py-2 text-green-600">
-                                        <span>Discount:</span>
-                                        <span>-₹{discountAmount}</span>
-                                    </div>
-                                    <div className="flex justify-between py-3 border-t-2 text-lg font-bold text-yellow-700">
-                                        <span>Total:</span>
-                                        <span>₹{calculateFinalTotal()}</span>
-                                    </div> */}
-                                {/* <Link to="/checkout" className="block bg-yellow-600  text-white text-center p-3 rounded-lg font-semibold mt-3">Proceed to Checkout</Link> */}
-                                <button
-                                    onClick={handleProceedToCheckout}
-                                    className="block bg-yellow-600  text-white text-center p-3 rounded-lg font-semibold mt-3"
+                                <Link
+                                    to="/productpage"
+                                    className="flex items-center bg-white border border-brandyellow text-brandyellow hover:bg-brandyellow hover:text-white px-4 py-2 rounded-lg transition duration-200 flex-shrink-0"
                                 >
-                                    Proceed to Checkout
-                                </button>
+                                    <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                                    </svg>
+                                    Continue Shopping
+                                </Link>
+                                <div className="flex items-center flex-col md:flex-row gap-6">
+                                    <div className="text-right">
+                                        <div className="flex justify-between items-center gap-4">
+                                            <span className="text-gray-700 font-semibold">Subtotal:</span>
+                                            <span className="text-gray-700 font-semibold">₹{calculateTotal().toLocaleString("en-IN")}</span>
+                                        </div>
+                                    </div>
 
-                                {/* </div> */}
+                                    <button
+                                        onClick={handleProceedToCheckout}
+                                        className="bg-brandyellow hover:bg-amber-500 text-white px-6 py-2 rounded-lg font-semibold transition duration-200 whitespace-nowrap"
+                                    >
+                                        Proceed to Checkout
+                                    </button>
+                                </div>
                             </div>
 
                             <Pagination pageCount={pageCount} onPageChange={handlePageChange} />
                         </div>
                     ) : (
-                        <p className="text-center mt-6 text-lg text-gray-600">Your cart is empty.</p>
+                        // <p className="text-center mt-6 text-lg text-gray-600">Your cart is empty.</p>
+                        <div className="text-center py-12">
+                            <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            <h2 className="mt-4 text-2xl font-medium text-gray-900">Your cart is empty</h2>
+                            <p className="mt-2 text-gray-500">Start adding some delicious items to your cart</p>
+                            <div className="mt-6">
+                                <Link
+                                    to="/productpage"
+                                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brandyellow hover:bg-amber-500 focus:outline-none"
+                                >
+                                    Browse Products
+                                    <svg className="ml-2 -mr-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                    </svg>
+                                </Link>
+                            </div>
+                        </div>
                     )}
                 </div>
             </div>
+            {deleteModal.show && (
+                <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white p-6 rounded-lg max-w-sm w-full">
+                        <p className="mb-4">Remove {deleteModal.item?.name} from cart?</p>
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setDeleteModal({ show: false, item: null })}
+                                className="px-4 py-2 border rounded-lg hover:bg-gray-100"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmRemove}
+                                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                            >
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            <ToastContainer
+                position="bottom-center"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick={false}
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="light"
+            />
         </div>
     )
 }

@@ -25,7 +25,7 @@ function SideBar() {
       <div>
 
          <div className="flex items-center mt-5 md:hidden">
-            <div className="h-1 w-32 bg-gray-300"></div>
+            <div className="h-1 w-0 bg-gray-300"></div>
 
 
             <button className="ml-2 w-10 h-10 bg-yellow-600 text-white flex items-center justify-center rounded-full shadow-lg focus:outline-none"

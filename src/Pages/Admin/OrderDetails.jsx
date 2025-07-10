@@ -50,7 +50,7 @@ function OrderDetails() {
     return (
         <div>
             <div className="md:ml-64 md:p-6 p-2 min-h-screen">
-                <h2 className="text-4xl font-bold text-yellow-600 mb-8">Order Details</h2>
+                <h2 className="text-4xl font-bold text-brandyellow mb-8">Order Details</h2>
 
                 {/* Print Button */}
                 <div className="flex justify-end mb-6 p-5">
@@ -64,7 +64,7 @@ function OrderDetails() {
                         //     document.body.innerHTML = originalContent;
                         // }}
                         onClick={() => window.print()}
-                        className="bg-yellow-600 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-yellow-700 transition duration-300"
+                        className="bg-brandyellow text-white px-6 py-2 rounded-lg shadow-lg hover:bg-yellow-700 transition duration-300"
                     >
                         Print Order
                     </button>
@@ -93,7 +93,7 @@ function OrderDetails() {
                             </div>
 
                             <div className="mb-6 p-4 border rounded-lg">
-                                <h4 className="text-lg font-semibold mb-3 text-yellow-600 border-b pb-2">Shipping Address</h4>
+                                <h4 className="text-lg font-semibold mb-3 text-brandyellow border-b pb-2">Shipping Address</h4>
                                 <div className="text-gray-700 space-y-2">
                                     <p><span className="font-medium">Name:</span> {orderDetails.shippingAddress.firstName} {orderDetails.shippingAddress.lastName}</p>
                                     <p><span className="font-medium">Email:</span> {orderDetails.shippingAddress.email}</p>
@@ -109,7 +109,7 @@ function OrderDetails() {
 
                             {orderDetails.billingAddress && (
                                 <div className="mb-6 p-4 border rounded-lg">
-                                    <h4 className="text-lg font-semibold mb-3 text-yellow-600 border-b pb-2">Billing Address</h4>
+                                    <h4 className="text-lg font-semibold mb-3 text-brandyellow border-b pb-2">Billing Address</h4>
                                     <div className="text-gray-700 space-y-2">
                                         <p><span className="font-medium">Name:</span> {orderDetails.billingAddress.firstName} {orderDetails.billingAddress.lastName}</p>
                                         <p><span className="font-medium">Email:</span> {orderDetails.billingAddress.email}</p>
@@ -126,12 +126,12 @@ function OrderDetails() {
 
                         <div className='flex flex-col'>
                             <div className='flex justify-center mb-6'>
-                                <img src={img} className='w-64 h-64 rounded-full border-4 border-yellow-600 object-cover' alt="Order" />
+                                <img src={img} className='w-64 h-64 rounded-full border-4 border-brandyellow object-cover' alt="Order" />
                             </div>
 
 
                             <div className="bg-gray-50 p-4 rounded-lg">
-                                <h4 className="text-lg font-semibold mb-3 text-yellow-600 border-b pb-2">Order Summary</h4>
+                                <h4 className="text-lg font-semibold mb-3 text-brandyellow border-b pb-2">Order Summary</h4>
                                 <div className="space-y-2 mb-4">
                                     <div className="flex justify-between">
                                         <span>Subtotal:</span>
@@ -156,11 +156,11 @@ function OrderDetails() {
                         </div>
                     </div>
 
-                    <h4 className="text-lg font-semibold mt-8 mb-4 text-yellow-600">Order Items</h4>
+                    <h4 className="text-lg font-semibold mt-8 mb-4 text-brandyellow">Order Items</h4>
                     <div className="overflow-x-auto">
                         <table className="w-full table-auto border-collapse">
                             <thead>
-                                <tr className="bg-yellow-600 text-left">
+                                <tr className="bg-brandyellow text-left">
                                     <th className="py-3 px-4 font-medium text-black">Product</th>
                                     <th className="py-3 px-4 font-medium text-black">Price</th>
                                     <th className="py-3 px-4 font-medium text-black">Quantity</th>
@@ -172,7 +172,7 @@ function OrderDetails() {
                             <tbody>
                                 {orderDetails.items.map((item, index) => (
                                     <tr key={index} className="border-b hover:bg-gray-50">
-                                        <td className="py-4 px-4 flex items-center space-x-4">
+                                        <td className="py-4 px-10 flex space-x-4 justify-center items-center ">
                                             {item.imageUrl && (
                                                 <img
                                                     src={item.imageUrl}
@@ -180,20 +180,27 @@ function OrderDetails() {
                                                     className="w-12 h-12 object-cover rounded border border-gray-200"
                                                 />
                                             )}
-                                            <span className="font-medium">{item.name}</span>
+                                            <span className="">{item.name}</span>
                                         </td>
 
 
 
                                         <td className="py-4 px-4 text-gray-700">₹{Number(item.price).toFixed(2)}</td>
                                         <td className="py-4 px-4 text-gray-700">{item.quantity}</td>
-                                        {/* <td className='py-4 px-4 text-gray-700'>{item.shipping}</td> */}
-                                   
-                                        <td className='py-4 px-4 text-gray-700'>₹{orderDetails.shipping?.toFixed(2) || '0.00'}</td>
-
-                                        <td className="py-4 px-4 text-gray-700 font-medium">
-                                            ₹{total.toFixed(2)}
-                                        </td>
+                                        {/* Merge Total cell only once */}
+                                        {index === 0 && (
+                                            <td
+                                                className="py-4 px-4 text-gray-700"
+                                                rowSpan={orderDetails.items.length}
+                                            >
+                                                ₹{orderDetails.shipping?.toFixed(2) || '0.00'}
+                                            </td>
+                                        )}
+                                        {index === 0 && (
+                                            <td className="py-4 px-4 text-gray-700 font-medium" rowSpan={orderDetails.items.length}>
+                                                ₹{total.toFixed(2)}
+                                            </td>
+                                        )}
 
                                     </tr>
                                 ))}

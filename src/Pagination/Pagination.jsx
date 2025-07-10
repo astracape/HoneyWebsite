@@ -15,7 +15,7 @@ function Pagination({ pageCount, onPageChange }) {
                     onPageChange={onPageChange}
                     containerClassName={"flex space-x-2"}
                     pageClassName={"px-4 py-2 bg-yellow-100 rounded-full cursor-pointer hover:bg-gray-200 transition-all duration-300"}
-                    activeClassName={"bg-yellow-600 text-white"}
+                    activeClassName={"bg-brandyellow text-white"}
                     previousClassName={"px-4 py-2 bg-gray-100 rounded-full cursor-pointer hover:bg-gray-200 transition-all duration-300"}
                     nextClassName={"px-4 py-2 bg-gray-100 rounded-full cursor-pointer hover:bg-gray-200 transition-all duration-300"}
                 />

@@ -13,11 +13,12 @@ import { database } from '../../FirebaseConfig'
 import { toast, ToastContainer } from 'react-toastify'
 function AboutUs() {
     const [email, setEmail] = useState("");
+    const [subject,setSubject]=useState("")
     const [name, setName] = useState('');
     const [queries, setQueries] = useState('');
 
     const handleContact = async () => {
-        if (!name || !email || !queries) {
+        if (!name ||!subject || !email || !queries) {
             toast.warn("Please fill all fieds.");
             return;
         }
@@ -29,6 +30,7 @@ function AboutUs() {
         try {
             await addDoc(collection(database, "contactus"), {
                 name,
+                subject,
                 email,
                 queries,
                 timestamp: new Date(),
@@ -36,6 +38,7 @@ function AboutUs() {
            
             setEmail("")
             setName("")
+            setSubject("")
             setQueries("")
             toast.success("Thank you! We'll be in touch.");
         } catch (error) {
@@ -94,16 +97,16 @@ function AboutUs() {
 
                 <section className="py-16 bg-yellow-100">
                     <div className="container mx-auto text-center">
-                        <h2 className="text-4xl font-bold mb-8 text-yellow-600">Our Products</h2>
+                        <h2 className="text-4xl font-bold mb-8 text-brandyellow">Our Products</h2>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 items-center">
                             <div className='p-3'>
-                                <div className="p-6   shadow-md rounded-se-3xl border-2 border-yellow-600 hover:shadow-xl transform hover:-translate-y-1 transition-all">
-                                    <h3 className="text-2xl font-bold mb-4 text-yellow-600">Honey</h3>
+                                <div className="p-6   shadow-md rounded-se-3xl border-2 border-brandyellow hover:shadow-xl transform hover:-translate-y-1 transition-all">
+                                    <h3 className="text-2xl font-bold mb-4 text-brandyellow">Honey</h3>
                                     <ul className="space-y-4">
                                         {["Wild Honey", "Wildflower Honey", "Bulk Honey", "Retail Honey"].map(
                                             (item, index) => (
                                                 <li key={index} className="flex items-center gap-3">
-                                                    <GiHoneyJar className="text-yellow-600 text-2xl" />
+                                                    <GiHoneyJar className="text-brandyellow text-2xl" />
                                                     <span className="text-gray-800 font-semibold">{item}</span>
                                                 </li>
                                             )
@@ -115,12 +118,12 @@ function AboutUs() {
                                 <img src={honeyspice} alt="Honey and Spices" className="rounded-full w-60 h-60 border-4  border-yellow-700" />
                             </div>
                             <div className='p-3'>
-                                <div className="p-6 shadow-md rounded-es-3xl border-2 border-yellow-600 hover:shadow-xl transform hover:-translate-y-1 transition-all">
-                                    <h3 className="text-2xl font-bold mb-4 text-yellow-600">Spices</h3>
+                                <div className="p-6 shadow-md rounded-es-3xl border-2 border-brandyellow hover:shadow-xl transform hover:-translate-y-1 transition-all">
+                                    <h3 className="text-2xl font-bold mb-4 text-brandyellow">Spices</h3>
                                     <ul className="space-y-4">
                                         {["Nutmeg", "Tamarind", "Cloves", "Pepper"].map((item, index) => (
                                             <li key={index} className="flex items-center gap-3">
-                                                <GiCogLock className="text-yellow-600 text-2xl" />
+                                                <GiCogLock className="text-brandyellow text-2xl" />
                                                 <span className="text-gray-800 font-semibold">{item}</span>
                                             </li>
                                         ))}
@@ -131,7 +134,7 @@ function AboutUs() {
                     </div>
                     {/* </section> */}
 
-                    <section className="py-16 px-5 bg-yellow-600 text-black text-center rounded-t-3xl mt-16">
+                    <section className="py-16 px-5 bg-brandyellow text-black text-center rounded-t-3xl mt-16">
                         <h2 className="text-3xl font-bold mb-4">Want to Learn More About Us?</h2>
                         <p className="mb-6">Feel free to reach out for any questions, queries, or collaboration ideas.</p>
                         <div className='flex flex-col items-center space-y-4'>
@@ -143,6 +146,14 @@ function AboutUs() {
                                 className="px-4 py-3 rounded-lg text-gray-900 focus:ring-0 w-72"
                                 required
                             />
+                             <input
+                                type="text"
+                                placeholder="Subject"
+                                value={subject}
+                                onChange={(e) => setSubject(e.target.value)}
+                                className="px-4 py-3 rounded-lg text-gray-900 focus:ring-0 w-72"
+                                required
+                            />
                             <input type="email"  pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} className="px-4 py-3 rounded-lg text-gray-900  mb-4 focus:ring-0 w-72" required/>
                             <textarea
                                 placeholder="Enter your queries"
@@ -150,7 +161,7 @@ function AboutUs() {
                                 onChange={(e) => setQueries(e.target.value)}
                                 className="px-4 py-3 rounded-lg text-gray-900 focus:ring-0 w-72 h-32"
                             />
-                            <button onClick={handleContact} className="bg-white text-black px-6 py-3 rounded-lg font-semibold hover:bg-yellow-600 my-auto w-72">Contact Us</button>
+                            <button onClick={handleContact} className="bg-white text-black px-6 py-3 rounded-lg font-semibold hover:bg-brandyellow my-auto w-72">Contact Us</button>
                         </div>
                     </section>
                 </section>
@@ -161,7 +172,7 @@ function AboutUs() {
 
                     <div className="text-center mb-14">
                         {/* <img src={bee1} alt="Bee" className="w-28 h-28 md:w-36 md:h-36 mx-auto mb-4" /> */}
-                        <h2 className="text-3xl md:text-5xl font-bold text-black underline decoration-yellow-500">
+                        <h2 className="text-3xl md:text-5xl font-bold text-black underline decoration-brandyellow">
                             Bee Facts
                         </h2>
                     </div>
@@ -172,7 +183,7 @@ function AboutUs() {
                         <div className="space-y-8">
 
                             <div className="relative  p-6 text-center transform hover:scale-105 transition">
-                                <div className="w-16 h-16 bg-yellow-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
+                                <div className="w-16 h-16 bg-brandyellow text-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
                                     👀
                                 </div>
                                 <h3 className="text-xl font-semibold text-black mb-2">Bees Have 5 Eyes</h3>
@@ -190,7 +201,7 @@ function AboutUs() {
 
 
                             <div className="relative p-6 text-center transform hover:scale-105 transition">
-                                <div className="w-16 h-16 bg-yellow-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
+                                <div className="w-16 h-16 bg-brandyellow text-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
                                     ✈️
                                 </div>
                                 <h3 className="text-xl font-semibold text-black mb-2">Flying Speed</h3>
@@ -218,7 +229,7 @@ function AboutUs() {
 
 
                             <div className="relative  p-6 text-center transform hover:scale-105 transition">
-                                <div className="w-16 h-16 bg-yellow-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
+                                <div className="w-16 h-16 bg-brandyellow text-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
                                     ⚙️
                                 </div>
                                 <h3 className="text-xl font-semibold text-black mb-2">Worker Bees</h3>

@@ -130,7 +130,7 @@ function Dashboard() {
                             <h3 className="text-xl font-semibold text-gray-700">Total Products</h3>
                             <p className="text-3xl font-bold text-gray-900">{totalProducts}</p>
                         </div>
-                        <div className="p-3 bg-yellow-600 rounded-full">
+                        <div className="p-3 bg-brandyellow rounded-full">
                             <svg className="w-8 h-8 text-yellow-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                             </svg>
@@ -143,7 +143,7 @@ function Dashboard() {
                             <h3 className="text-xl  font-semibold text-gray-700">Total Blogs</h3>
                             <p className="text-3xl font-bold text-gray-900">{totalBlogs}</p>
                         </div>
-                        <div className="p-3 bg-yellow-600 rounded-full">
+                        <div className="p-3 bg-brandyellow rounded-full">
                             <svg className="w-8 h-8 text-yellow-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
                             </svg>
@@ -156,7 +156,7 @@ function Dashboard() {
                             <h3 className="text-xl font-semibold text-gray-700">Total Users</h3>
                             <p className="text-3xl  font-bold text-gray-900">{totalUsers}</p>
                         </div>
-                        <div className="p-3 bg-yellow-600 rounded-full">
+                        <div className="p-3 bg-brandyellow rounded-full">
                             <svg className="w-8 h-8 text-yellow-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                             </svg>
@@ -170,7 +170,7 @@ function Dashboard() {
                 <div className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow duration-300">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-xl font-semibold text-gray-800">Latest Products</h3>
-                        <Link to="/productpage" className="text-yellow-600 hover:text-yellow-700 font-medium">View All</Link>
+                        <Link to="/viewproduct" className="text-yellow-600 hover:text-yellow-700 font-medium">View All</Link>
                     </div>
                     <ul className="space-y-4">
                         {recentProducts.length > 0 ? (

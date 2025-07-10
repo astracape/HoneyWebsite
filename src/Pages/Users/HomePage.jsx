@@ -68,13 +68,13 @@ function HomePage() {
                             Pure, Raw, and Unfiltered Honey Direct from Farms
                         </p>
 
-                        <Link to="/productpage" className="mt-16 bg-yellow-600 hover:scale-95 md:w-96 w-48 h-8  md:h-16 text-black font-bold rounded-lg shadow-lg transition duration-300 flex items-center justify-center text-base md:text-2xl">
+                        <Link to="/productpage" className="mt-16 bg-brandyellow hover:scale-95 md:w-96 w-48 h-8  md:h-16 text-black font-bold rounded-lg shadow-lg transition duration-300 flex items-center justify-center text-base md:text-2xl">
                             Shop Now
                         </Link>
 
                     </div>
                 </div>
-                <section className='grid grid-cols lg:grid-cols-2 relative border-b-8 border-dotted border-yellow-500  md:p-10 bg-yellow-100 ' data-aos="fade-left">
+                <section className='grid grid-cols lg:grid-cols-2 relative border-b-8 border-dotted border-brandyellow  md:p-10 bg-yellow-100 ' data-aos="fade-left">
                     <div>
                         <div className='mt-10'>
                             <img src={img1} className='mx-auto p-5'></img>
@@ -107,25 +107,25 @@ function HomePage() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
 
-                        <div className="group bg-white border rounded-lg shadow-md overflow-hidden border-yellow-600 transition-transform transform hover:scale-105">
+                        <div className="group bg-white border rounded-lg shadow-md overflow-hidden border-brandyellow transition-transform transform hover:scale-105">
                             <img src={pep} alt="Wildflower Honey" className="w-full h-48 object-cover md:p-3" />
                             <div className="p-2">
                                 <h4 className="text-xl font-semibold mb-2">Multi-floral Honey</h4>
                             </div>
                         </div>
-                        <div className="group bg-white border rounded-lg shadow-md overflow-hidden border-yellow-600 transition-transform transform hover:scale-105">
+                        <div className="group bg-white border rounded-lg shadow-md overflow-hidden border-brandyellow transition-transform transform hover:scale-105">
                             <img src={wild} alt="Wildflower Honey" className="w-full h-48 object-cover md:p-3" />
                             <div className="p-2">
                                 <h4 className="text-xl font-semibold mb-2">Wild Honey</h4>
                             </div>
                         </div>
-                        <div className="group bg-white border rounded-lg shadow-md overflow-hidden border-yellow-600 transition-transform transform hover:scale-105">
+                        <div className="group bg-white border rounded-lg shadow-md overflow-hidden border-brandyellow transition-transform transform hover:scale-105">
                             <img src={bulk} alt="Wildflower Honey" className="w-full h-48 object-cover md:p-3" />
                             <div className="p-2">
                                 <h4 className="text-xl font-semibold mb-2">Bulk Honey</h4>
                             </div>
                         </div>
-                        <div className="group bg-white border rounded-lg shadow-md overflow-hidden border-yellow-600 transition-transform transform hover:scale-105">
+                        <div className="group bg-white border rounded-lg shadow-md overflow-hidden border-brandyellow transition-transform transform hover:scale-105">
                             <img src={retail} alt="Wildflower Honey" className="w-full h-48 object-cover md:p-3" />
                             <div className="p-2">
                                 <h4 className="text-xl font-semibold mb-2">Retail Honey</h4>

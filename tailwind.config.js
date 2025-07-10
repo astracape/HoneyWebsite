@@ -9,6 +9,7 @@ export default {
       colors: {
         honey: '#FFA500',   
         spice: '#8B4513',   
+        brandyellow: '#D7951F'
       },
       
     },

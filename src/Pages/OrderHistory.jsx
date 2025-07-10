@@ -87,7 +87,7 @@ function OrderHistory() {
                 <div className="flex flex-wrap justify-between items-center border-b border-gray-300 pb-4 mb-4">
                   <div>
                     <p className="text-xs md:text-base font-semibold text-gray-800">
-                      Order ID: <span className="text-yellow-600 text-xs md:text-base">{order.orderId}</span>
+                      Order ID: <span className="text-brandyellow text-xs md:text-base">{order.orderId}</span>
                     </p>
                     <p className="text-sm text-gray-500">
                       Date: {formatDate(order.timestamp)}

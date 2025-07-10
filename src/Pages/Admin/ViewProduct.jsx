@@ -134,11 +134,11 @@ function ViewProduct() {
             {/* Admin Header */}
             <div className="bg-white shadow">
                 <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex justify-between items-center">
-                    <h1 className="text-2xl font-bold text-gray-900 px-3 border-l-4 border-yellow-600">Product Management</h1>
+                    <h1 className="text-2xl font-bold text-gray-900 px-3 border-l-4 border-brandyellow">Product Management</h1>
                     <div className="flex space-x-4">
                         <Link 
                             to="/addproduct" 
-                            className="flex items-center bg-yellow-600 text-white px-4 py-2 rounded-md transition-colors"
+                            className="flex items-center bg-brandyellow text-white px-4 py-2 rounded-md transition-colors"
                         >
                             <FiPlus className="mr-2" />
                             Add New Product
@@ -161,7 +161,7 @@ function ViewProduct() {
                                 placeholder="Search products..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full focus:outline-transparent focus:ring-2 focus:ring-yellow-500 "
                             />
                         </div>
                         
@@ -175,7 +175,7 @@ function ViewProduct() {
                                         setSelectedCategory(e.target.value);
                                         navigate(`?category=${e.target.value}`);
                                     }}
-                                    className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2"
                                 >
                                     {categories.map((category) => (
                                         <option key={category.id} value={category.id}>
@@ -191,7 +191,7 @@ function ViewProduct() {
                                     id="sort"
                                     value={sortOrder}
                                     onChange={(e) => setSortOrder(e.target.value)}
-                                    className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2"
                                 >
                                     <option value="">Default</option>
                                     <option value="AtoZ">A-Z</option>
@@ -256,7 +256,7 @@ function ViewProduct() {
                                                 <div className="flex justify-end space-x-2">
                                                     <Link
                                                         to={`/editproductbyid/${product.id}`}
-                                                        className="text-yellow-600 flex items-center"
+                                                        className="text-brandyellow flex items-center"
                                                     >
                                                         <FiEdit2 className="mr-1" /> Edit
                                                     </Link>
@@ -285,7 +285,8 @@ function ViewProduct() {
                             <div className="mt-6">
                                 <Link
                                     to={selectedCategory !== 'all' ? `/addproduct?category=${selectedCategory}` : '/addproduct'}
-                                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brandyellow
+                                      focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
                                 >
                                     <FiPlus className="-ml-1 mr-2 h-5 w-5" />
                                     Add New Product

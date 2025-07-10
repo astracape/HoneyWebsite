@@ -153,38 +153,77 @@ export const CartProvider = ({ children }) => {
     };
 
     const getTotalWeight = (weightString, quantity) => {
-        if (!weightString || !quantity) return '0';
+    if (!weightString || !quantity) return '0';
 
-        const unit = weightString.replace(/[0-9.]/g, '').toLowerCase(); // g or kg
-        const value = parseFloat(weightString);
+    const unit = weightString.replace(/[0-9.]/g, '').toLowerCase(); // g, kg, ml, or l
+    const value = parseFloat(weightString);
 
-        if (isNaN(value)) return '0';
+    if (isNaN(value)) return '0';
 
-        const weightInGrams = unit === 'kg' ? value * 1000 : value;
-        const totalGrams = weightInGrams * quantity;
+    let weightInGramsOrMl;
 
-        return totalGrams >= 1000
-            ? `${(totalGrams / 1000).toFixed(2)}kg`
-            : `${totalGrams}g`;
-    };
-    const getCartTotalWeight = (cartItems) => {
-        let totalGrams = 0;
-    
-        cartItems.forEach(item => {
-            if (!item.weight || !item.quantity) return;
-    
-            const unit = item.weight.replace(/[0-9.]/g, '').toLowerCase(); // Extract unit (g/kg)
-            const value = parseFloat(item.weight); // Extract numeric value
-            if (isNaN(value)) return;
-    
-            const weightInGrams = unit === 'kg' ? value * 1000 : value;
-            totalGrams += weightInGrams * item.quantity;
-        });
-    
-        return totalGrams >= 1000
-            ? `${(totalGrams / 1000).toFixed(2)}kg`
-            : `${totalGrams}g`;
-    };
+    if (unit === 'kg') {
+        weightInGramsOrMl = value * 1000;
+    } else if (unit === 'g') {
+        weightInGramsOrMl = value;
+    } else if (unit === 'l') {
+        weightInGramsOrMl = value * 1000; // convert to ml
+    } else if (unit === 'ml') {
+        weightInGramsOrMl = value;
+    } else {
+        return '0'; 
+    }
+
+    const total = weightInGramsOrMl * quantity;
+
+    if (unit === 'g' || unit === 'kg') {
+        return total >= 1000 ? `${(total / 1000).toFixed(2)}kg` : `${total}g`;
+    } else {
+        return total >= 1000 ? `${(total / 1000).toFixed(2)}l` : `${total}ml`;
+    }
+};
+
+ const getCartTotalWeight = (cartItems) => {
+    let totalGrams = 0;
+    let totalMilliliters = 0;
+
+    cartItems.forEach(item => {
+        if (!item.weight || !item.quantity) return;
+
+        const unit = item.weight.replace(/[0-9.]/g, '').toLowerCase(); // Extract unit (g/kg/ml/l)
+        const value = parseFloat(item.weight); // Extract numeric value
+        if (isNaN(value)) return;
+
+        if (unit === 'kg') {
+            totalGrams += value * 1000 * item.quantity;
+        } else if (unit === 'g') {
+            totalGrams += value * item.quantity;
+        } else if (unit === 'l') {
+            totalMilliliters += value * 1000 * item.quantity;
+        } else if (unit === 'ml') {
+            totalMilliliters += value * item.quantity;
+        }
+    });
+
+    const weightString = totalGrams >= 1000
+        ? `${(totalGrams / 1000).toFixed(2)}kg`
+        : `${totalGrams}g`;
+
+    const volumeString = totalMilliliters >= 1000
+        ? `${(totalMilliliters / 1000).toFixed(2)}l`
+        : `${totalMilliliters}ml`;
+
+    if (totalGrams > 0 && totalMilliliters > 0) {
+        return `${weightString} + ${volumeString}`;
+    } else if (totalGrams > 0) {
+        return weightString;
+    } else if (totalMilliliters > 0) {
+        return volumeString;
+    } else {
+        return '0';
+    }
+};
+
     
     return (
         <CartContext.Provider value={{ cart, addToCart,updateQuantity, removeFromCart,getTotalWeight,getCartTotalWeight }}>

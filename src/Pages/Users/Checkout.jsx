@@ -124,6 +124,8 @@ function Checkout() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         updateShipping(formData);
+        console.log("Selected Payment Method:", formData.paymentMethod);
+
         if (isSubmitting) return;
         if (!validateForm()) return;
         if (!user) {
@@ -149,7 +151,7 @@ function Checkout() {
         const orderDetails = createOrderDetails();
 
         try {
-            if (formData.paymentMethod === "Razorpay") {
+            if (formData.paymentMethod === "Online Payment") {
                 await handleRazorpayPayment(orderDetails);
             } else if (formData.paymentMethod === "Cash on Delivery") {
                 await handleCashOnDelivery(orderDetails);
@@ -240,7 +242,7 @@ function Checkout() {
             handler: async (response) => {
                 await saveOrderToDatabase(orderDetails);
                 toast.success("Order Placed Successfully!");
-                navigate("/success");
+                navigate("/successpage");
             },
             prefill: {
                 name: `${orderDetails.billingAddress.firstName} ${orderDetails.billingAddress.lastName}`,
@@ -256,6 +258,8 @@ function Checkout() {
         rzp.on("payment.failed", (response) => {
             toast.error("Payment Failed. Please try again.");
         });
+        console.log("Opening Razorpay", options);
+
         rzp.open();
      } catch (error) {
         console.error("Payment initiation failed", error);
@@ -292,26 +296,23 @@ function Checkout() {
         }
     };
     const handleApplyCoupon = async () => {
-        try {
-            // Fetch coupons from Firestore
-            const querySnapshot = await getDocs(collection(database, "coupons"));
-            const coupons = querySnapshot.docs.map(doc => doc.data());
+  try {
+    const querySnapshot = await getDocs(collection(database, "coupons"));
+    const coupons = querySnapshot.docs.map(doc => doc.data());
 
-            // Find the entered coupon in Firestore data
-            const coupon = coupons.find(c => c.code === couponCode);
+    const coupon = coupons.find(c => c.code === couponCode.trim());
 
-            if (coupon) {
-                applyCoupon(coupon);
-                localStorage.setItem("appliedCoupon", JSON.stringify(coupon));
-                alert("Coupon applied successfully!");
-            } else {
-                toast.error("Invalid coupon code.");
-            }
-        } catch (error) {
-            console.error("Error fetching coupons:", error);
-            toast.error("Error applying coupon.");
-        }
-    };
+    if (!coupon) {
+      toast.error("Invalid coupon code.");
+      return;
+    }
+
+    await applyCoupon(coupon); //  All checks are already handled inside
+  } catch (error) {
+    console.error("Error applying coupon:", error);
+    toast.error("Error applying coupon.");
+  }
+};
 
 
     return (
@@ -326,7 +327,7 @@ function Checkout() {
                 <div className="mb-8">
 
 
-                    <h3 className="text-2xl font-semibold mb-4 px-3 border-l-4 border-yellow-600">Shipping Details</h3>
+                    <h3 className="text-2xl font-semibold mb-4 px-3 border-l-4 border-brandyellow">Shipping Details</h3>
                     <form onSubmit={handleSubmit}>
                         <div className="mb-4">
                             <label htmlFor="shippingType" className="block font-medium mb-1">
@@ -362,7 +363,7 @@ function Checkout() {
                                 <label htmlFor="lastName" className="text-gray-700 self-start">Last Name *</label>
                                 <input
                                     type="text"
-                                    id="lastName" name="lastName" className="mt-2 px-4 py-2 border rounded-md w-full" onChange={handleInputChange} required pattern="[A-Za-z\s]{2,50}"
+                                    id="lastName" name="lastName" className="mt-2 px-4 py-2 border rounded-md w-full" onChange={handleInputChange} required pattern="[A-Za-z\s]{1,50}"
                                     title="Name must contain only letters and be 2-50 characters long."
                                 />
                             </div>
@@ -499,7 +500,7 @@ function Checkout() {
                         </div>
                         
                         <div className="mt-6">
-                            <h3 className="text-xl font-semibold mb-4 px-3 border-l-4 border-yellow-600">Payment Methods</h3>
+                            <h3 className="text-xl font-semibold mb-4 px-3 border-l-4 border-brandyellow">Payment Methods</h3>
 
                             {/* Razorpay Payment Option */}
                             <div className="mb-4 p-4 border rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
@@ -507,7 +508,7 @@ function Checkout() {
                                     <input
                                         type="radio"
                                         name="paymentMethod"
-                                        value="Razorpay"
+                                        value="Online Payment"
                                         onChange={handleInputChange}
                                         className="mt-1 mr-3"
                                     />
@@ -567,7 +568,7 @@ function Checkout() {
                         </div>
                         <button
                             type="submit"
-                            className="mt-8 py-3 px-6 bg-yellow-600 text-white font-semibold rounded-md w-1/3"
+                            className="mt-8 py-3 px-6 bg-brandyellow text-white font-semibold rounded-md w-1/3"
                         >
                             Place Order
                         </button>
@@ -576,7 +577,7 @@ function Checkout() {
 
                 <div className="mt-8 bg-white  overflow-hidden">
                     <div className=" border-b p-3">
-                        <h3 className="text-2xl font-semibold text-gray-800 px-3 border-l-4 border-yellow-600">Your Order Summary</h3>
+                        <h3 className="text-2xl font-semibold text-gray-800 px-3 border-l-4 border-brandyellow">Your Order Summary</h3>
                     </div>
 
                     <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -593,15 +594,15 @@ function Checkout() {
                                 <tbody className="divide-y divide-gray-200">
                                     {cart.map((item, index) => (
                                         <tr key={index} className="hover:bg-gray-50 transition-colors">
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-4">
+                                            <td className=" py-4">
+                                                <div className="flex items-center gap-2">
                                                     <img
                                                         src={item.imageUrl}
                                                         className="w-14 h-14 rounded-lg object-cover border border-gray-200"
                                                         alt={item.name}
                                                     />
                                                     <div>
-                                                        <span className="font-medium text-gray-800 block">{item.name}</span>
+                                                        <span className=" text-gray-800 block">{item.name}</span>
 
                                                     </div>
                                                 </div>
@@ -627,8 +628,8 @@ function Checkout() {
 
                         <div className='grid grid-cols-1 lg:grid-cols-2 gap-8 p-6'>
                             <div className="p-5 rounded-lg">
-                                <h3 className="text-lg font-medium text-gray-700 border-l-4 border-yellow-600 px-3 mb-6">DISCOUNT/PROMO CODE</h3>
-                                <div className="flex gap-3">
+                                <h3 className="text-lg font-medium text-gray-700 border-l-4 border-brandyellow px-3 mb-6">DISCOUNT/PROMO CODE</h3>
+                                <div className="flex flex-col sm:flex-row gap-3">
                                     <input
                                         type="text"
                                         value={couponCode}
@@ -638,7 +639,7 @@ function Checkout() {
                                     />
                                     <button
                                         onClick={handleApplyCoupon}
-                                        className="bg-white border-dashed border-yellow-600 border-2 text-black px-5 py-3 rounded-lg font-semibold hover:bg-yellow-50 transition-colors whitespace-nowrap"
+                                        className="bg-white border-dashed border-brandyellow border-2 text-black px-5 py-3 rounded-lg font-semibold hover:bg-yellow-50 transition-colors whitespace-nowrap"
                                     >
                                         Apply Code
                                     </button>
@@ -651,7 +652,7 @@ function Checkout() {
                             </div>
 
                             <div className="p-5 rounded-lg">
-                                <h3 className="text-lg font-medium text-gray-700 border-l-4 border-yellow-600 px-3 mb-6">ORDER SUMMARY</h3>
+                                <h3 className="text-lg font-medium text-gray-700 border-l-4 border-brandyellow px-3 mb-6">ORDER SUMMARY</h3>
                                 <div className="space-y-4">
                                     <div className="flex justify-between">
                                         <span className="text-gray-600">Subtotal</span>
@@ -672,7 +673,7 @@ function Checkout() {
                                     <div className="pt-4 mt-4 border-t border-gray-200">
                                         <div className="flex justify-between items-center">
                                             <span className="text-lg font-semibold text-gray-800">Total</span>
-                                            <span className="text-xl font-bold text-yellow-600">₹{calculateFinalTotal().toFixed(2)}</span>
+                                            <span className="text-xl font-bold text-brandyellow">₹{calculateFinalTotal().toFixed(2)}</span>
                                         </div>
                                     </div>
                                 </div>

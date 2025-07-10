@@ -111,8 +111,8 @@ function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin }) {
   };
 
   return (
-    <div className=''>
-      <header className="top-2 bg-gradient-to-r from-white to-yellow-600 py-2 px-3 relative">
+    <div className='fixed top-4 left-0 w-screen z-40 transition-all duration-300'>
+      <header className="top-2 bg-gradient-to-r from-white to-brandyellow py-2 px-3 relative">
         <div className="mx-auto flex justify-between items-center">
 
           <div className='flex md:ml-5'>
@@ -127,6 +127,9 @@ function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin }) {
               </Link>
               <Link to="/productpage" className="text-black hover:text-yellow-700">
                 Products
+              </Link>
+              <Link to="/gifting" className="text-black hover:text-yellow-700">
+                Gifting
               </Link>
               <Link to="/blog" className="text-black hover:text-yellow-700">
                 Blog
@@ -235,6 +238,9 @@ function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin }) {
             </Link>
             <Link to="/productpage" className="text-white hover:text-yellow-400" onClick={toggleMobileMenu1}>
               Products
+            </Link>
+            <Link to="/gifting" className="text-white hover:text-yellow-400" onClick={toggleMobileMenu1}>
+              Gifting
             </Link>
             <Link to="/blog" className="text-white hover:text-yellow-400" onClick={toggleMobileMenu1}>
               Blog

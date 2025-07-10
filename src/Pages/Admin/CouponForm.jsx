@@ -19,6 +19,11 @@ function CouponForm({ onClose, couponToEdit }) {
 
     useEffect(() => {
         if (couponToEdit) {
+             const formatDate = (date) => {
+            if (!date) return '';
+            const d = new Date(date);
+            return d.toISOString().split("T")[0]; // format: 'YYYY-MM-DD'
+        };
             setCode(couponToEdit.code || "");
             setDiscountType(couponToEdit.discountType || "percentage");
             setDiscountValue(couponToEdit.discountValue || "");
@@ -141,7 +146,7 @@ function CouponForm({ onClose, couponToEdit }) {
                             </button>
                             <button
                                 type="submit"
-                                className="bg-yellow-600 text-white px-4 py-2 rounded"
+                                className="bg-brandyellow text-white px-4 py-2 rounded"
                             >
                                 {couponToEdit ? "Update" : "Add"}
                             </button>

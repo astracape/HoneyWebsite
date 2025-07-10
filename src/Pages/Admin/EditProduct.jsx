@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+  import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom';
 import { ref, get, set } from 'firebase/database';
 import 'react-toastify/dist/ReactToastify.css';
@@ -19,20 +19,43 @@ function EditProduct() {
     const [productWeightValue, setProductWeightValue] = useState('');
     const [productWeightUnit, setProductWeightUnit] = useState('g');
 
+    // useEffect(() => {
+    //     if (productData.weight) {
+    //         const unit = productData.weight.includes('kg') ? 'kg' : 'g';
+    //         const value = parseFloat(productData.weight.replace(unit, ''));
+    //         setProductWeightValue(value);
+    //         setProductWeightUnit(unit);
+    //     }
+    // }, [productData.weight]);
     useEffect(() => {
-        if (productData.weight) {
-            const unit = productData.weight.includes('kg') ? 'kg' : 'g';
-            const value = parseFloat(productData.weight.replace(unit, ''));
-            setProductWeightValue(value);
-            setProductWeightUnit(unit);
-        }
-    }, [productData.weight]);
+  if (productData.weight) {
+    let unit = '';
+    if (productData.weight.includes('kg')) {
+      unit = 'kg';
+    } else if (productData.weight.includes('g')) {
+      unit = 'g';
+    } else if (productData.weight.includes('l')) {
+      unit = 'l';
+    } else if (productData.weight.includes('ml')) {
+      unit = 'ml';
+    }
+
+    setProductWeightUnit(unit);
+    setProductWeightValue(parseFloat(productData.weight.replace(unit, '')));
+  }
+}, [productData.weight]);
+
+
 
     useEffect(() => {
         const fetchCategories = async () => {
             try {
                 const querySnapshot = await getDocs(collection(database, "categories"));
-                const categoryList = querySnapshot.docs.map(doc => doc.data()?.category).filter(name => name);;
+                // const categoryList = querySnapshot.docs.map(doc => doc.data()?.category).filter(name => name);;
+                 const categoryList = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      name: doc.data().category,
+    }));
                 setCategories(categoryList);
             } catch (error) {
                 toast.error("Error fetching categories.");
@@ -41,27 +64,46 @@ function EditProduct() {
         fetchCategories();
     }, []);
     useEffect(() => {
+        // const fetchProduct = async () => {
+        //     try {
+        //         const categoriesRef = collection(database, "products");
+        //         const categoryDocs = await getDocs(categoriesRef);
+
+        //         for (let categoryDoc of categoryDocs.docs) {
+        //             const category = categoryDoc.id;
+        //             const categoryData = categoryDoc.data();
+        //             const productsArray = categoryData.products || [];
+
+        //             const foundProduct = productsArray.find(prod => prod.id === productId);
+        //             if (foundProduct) {
+        //                 setProductData({ ...foundProduct, category });
+        //                 setPreviewImage(foundProduct.imageUrl);
+        //                 break;
+        //             }
+        //         }
+        //     } catch (error) {
+        //         toast.error("Error fetching product.");
+        //     }
+        // };
         const fetchProduct = async () => {
-            try {
-                const categoriesRef = collection(database, "products");
-                const categoryDocs = await getDocs(categoriesRef);
+  try {
+    const productsSnapshot = await getDocs(collection(database, "products"));
 
-                for (let categoryDoc of categoryDocs.docs) {
-                    const category = categoryDoc.id;
-                    const categoryData = categoryDoc.data();
-                    const productsArray = categoryData.products || [];
+    for (let doc of productsSnapshot.docs) {
+      const productsArray = doc.data().products;
 
-                    const foundProduct = productsArray.find(prod => prod.id === productId);
-                    if (foundProduct) {
-                        setProductData({ ...foundProduct, category });
-                        setPreviewImage(foundProduct.imageUrl);
-                        break;
-                    }
-                }
-            } catch (error) {
-                toast.error("Error fetching product.");
-            }
-        };
+      const foundProduct = productsArray.find((item) => item.id === productId);
+      if (foundProduct) {
+        setProductData({ ...foundProduct });
+        setPreviewImage(foundProduct.imageUrl);
+        break;
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching product.", error);
+    toast.error("Error fetching product.");
+  }
+};
         fetchProduct();
     }, [productId]);
 
@@ -155,6 +197,9 @@ function EditProduct() {
                     >
                         <option value="g">g</option>
                         <option value="kg">kg</option>
+                        <option value="ml">ml</option>
+                        <option value="l">l</option>
+
                     </select>
                 </div>
 
@@ -174,16 +219,21 @@ function EditProduct() {
                     className="w-3/4 rounded-lg p-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                 />
                 <select
-                    name="category"
-                    value={productData.category}
-                    onChange={handleInputChange}
+                    name="categoryId"
+                    value={productData.categoryId}
+                    // onChange={handleInputChange}
+                     onChange={(e) => setProductData((prev) => ({
+    ...prev,
+    categoryId: e.target.value,
+  }))}
                     className="w-3/4 rounded-lg p-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                 >
 
                     <option value="" disabled>Select a Category</option>
                     {categories.map((category) => (
-                        <option key={category} value={category}>
-                            {category.charAt(0).toUpperCase() + category.slice(1)}
+                        <option key={category.id} value={category.id}>
+                            {/* {category.charAt(0).toUpperCase() + category.slice(1)} */}
+                                 {category.name}
                         </option>
                     ))}
                 </select>
