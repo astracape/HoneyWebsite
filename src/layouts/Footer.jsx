@@ -72,7 +72,7 @@ function Footer() {
                 </div>
 
 
-                <div className="container mx-auto mt-10 px-5 text-center text-xs md:text-base md:text-right">
+                <div className="container mx-auto mt-10 px-5 text-center text-xs md:text-base">
                     <p>&copy; 2024 Honey Business. All Rights Reserved.</p>
                 </div>
             </footer>

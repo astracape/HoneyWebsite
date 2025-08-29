@@ -84,6 +84,7 @@ const handleDelete = async () => {
 
     const result = await response.json();
     console.log("✅ Delete result:", result);
+     await deleteDoc(doc(database, "users", selectedUserId));
 
     if (response.ok) {
          setUsers(users.filter(u => u.id !== selectedUserId));
@@ -134,6 +135,25 @@ const handleDelete = async () => {
 
     const handleUpdate = async () => {
         if (!editUserData.id) return;
+         const isEmailValid = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/.test(editUserData.email);
+    const isPhoneValid = /^\d{10}$/.test(editUserData.phone);
+      const isNameValid = editUserData.name.trim() !== "";
+
+    if (!isNameValid) {
+        toast.error("Name is required.");
+        return;
+    }
+
+    if (!isEmailValid) {
+        toast.error("Invalid email format.");
+        return;
+    }
+
+    if (!isPhoneValid) {
+        toast.error("Phone must be 10 digits.");
+        return;
+    }
+
         try {
             await updateDoc(doc(database, `users/${editUserData.id}`), {
                 name: editUserData.name,
@@ -254,8 +274,14 @@ const handleDelete = async () => {
                             <div className="bg-white p-6 rounded-lg shadow-lg">
                                 <h2 className="text-xl font-semibold mb-4">Edit User</h2>
                                 <input type="text" name="name" value={editUserData.name} onChange={handleEditChange} className="block w-full mb-2 p-2 border rounded" placeholder="Name" />
-                                <input type="email" name="email" value={editUserData.email} onChange={handleEditChange} className="block w-full mb-2 p-2 border rounded" placeholder="Email" />
-                                <input type="text" name="phone" value={editUserData.phone} onChange={handleEditChange} className="block w-full mb-2 p-2 border rounded" placeholder="Phone" />
+                                <input type="email" name="email" value={editUserData.email} onChange={handleEditChange} className="block w-full mb-2 p-2 border rounded" placeholder="Email" />{editUserData.email &&
+  !/^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/.test(editUserData.email) && (
+    <p className="text-red-500 text-sm mb-2">Invalid email format</p>
+  )}
+                                <input type="text" name="phone" value={editUserData.phone} onChange={handleEditChange} className="block w-full mb-2 p-2 border rounded" placeholder="Phone" />{editUserData.phone &&
+  !/^\d{10}$/.test(editUserData.phone) && (
+    <p className="text-red-500 text-sm mb-2">Phone must be 10 digits</p>
+  )}
                                 <div className='flex justify-between'>
                                     <button onClick={handleUpdate} className="bg-yellow-600 text-white px-4 py-2 rounded-lg">Update</button>
                                     <button

@@ -43,7 +43,7 @@ function ContactRequest() {
         setSelectedContact(contact);
         setEmailContent({
             subject: `Hi ${contact.name}, thanks for contacting ${BRAND_NAME}`,
-            message: `Dear ${contact.name || 'Customer'},\n\nThank you for reaching out to us regarding "${contact.subject || 'your inquiry'}".\n\n We appreciate your patience and will get back to you shortly.\n\nBest regards,\n${BRAND_NAME} Team`
+            // message: `Dear ${contact.name || 'Customer'},\n\nThank you for reaching out to us regarding "${contact.subject || 'your inquiry'}".\n\n We appreciate your patience and will get back to you shortly.\n\nBest regards,\n${BRAND_NAME} Team`
         });
         setStatus({ type: '', message: '' });
     };
@@ -66,7 +66,8 @@ function ContactRequest() {
                     to_email: selectedContact.email,
                     from_name: BRAND_NAME,
                     subject: emailContent.subject,
-                    queries: selectedContact.message || selectedContact.queries || 'No query provided',
+                    // emailContent: selectedContact.message || selectedContact.queries || 'No query provided',
+                    emailContent:emailContent.message || "no messages provided"
                 }
             );
 
@@ -233,7 +234,7 @@ function ContactRequest() {
                                     {/* <div className="w-full"> */}
                                     <div className="mb-6 w-full">
                                         <h4 className="text-lg font-semibold text-gray-800 mb-3">Reply to Customer</h4>
-                                        {isEmailSent(selectedContact.id) ? (
+                                        {isEmailSent(selectedContact.id) && (
                                             <div className="bg-green-50 border-l-4 border-green-400 p-4 rounded">
                                                 <div className="flex items-center text-green-700">
                                                     <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -241,11 +242,11 @@ function ContactRequest() {
                                                     </svg>
                                                     <span className="font-medium">Reply sent successfully</span>
                                                 </div>
-                                                <div className="mt-3 p-3 bg-white rounded border border-green-100">
+                                                {/* <div className="mt-3 p-3 bg-white rounded border border-green-100">
                                                     <pre className="whitespace-pre-wrap font-sans text-gray-700">{emailContent.message}</pre>
-                                                </div>
+                                                </div> */}
                                             </div>
-                                        ) : (
+                                        ) }
                                             <>
                                                 <div className="grid grid-cols-1 gap-4">
                                                     <div>
@@ -295,7 +296,7 @@ function ContactRequest() {
                                                     </button>
                                                 </div>
                                             </>
-                                        )}
+                                        
                                     </div>
                                     {/* </div> */}
                                 </div>

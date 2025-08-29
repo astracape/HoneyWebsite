@@ -9,6 +9,14 @@ export function CheckoutProvider({ children }) {
      useSameAddress: true,
      billingComplete: false
   });
+const resetCheckout = () => {
+  setCheckoutData({
+    shipping: {},
+    billing: {},
+    useSameAddress: true,
+    billingComplete: false,
+  });
+};
 
   const updateShipping = (data) => {
     setCheckoutData(prev => ({ ...prev, shipping: data }));
@@ -25,7 +33,7 @@ export function CheckoutProvider({ children }) {
   };
   return (
     <CheckoutContext.Provider
-      value={{ checkoutData, updateShipping, updateBilling,setUseSameAddress ,setBillingComplete}}
+      value={{ checkoutData, updateShipping, updateBilling,setUseSameAddress ,setBillingComplete,resetCheckout}}
     >
       {children}
     </CheckoutContext.Provider>

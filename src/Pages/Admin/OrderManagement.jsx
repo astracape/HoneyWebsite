@@ -56,7 +56,7 @@ function OrderManagement() {
     const searchedOrders = filteredOrders.filter((order) => {
         return (
             order.id.toLowerCase().includes(searchquery.toLowerCase()) || // Check Order ID
-            `${order.user?.firstName || "N/A"} ${order.user?.lastName || ""}`
+            `${order.shippingAddress?.firstName || "N/A"} ${order.shippingAddress?.lastName || ""}`
                 .toLowerCase()
                 .includes(searchquery.toLowerCase()) || // Check Customer Name
             new Date(order.createdAt).toLocaleDateString("en-GB").includes(searchquery) //check ordered date
@@ -156,9 +156,9 @@ function OrderManagement() {
 
         const formattedOrders = orders.map(order => ({
             "Order ID": order.id,
-            "Customer": `${order.user?.firstName || ""} ${order.user?.lastName || ""}`,
-            "Email": order.user?.email || "",
-            "Phone": order.user?.phone || "",
+            "Customer": `${order.shippingAddress?.firstName || ""} ${order.shippingAddress?.lastName || ""}`,
+            "Email": order.shippingAddress?.email || "",
+            "Phone": order.shippingAddress?.phone || "",
             "Total Amount": order.total,
             "Status": order.status,
             "Payment Method": order.paymentMethod,

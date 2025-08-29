@@ -12,9 +12,12 @@ function ShippingMethod() {
   const { shippingTypes, addShippingMethod, fetchShippingMethods, shippingMethods, fetchShippingTypes } = useContext(ShippingContext);
   const [selectedShippingType, setSelectedShippingType] = useState("")
   const [shippingRate, setShippingRate] = useState("");
+  const [description, setDescription] = useState("");
   const [shippingTime, setShippingTime] = useState("");
   const [region, setRegion] = useState("");
   const [weight, setWeight] = useState("");
+  const [extraRate, setExtraRate] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [editingId, setEditingId] = useState(null);
@@ -27,7 +30,7 @@ function ShippingMethod() {
   const [selectedState, setSelectedState] = useState("");
   const [states, setStates] = useState([]);
   const [activeTab, setActiveTab] = useState("types");
-    const [deleteConfirmation, setDeleteConfirmation] = useState({
+  const [deleteConfirmation, setDeleteConfirmation] = useState({
     isOpen: false,
     id: null,
     type: null, // 'method' or 'type'
@@ -60,8 +63,10 @@ function ShippingMethod() {
 
     const newMethod = {
       type: selectedShippingType,
-      region: selectedState,
+       description: description,   
+      region: region,
       rate: Number(shippingRate),
+       extraRate: Number(extraRate), 
       time: shippingTime,
       weight: weight + " kg",
     };
@@ -79,10 +84,12 @@ function ShippingMethod() {
     // Clear inputs and reset editing state
     setEditingId(null);
     setSelectedShippingType("");
+    setDescription("")
     setRegion("");
     setShippingRate("");
     setShippingTime("");
     setWeight("");
+    setExtraRate("")
     setLoading(false);
     fetchShippingMethods();
   };
@@ -90,8 +97,10 @@ function ShippingMethod() {
   const handleEdit = (method) => {
     setEditingId(method.id);
     setSelectedShippingType(method.type);
+    setDescription(method.description);
     setRegion(method.region);
     setShippingRate(method.rate);
+    setExtraRate(method.extraRate);
     setShippingTime(method.time);
     setWeight(String(method.weight).replace(" kg", ""));
   };
@@ -145,7 +154,7 @@ function ShippingMethod() {
           <div className="bg-white p-6 rounded-lg max-w-md w-full">
             <h3 className="text-lg font-medium mb-4">Confirm Deletion</h3>
             <p className="mb-4">
-              Are you sure you want to delete this {deleteConfirmation.type}? 
+              Are you sure you want to delete this {deleteConfirmation.type}?
               {deleteConfirmation.name && ` (${deleteConfirmation.name})`}
             </p>
             <div className="flex justify-end space-x-3">
@@ -211,7 +220,7 @@ function ShippingMethod() {
       {activeTab === "types" && (
         <div className="p-4 space-y-6">
           <div className="bg-white p-4 rounded-lg">
-            <ShippingType fetchShippingTypes={fetchShippingTypes}/>
+            <ShippingType fetchShippingTypes={fetchShippingTypes} />
           </div>
 
           <div className="bg-white p-4 md:p-6 overflow-hidden border rounded-lg">
@@ -272,7 +281,18 @@ function ShippingMethod() {
                         ) : (
                           <>
                             <button onClick={() => handleEditType(type)} className="bg-brandyellow text-white px-3 py-1 rounded hover:bg-yellow-700">Edit</button>
-                            <button onClick={() => handleDeleteType(type.id)} className="ml-2 bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">Delete</button>
+                            {/* <button onClick={() => handleDeleteType(type.id)} className="ml-2 bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">Delete</button> */}
+                            <button
+                              onClick={() => setDeleteConfirmation({
+                                isOpen: true,
+                                id: type.id,
+                                type: 'type',
+                                name: type.name
+                              })}
+                              className="ml-2 bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+                            >
+                              Delete
+                            </button>
                           </>
                         )}
                       </td>
@@ -298,11 +318,21 @@ function ShippingMethod() {
                   <option key={type.id} value={type.name}>{type.name}</option>
                 ))}
               </select>
+              <input
+                type="text"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Description"
+                className="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+              />
+              <input type="text" value={shippingTime} onChange={(e) => setShippingTime(e.target.value)} placeholder="Shipping Time" className="w-full border rounded  border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all" required />
+
               <select
-                value={selectedState}
-                onChange={(e) => setSelectedState(e.target.value)}
+                value={region}
+                onChange={(e) => setRegion(e.target.value)}
                 className="w-full border rounded p-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
                 required
+                
               >
                 <option value="">Select State</option>
                 {states.map((state) => (
@@ -310,11 +340,19 @@ function ShippingMethod() {
                     {state.name}
                   </option>
                 ))}
+ <option value="Others">Others</option>
               </select>
-
+              <input type="text" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="Weight upto 1kg" className="w-full border rounded p-2  border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all " required />
+              <input
+                type="number"
+                value={extraRate}
+                onChange={(e) => setExtraRate(e.target.value)}
+                placeholder="Extra Rate per kg (₹)"
+                className="w-full border border-gray-300 rounded p-2"
+                required
+              />
               <input type="number" value={shippingRate} onChange={(e) => setShippingRate(e.target.value)} placeholder="Shipping Rate (₹)" className="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all" required />
-              <input type="text" value={shippingTime} onChange={(e) => setShippingTime(e.target.value)} placeholder="Shipping Time" className="w-full border rounded  border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all" required />
-              <input type="text" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="Weight (kg)" className="w-full border rounded p-2  border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all " required />
+
               <button type="submit" className="bg-brandyellow text-white px-4 py-2 rounded hover:bg-yellow-700">Add Shipping Method</button>
             </form>
           </div>
@@ -347,9 +385,12 @@ function ShippingMethod() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Region</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rate (₹)</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Extra rate per kg</th>
+
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Weight</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                   </tr>
@@ -373,6 +414,13 @@ function ShippingMethod() {
                         </td>
                         <td className="px-6 py-4">
                           {isEditing ? (
+                            <input value={description} onChange={(e) => setDescription(e.target.value)} className="w-32" />
+                          ) : (
+                            method.description
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          {isEditing ? (
                             <input value={region} onChange={(e) => setRegion(e.target.value)} className="w-32" />
                           ) : (
                             method.region
@@ -392,6 +440,13 @@ function ShippingMethod() {
                             method.time
                           )}
                         </td>
+                         <td className="px-6 py-4">
+                          {isEditing ? (
+                            <input value={extraRate} onChange={(e) => setExtraRate(e.target.value)} className="w-32" />
+                          ) : (
+                            `₹${method.extraRate}`
+                          )}
+                        </td>
                         <td className="px-6 py-4">
                           {isEditing ? (
                             <input value={weight} onChange={(e) => setWeight(e.target.value)} className="w-32" />
@@ -408,7 +463,18 @@ function ShippingMethod() {
                           ) : (
                             <>
                               <button onClick={() => handleEdit(method)} className="bg-brandyellow text-white px-3 py-1 rounded hover:bg-yellow-700">Edit</button>
-                              <button onClick={() => handleDelete(method.id)} className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">Delete</button>
+                              {/* <button onClick={() => handleDelete(method.id)} className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">Delete</button> */}
+                              <button
+                                onClick={() => setDeleteConfirmation({
+                                  isOpen: true,
+                                  id: method.id,
+                                  type: 'method',
+                                  name: `${method.type} (${method.region})`
+                                })}
+                                className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+                              >
+                                Delete
+                              </button>
                             </>
                           )}
                         </td>

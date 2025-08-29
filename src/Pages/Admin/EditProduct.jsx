@@ -132,7 +132,7 @@ function EditProduct() {
             imageUrl = await getDownloadURL(uploadTask.ref);
         }
 
-        const categoryRef = doc(database, "products", productData.category);
+        const categoryRef = doc(database, "products", productData.categoryId);
         const categorySnapshot = await getDoc(categoryRef);
 
         if (!categorySnapshot.exists()) {
@@ -160,6 +160,7 @@ function EditProduct() {
         toast.success('Product updated successfully!');
     } catch (error) {
         toast.error("Failed to update product.");
+        console.log(error.message)
         setUploading(false);
     }
 };

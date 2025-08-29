@@ -174,12 +174,12 @@ function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin }) {
                         ><FaTachometerAlt />
                           Dashboard
                         </Link>
-                        <button
+                        <Link
                           onClick={handleLogout}
                           className="dropdown-item"
                         ><FaSignOutAlt />
                           Logout
-                        </button>
+                        </Link>
                       </>
                     ) : (
                       <>
@@ -190,12 +190,12 @@ function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin }) {
                         > <FaHistory />
                           Order History
                         </Link>
-                        <button
+                        <Link
                           onClick={handleLogout}
                           className="dropdown-item"
                         >  <FaSignOutAlt />
                           Logout
-                        </button>
+                        </Link>
                       </>
                     )}
                   </div>

@@ -42,19 +42,60 @@ function AddProduct() {
     }, []);
 
     const addProduct = async () => {
-        if (!productImage || !productCategory ||!productWeightValue ||!productWeightUnit ||!productPrice) {
+        if (!productImage || !productCategory || !productWeightValue || !productWeightUnit || !productPrice) {
             toast.error("Please enter all details");
             return;
         }
 
-        const trimmedName = productName.trim().toLowerCase();
+        const trimmedName = productName.trim();
         const trimmedWeight = `${productWeightValue}${productWeightUnit}`.trim().toLowerCase();
 
         if (!trimmedName) {
             toast.error("Product name cannot be empty");
             return;
         }
+        if (productPrice <= 0 || productPrice > 100000) {
+            toast.info("Price must be between 1 and 100000.");
+            return;
+        }
+ const weightValue = parseFloat(productWeightValue);
+    if (isNaN(weightValue)) {
+        toast.error("Please enter a valid weight value");
+        return;
+    }
+    const validUnits = ['g', 'kg', 'l', 'ml'];
+    if (!validUnits.includes(productWeightUnit.toLowerCase())) {
+        toast.error("Invalid weight unit. Please use g, kg, l, or ml");
+        return;
+    }
+    let maxWeight;
+    switch(productWeightUnit.toLowerCase()) {
+        case 'g':
+            maxWeight = 10000; // 10kg in grams
+            break;
+        case 'kg':
+            maxWeight = 100; // 100kg
+            break;
+        case 'l':
+            maxWeight = 100; // 100 liters
+            break;
+        case 'ml':
+            maxWeight = 100000; // 100 liters in ml
+            break;
+        default:
+            maxWeight = 10000;
+    }
 
+    if (weightValue <= 0) {
+        toast.error("Weight must be greater than 0");
+        return;
+    }
+
+    if (weightValue > maxWeight) {
+        toast.error(`Weight cannot exceed ${maxWeight}${productWeightUnit}`);
+        return;
+    }
+     
         try {
             setUploading(true);
 
@@ -68,7 +109,7 @@ function AddProduct() {
                 const existingProducts = categorySnapshot.data().products || [];
 
                 const isNameExists = existingProducts.some(
-                    (product) => product.name.toLowerCase() === trimmedName &&
+                    (product) => product.name === trimmedName &&
                         product.weight.toLowerCase() === trimmedWeight
                 );
 
@@ -209,18 +250,18 @@ function AddProduct() {
                             <option key={catry.id} value={catry.id}>{catry.category}</option>
                         ))}
                     </select>
-                   <div className='w-3/4 mb-4'>
-    <p className='text-gray-700 font-semibold mb-2'>Please select if this is a gift</p>
-    <label className='flex items-center gap-2'>
-        <input
-            type='checkbox'
-            checked={isGift}
-            onChange={(e) => setIsGift(e.target.checked)}
-            required
-        />
-        Is Gift?
-    </label>
-</div>
+                    <div className='w-3/4 mb-4'>
+                        <p className='text-gray-700 font-semibold mb-2'>Please select if this is a gift</p>
+                        <label className='flex items-center gap-2'>
+                            <input
+                                type='checkbox'
+                                checked={isGift}
+                                onChange={(e) => setIsGift(e.target.checked)}
+                                required
+                            />
+                            Is Gift?
+                        </label>
+                    </div>
 
 
 

@@ -1,7 +1,8 @@
-import { addDoc, collection, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { addDoc, collection, doc, getDocs, query, serverTimestamp, updateDoc, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react'
 import { database } from '../../FirebaseConfig';
 import { Link } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
 
 function CouponForm({ onClose, couponToEdit }) {
     const [code, setCode] = useState("");
@@ -19,11 +20,11 @@ function CouponForm({ onClose, couponToEdit }) {
 
     useEffect(() => {
         if (couponToEdit) {
-             const formatDate = (date) => {
-            if (!date) return '';
-            const d = new Date(date);
-            return d.toISOString().split("T")[0]; // format: 'YYYY-MM-DD'
-        };
+            const formatDate = (date) => {
+                if (!date) return '';
+                const d = new Date(date);
+                return d.toISOString().split("T")[0]; // format: 'YYYY-MM-DD'
+            };
             setCode(couponToEdit.code || "");
             setDiscountType(couponToEdit.discountType || "percentage");
             setDiscountValue(couponToEdit.discountValue || "");
@@ -36,12 +37,12 @@ function CouponForm({ onClose, couponToEdit }) {
         }
     }, [couponToEdit]);
 
- 
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError("");
-    
+
         const couponData = {
             code,
             discountType,
@@ -58,10 +59,23 @@ function CouponForm({ onClose, couponToEdit }) {
             updatedAt: serverTimestamp(),  // Track the time of the update
             updatedBy: "admin_user",  // Update the user field to track who edited
         };
-    
+
         console.log(couponData);  // Log the data to check if it has the correct values
-    
+
         try {
+            if (!couponToEdit) {
+                const q = query(
+                    collection(database, "coupons"),
+                    where("code", "==", code.trim())
+                );
+                const existing = await getDocs(q);
+
+                if (!existing.empty) {
+                    setLoading(false);
+                    toast.error("Coupon code already exists.");
+                    return;
+                }
+            }
             if (couponToEdit) {
                 // If editing, update the existing coupon document
                 await updateDoc(doc(database, "coupons", couponToEdit.id), couponData);
@@ -79,12 +93,12 @@ function CouponForm({ onClose, couponToEdit }) {
             setLoading(false);
         }
     };
-    
-    
+
+
     return (
         <div>
-            <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-                <div className="bg-white p-6 rounded-lg shadow-lg max-w-md">
+            <div className=" inset-0 flex items-center justify-center bg-opacity-50 p-5">
+                <div className="bg-white p-6 max-w-full">
                     <Link to="/viewcoupons" className="flex justify-end text-yellow-600 underline">View Coupons</Link>
 
                     <h3 className="text-lg font-semibold mb-4">Create Coupon</h3>
@@ -155,6 +169,13 @@ function CouponForm({ onClose, couponToEdit }) {
                     </form>
                 </div>
             </div>
+            <ToastContainer>
+                 position="bottom-right"
+                autoClose={1200}
+                hideProgressBar={false}
+                limit={1}
+                pauseOnHover
+            </ToastContainer>
         </div>
     )
 }

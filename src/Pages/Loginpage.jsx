@@ -83,7 +83,7 @@ function Loginpage() {
             toast.error("Too many failed attempts. Try again later.");
             break;
         default:
-            toast.error(`Login failed. ${error.message}`);
+            toast.error("Login failed.Please verify your registered mail");
     }
         }
     };

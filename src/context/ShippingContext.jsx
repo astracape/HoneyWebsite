@@ -1,21 +1,21 @@
-import { createContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect, useContext } from 'react';
 import { addDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import { database } from '../FirebaseConfig';
+import { CartContext } from './CartContext';
 
 export const ShippingContext = createContext();
 
 export const ShippingProvider = ({ children }) => {
+    const { getCartTotalWeight, cart } = useContext(CartContext);
     const [shippingTypes, setShippingTypes] = useState([]);
-    const [shippingMethods, setShippingMethods] = useState([])
+    const [shippingMethods, setShippingMethods] = useState([]);
     const [shippingRate, setShippingRate] = useState(0);
     const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+    const [error, setError] = useState(null);
+
     const fetchShippingTypes = async () => {
         try {
-            console.log("Fetching shipping types...");
             const querySnapshot = await getDocs(collection(database, "shipping_types"));
-            console.log("QuerySnapshot:", querySnapshot);
-
             const types = querySnapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data(),
@@ -26,14 +26,19 @@ export const ShippingProvider = ({ children }) => {
         }
     };
 
+    const resetShippingRate = () => {
+        setShippingRate(0);
+    };
+
     const addShippingMethod = async (newMethod) => {
         try {
-            const docRef = await addDoc(collection(database, "shipping_methods"), newMethod);
-            
-            // Update local state immediately after adding
+            const methodToSave = { ...newMethod };
+
+            const docRef = await addDoc(collection(database, "shipping_methods"), methodToSave);
+
             setShippingMethods((prevMethods) => [
                 ...prevMethods,
-                { id: docRef.id, ...newMethod },
+                { id: docRef.id, ...methodToSave },
             ]);
 
             return { success: true, message: "Shipping method added successfully!" };
@@ -55,59 +60,89 @@ export const ShippingProvider = ({ children }) => {
             console.error("Error fetching shipping methods:", error);
         }
     };
-    
-     
-    const fetchShippingRate = async (state, shippingType) => {
-        if (!state || !shippingType) {
-            console.warn("Missing state or shipping type:", state, shippingType);
+
+    const fetchShippingRate = async (stateName, shippingType) => {
+        const productWeightKg = getCartTotalWeight(cart);
+
+        if (!stateName || !shippingType) {
+            console.warn("Missing state or shipping type:", stateName, shippingType);
             return;
         }
-        
+
         setLoading(true);
         setError(null);
-    
-        try {
-            console.log("Fetching rate for:", state, shippingType);
-            console.log("Trying to match region:", state, "type:", `"${shippingType}"`);
 
-            // Querying Firestore based on region (state) and type
-            const q = query(
-                
+        try {
+            const cleanState = stateName.trim();
+            const cleanType = shippingType.trim();
+            let q = query(
                 collection(database, "shipping_methods"),
-                
-                where("region", "==", state),
-                where("type", "==", shippingType) // Ensure no trailing spaces
+                where("region", "==", cleanState),
+                where("type", "==", cleanType)
             );
-    
-            const snapshot = await getDocs(q);
-            console.log("Documents found:", snapshot.size);
-    
+
+            let snapshot = await getDocs(q);
+            if (snapshot.empty) {
+                console.log(`No shipping found for ${cleanState}, falling back to Others`);
+                q = query(
+                    collection(database, "shipping_methods"),
+                    where("region", "==", "Others"),
+                    where("type", "==", cleanType)
+                );
+                snapshot = await getDocs(q);
+            }
+
             if (!snapshot.empty) {
-                snapshot.forEach((doc) => {
-                    console.log("Matched doc:", doc.id, doc.data());
-                });
-    
-                // Assuming we want the first matched document's rate
                 const method = snapshot.docs[0].data();
-                setShippingRate(method.rate); // Assuming 'rate' is the field you want
+
+                const baseWeight = parseFloat(method.weight) || 0;
+                const baseRate = Number(method.rate) || 0;
+                const extraRate = Number(method.extraRate) || 0;
+
+                let totalRate = baseRate;
+
+                if (productWeightKg > 5) {
+                    totalRate = 0; // free shipping > 5kg
+                } else if (productWeightKg > baseWeight) {
+                    const extraWeight = Math.ceil(productWeightKg - baseWeight);
+                    totalRate += extraWeight * extraRate;
+                }
+
+                console.log("Calculated Shipping:", {
+                    baseWeight,
+                    baseRate,
+                    extraRate,
+                    productWeightKg,
+                    totalRate
+                });
+
+                setShippingRate(totalRate);
             } else {
-                console.warn("No match found for", state, shippingType);
                 setShippingRate(0);
                 setError("No shipping rate found");
             }
         } catch (err) {
-            console.error("Error fetching shipping rate:", err);
+            console.error("Error in fetchShippingRate:", err);
             setShippingRate(0);
             setError("Error fetching rate");
         } finally {
             setLoading(false);
         }
     };
-    
+
     return (
-        <ShippingContext.Provider value={{ shippingTypes ,shippingMethods,addShippingMethod,fetchShippingRate,fetchShippingMethods,fetchShippingTypes,shippingRate,
+        <ShippingContext.Provider value={{
+            shippingTypes,
+            shippingMethods,
+            addShippingMethod,
+            fetchShippingRate,
+            fetchShippingMethods,
+            fetchShippingTypes,
+            shippingRate,
             loading,
-            error,}}>
+            resetShippingRate,
+            error,
+        }}>
             {children}
         </ShippingContext.Provider>
     );

@@ -18,45 +18,52 @@ function GiftHamper() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchGiftProducts = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const categoriesSnapshot = await getDocs(collection(database, "products"));
-        const giftProductsArray = [];
+  const fetchGiftProducts = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Step 1: Get all categories in one go
+      const categorySnapshot = await getDocs(collection(database, "categories"));
+      const categoryMap = new Map();
+      categorySnapshot.docs.forEach(doc => {
+        categoryMap.set(doc.id, doc.data().category);
+      });
 
-        for (let categoryDoc of categoriesSnapshot.docs) {
-          const categoryData = categoryDoc.data();
-          const productsArray = categoryData.products || [];
+      // Step 2: Get all products
+      const productSnapshot = await getDocs(collection(database, "products"));
+      const giftProductsArray = [];
 
-          const categoryDocSnap = await getDoc(doc(database, "categories", categoryDoc.id));
-          const categoryName = categoryDocSnap.exists()
-            ? categoryDocSnap.data().category
-            : "Gifting Options";
+      for (let categoryDoc of productSnapshot.docs) {
+        const categoryData = categoryDoc.data();
+        const productsArray = categoryData.products || [];
 
-          if (categoryName === "Gifting Options") {
-            productsArray.forEach((product) => {
-              giftProductsArray.push({
-                ...product,
-                category: categoryName,
-                categoryDocId: categoryDoc.id
-              });
+        // Step 3: Get the category name from the map
+        const categoryName = categoryMap.get(categoryDoc.id) || "Gifting Options";
+
+        if (categoryName === "Gifting Options") {
+          productsArray.forEach((product) => {
+            giftProductsArray.push({
+              ...product,
+              category: categoryName,
+              categoryDocId: categoryDoc.id,
             });
-          }
+          });
         }
-
-        setGiftProducts(giftProductsArray);
-      } catch (error) {
-        console.error("Error fetching gift products.", error);
-        setError(error);
-        toast.error("Error fetching gift products.");
-      } finally {
-        setLoading(false);
       }
-    };
 
-    fetchGiftProducts();
-  }, []);
+      setGiftProducts(giftProductsArray);
+    } catch (error) {
+      console.error("Error fetching gift products.", error);
+      setError(error);
+      toast.error("Error fetching gift products.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchGiftProducts();
+}, []);
+
 
   const handleAddToCart = (product) => {
     addToCart(product);
@@ -105,6 +112,8 @@ function GiftHamper() {
                       className="group-hover:scale-125 h-full w-full object-cover transition-all duration-300"
                       src={product.imageUrl}
                       alt={product.name}
+                      loading="lazy"
+                      decoding="async"
                     />
                   </div>
                   <div className="mt-4 flex items-start justify-between h-24">

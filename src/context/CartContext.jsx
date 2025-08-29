@@ -185,7 +185,7 @@ export const CartProvider = ({ children }) => {
 
  const getCartTotalWeight = (cartItems) => {
     let totalGrams = 0;
-    let totalMilliliters = 0;
+    // let totalMilliliters = 0;
 
     cartItems.forEach(item => {
         if (!item.weight || !item.quantity) return;
@@ -199,29 +199,14 @@ export const CartProvider = ({ children }) => {
         } else if (unit === 'g') {
             totalGrams += value * item.quantity;
         } else if (unit === 'l') {
-            totalMilliliters += value * 1000 * item.quantity;
+            totalGrams += value * 1000 * item.quantity;
         } else if (unit === 'ml') {
-            totalMilliliters += value * item.quantity;
+            totalGrams += value * item.quantity;
         }
     });
 
-    const weightString = totalGrams >= 1000
-        ? `${(totalGrams / 1000).toFixed(2)}kg`
-        : `${totalGrams}g`;
-
-    const volumeString = totalMilliliters >= 1000
-        ? `${(totalMilliliters / 1000).toFixed(2)}l`
-        : `${totalMilliliters}ml`;
-
-    if (totalGrams > 0 && totalMilliliters > 0) {
-        return `${weightString} + ${volumeString}`;
-    } else if (totalGrams > 0) {
-        return weightString;
-    } else if (totalMilliliters > 0) {
-        return volumeString;
-    } else {
-        return '0';
-    }
+   
+    return totalGrams/1000;
 };
 
     

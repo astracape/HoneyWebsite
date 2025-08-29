@@ -160,6 +160,7 @@ function AboutUs() {
                                 value={queries}
                                 onChange={(e) => setQueries(e.target.value)}
                                 className="px-4 py-3 rounded-lg text-gray-900 focus:ring-0 w-72 h-32"
+                            rows={5}
                             />
                             <button onClick={handleContact} className="bg-white text-black px-6 py-3 rounded-lg font-semibold hover:bg-brandyellow my-auto w-72">Contact Us</button>
                         </div>

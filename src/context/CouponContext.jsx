@@ -1,7 +1,7 @@
 import { createContext, useState, useContext, useEffect } from "react";
 import { toast } from "react-toastify";
 import { database } from "../FirebaseConfig";
-import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, setDoc, updateDoc } from "firebase/firestore";
 import { CartContext } from "./CartContext";
 import { getAuth } from "firebase/auth";
 export const CouponContext = createContext();
@@ -12,7 +12,7 @@ export const CouponProvider = ({ children }) => {
   const user = auth.currentUser;
     const [appliedCoupon, setAppliedCoupon] = useState(null);
     const [shippingRate, setShippingRate] = useState(0);
-    const [discountAmount, setDiscountAmount] = useState(0);
+    const [discountAmount, setDiscountAmount] = useState("");
     const [finalTotal, setFinalTotal] = useState(0);
  
 
@@ -39,11 +39,19 @@ export const CouponProvider = ({ children }) => {
         }
     };
     
+const resetCoupon = async() => {
+   if (appliedCoupon && user) {
+      await removeTempUsage(appliedCoupon.code, user.uid);
+    }
+  setDiscountAmount(0);      // remove the discount
+  setAppliedCoupon(null);
+  toast.info("Coupon Removed")    // remove the applied coupon
+};
 
   
    const applyCoupon = async (coupon) => {
-  const auth = getAuth();
-  const user = auth.currentUser;
+  // const auth = getAuth();
+  // const user = auth.currentUser;
 
   if (!user) {
     toast.error("Please login to apply a coupon.");
@@ -107,23 +115,54 @@ export const CouponProvider = ({ children }) => {
   setAppliedCoupon(coupon);
   setDiscountAmount(discount);
   setFinalTotal(subtotal - discount + shippingRate);
-
+await saveTempUsage(coupon.code, user.uid)
   toast.success(`Coupon ${coupon.code} applied! You saved ₹${discount}`);
 
   // Save coupon usage for today
-  const updatedDates = [...userUsageDates, todayStr];
-  if (usageSnap.exists()) {
-    await updateDoc(usageRef, { [user.uid]: updatedDates });
-  } else {
-    await setDoc(usageRef, { [user.uid]: updatedDates });
-  }
+  // const updatedDates = [...userUsageDates, todayStr];
+  // if (usageSnap.exists()) {
+  //   await updateDoc(usageRef, { [user.uid]: updatedDates });
+  // } else {
+  //   await setDoc(usageRef, { [user.uid]: updatedDates });
+  // }
+
 
   
 };
+const markCouponAsUsedAfterOrder = async (userId, couponCode) => {
+  const usageRef = doc(database, "coupon_usage", couponCode);
+  const usageSnap = await getDoc(usageRef);
+  const usageData = usageSnap.exists() ? usageSnap.data() : {};
+  const todayStr = new Date().toISOString().split("T")[0];
+  const updatedDates = [...(usageData[userId] || []), todayStr];
 
-    
+  if (usageSnap.exists()) {
+    await updateDoc(usageRef, { [userId]: updatedDates });
+  } else {
+    await setDoc(usageRef, { [userId]: updatedDates });
+  }
+};
+    // Save temporary coupon usage
+const saveTempUsage = async (couponCode, userId) => {
+  const usageRef = doc(database, "coupon_temp_usage", couponCode);
+  const usageSnap = await getDoc(usageRef);
+  const data = usageSnap.exists() ? usageSnap.data() : {};
+  await setDoc(usageRef, { ...data, [userId]: true }, { merge: true });
+};
+
+// Remove temporary coupon usage
+const removeTempUsage = async (couponCode, userId) => {
+  const usageRef = doc(database, "coupon_temp_usage", couponCode);
+  const usageSnap = await getDoc(usageRef);
+  if (usageSnap.exists()) {
+    const data = usageSnap.data();
+    delete data[userId];
+    await setDoc(usageRef, data);
+  }
+};
+
     // Calculate final total including shipping & discount
-    const calculateFinalTotal = (region) => {
+    const calculateFinalTotal = () => {
         const subtotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
         const total = subtotal + shippingRate - discountAmount;
         return total > 0 ? total : 0;
@@ -132,7 +171,7 @@ export const CouponProvider = ({ children }) => {
 
 
     return (
-        <CouponContext.Provider value={{ appliedCoupon, applyCoupon, calculateFinalTotal, fetchShippingRate, shippingRate, discountAmount }}>
+        <CouponContext.Provider value={{ appliedCoupon, applyCoupon, calculateFinalTotal, fetchShippingRate, shippingRate,saveTempUsage,removeTempUsage, discountAmount,resetCoupon ,markCouponAsUsedAfterOrder,setDiscountAmount,setAppliedCoupon}}>
             {children}
         </CouponContext.Provider>
     );

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState,useRef } from 'react'
 import { database } from '../../FirebaseConfig';
 import img from "../../assets/productpage.jpg"
 import 'react-toastify/dist/ReactToastify.css';
@@ -21,12 +21,12 @@ function ProductPage() {
     const navigate = useNavigate()
     const location = useLocation();
     const [loading, setLoading] = useState(true);
-    const { cart,addToCart } = useContext(CartContext);
+    const { cart, addToCart } = useContext(CartContext);
     const [loadedProductIds, setLoadedProductIds] = useState(new Set());
     const [searchTerm, setSearchTerm] = useState("")
-     const [showCartSidebar, setShowCartSidebar] = useState(false);
+    const [showCartSidebar, setShowCartSidebar] = useState(false);
     const itemsPerPage = 12;
-
+const resultsRef = useRef(null);
     useEffect(() => {
         window.scrollTo(0, 0); // Scroll to the top when the component mounts
     }, []);
@@ -92,15 +92,17 @@ function ProductPage() {
         setCurrentPage(selected);
     };
     const auth = getAuth();
-
+const searchWords = searchTerm.toLowerCase().trim().split(/\s+/); 
+ resultsRef.current?.scrollIntoView({ behavior: "smooth" });
     const filteredProducts = products
         .filter((product) =>
 
             selectedCategory === 'all' || product.category === selectedCategory
         )
         .filter((product) => !product.isGift)
-        .filter((product) => product.name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+        .filter((product) =>{const name=product.name.toLowerCase()
+            return searchWords.every((word) => name.includes(word))
+});
 
     const sortedProducts = [...filteredProducts].sort((a, b) => {
         if (sortOrder === "lowToHigh") return a.price - b.price;
@@ -118,7 +120,13 @@ function ProductPage() {
     const handleAddToCart = (product) => {
         addToCart(product);
         setShowPopup(true);
+         const timer = setTimeout(() => {
+            setShowPopup(false);
+        }, 1000);
+        // Clear timeout if component unmounts or popup is closed manually
+        return () => clearTimeout(timer);
     };
+   
     useEffect(() => {
         if (products.length === 0) {
             setLoading(true);
@@ -140,7 +148,7 @@ function ProductPage() {
                 </div>
             </div>
 
-<button 
+            <button
                 onClick={() => setShowCartSidebar(true)}
                 className="fixed bottom-6 right-6 bg-red-700 text-white p-4 rounded-full shadow-lg z-40 hover:bg-red-800 transition-colors"
             >
@@ -159,7 +167,7 @@ function ProductPage() {
                         <div className="p-4 border-b sticky top-0 bg-white z-10">
                             <div className="flex justify-between items-center">
                                 <h3 className="text-xl font-bold">Your Cart ({cart.length})</h3>
-                                <button 
+                                <button
                                     onClick={() => setShowCartSidebar(false)}
                                     className="text-gray-500 hover:text-gray-700 text-2xl"
                                 >
@@ -171,9 +179,9 @@ function ProductPage() {
                             {cart.length > 0 ? (
                                 cart.map((item) => (
                                     <div key={item.id} className="flex gap-3 border-b pb-3">
-                                        <img 
-                                            src={item.imageUrl} 
-                                            className="w-16 h-16 object-cover rounded" 
+                                        <img
+                                            src={item.imageUrl}
+                                            className="w-16 h-16 object-cover rounded"
                                             alt={item.name}
                                         />
                                         <div className="flex-1">
@@ -184,20 +192,34 @@ function ProductPage() {
                                     </div>
                                 ))
                             ) : (
-                                <p className="text-center text-gray-500 py-10">Your cart is empty</p>
+                                <div className="text-center text-gray-500 py-10">
+                                    <p className="mb-4">Your cart is empty</p>
+                                    <button
+                                        onClick={() => {
+                                            setShowCartSidebar(false);
+                                            navigate('/productpage');
+                                        }}
+                                        className="bg-brandyellow text-black font-medium px-5 py-2 rounded hover:bg-yellow-500 transition-colors"
+                                    >
+                                        Browse Products
+                                    </button>
+                                </div>
+
                             )}
                         </div>
-                        <div className="p-4 border-t sticky bottom-0 bg-white">
-                            <button 
-                                onClick={() => {
-                                    setShowCartSidebar(false);
-                                    navigate('/cart');
-                                }}
-                                className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition-colors"
-                            >
-                                See Details
-                            </button>
-                        </div>
+                        {cart.length > 0 && (
+                            <div className="p-4 border-t sticky bottom-0 bg-white">
+                                <button
+                                    onClick={() => {
+                                        setShowCartSidebar(false);
+                                        navigate('/cart');
+                                    }}
+                                    className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition-colors"
+                                >
+                                    See Details
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
@@ -209,7 +231,7 @@ function ProductPage() {
                             type="text"
                             placeholder="Search products..."
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => setSearchTerm(e.target.value.replace(/\s+/g, ' '))}
                             className="px-4 py-2 border rounded-md mb-6 border-yellow-600"
                         />
                         <h2 className="text-lg font-semibold text-gray-800 mb-4">Categories:</h2>
@@ -267,7 +289,7 @@ function ProductPage() {
                             </div>
                         ) : currentItems.length > 0 ? (
                             currentItems.map((product, index) => (
-                                <div key={index} className="bg-white shadow-lg rounded-xl overflow-hidden transition-transform transform hover:scale-105 hover:shadow-2xl p-4 relative">
+                                <div key={index} ref={resultsRef} className="bg-white shadow-lg rounded-xl overflow-hidden transition-transform transform hover:scale-105 hover:shadow-2xl p-4 relative">
                                     <Link to={`/singleproduct/${product.id}`}>
                                         <div className="relative">
                                             <img
@@ -309,59 +331,40 @@ function ProductPage() {
                 hideProgressBar={false}
                 limit={1}
             />
-            {/* {showPopup && (
+           
+            {showPopup && (
                 <div
+                    className="fixed bottom-4 left-0 right-0 mx-auto bg-brandyellow rounded-lg shadow-xl z-50 max-w-sm w-[90%]"
                     data-aos="fade-up"
-                    data-aos-duration="600"
-                    className="fixed bottom-0 left-0 w-full font-bold italic bg-gradient-to-r from-[#ffa600dc] to-[#8b4513df] text-white p-6 flex items-center justify-between shadow-lg transform transition-transform"
+                    data-aos-duration="300"
                 >
-                    <div className="flex items-center gap-2">
-                        <ShoppingCartIcon className="h-6 w-6 text-gray-900" />
-                        <span className="text-xl text-gray-900">
-                            Item added to cart successfully!
-                        </span>
+                    <div className="p-3 flex items-center justify-between">
+                        <div className="flex items-center overflow-hidden flex-1">
+                            <div className="bg-green-100 p-2 rounded-full mr-2 flex-shrink-0">
+                                <svg
+                                    className="w-5 h-5 text-green-600"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            <span className="text-gray-800 font-medium text-sm truncate">
+                                Added to cart
+                            </span>
+                        </div>
+                        <button
+                            onClick={() => setShowPopup(false)}
+                            className="text-black hover:text-gray-600 flex-shrink-0 ml-2"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
                     </div>
-                    <button
-                        onClick={cartview}
-                        className="bg-transparent text-white font-normal px-4 py-2 rounded-lg border-2 border-gray-900 hover:bg-red-900 hover:text-white transition-colors duration-300 ease-in-out transform hover:scale-105 shadow-md"
-                    >
-                        View Cart
-                    </button>
                 </div>
-            )} */}
-{showPopup && (
-  <div
-    className="fixed bottom-4 left-0 right-0 mx-auto bg-brandyellow rounded-lg shadow-xl z-50 max-w-sm w-[90%]"
-    data-aos="fade-up"
-    data-aos-duration="300"
-  >
-    <div className="p-3 flex items-center justify-between">
-      <div className="flex items-center overflow-hidden flex-1">
-        <div className="bg-green-100 p-2 rounded-full mr-2 flex-shrink-0">
-          <svg 
-            className="w-5 h-5 text-green-600" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
-        <span className="text-gray-800 font-medium text-sm truncate">
-          Added to cart
-        </span>
-      </div>
-      <button 
-        onClick={() => setShowPopup(false)}
-        className="text-black hover:text-gray-600 flex-shrink-0 ml-2"
-      >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
-  </div>
-)}
+            )}
 
         </div>
     )
