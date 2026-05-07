@@ -13,7 +13,7 @@ import { CouponContext } from '../../context/CouponContext';
 import { useCheckout } from '../../context/CheckoutContext';
 
 function Checkout() {
-    const { cart , getCartTotalPrice, getCartTotalWeight} = useContext(CartContext)
+    const { cart, getCartTotalPrice, getCartTotalWeight } = useContext(CartContext)
     const { updateShipping, checkoutData, setUseSameAddress, setBillingComplete, resetCheckout } = useCheckout();
     const useSameAddress = checkoutData.useSameAddress;
     const [formData, setFormData] = useState(checkoutData.shipping || {
@@ -51,7 +51,7 @@ function Checkout() {
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
             if (!currentUser) {
-                navigate('/login');
+                navigate('/reg');
             }
         });
         return () => unsubscribe();
@@ -146,7 +146,7 @@ function Checkout() {
         if (!validateForm()) return;
         if (!user) {
             toast.warning("Please log in to place your order");
-            navigate("/login");
+            navigate("/reg");
             return;
         }
 
@@ -304,6 +304,8 @@ function Checkout() {
 
     const saveOrderToDatabase = async (orderDetails) => {
         try {
+            
+        console.log("🔥 ORDER OBJECT:", orderDetails);
             await setDoc(doc(database, "orders", orderDetails.orderId), orderDetails);
             return true;
         } catch (error) {
@@ -470,7 +472,7 @@ function Checkout() {
                                             {indianStates.map(state => (
                                                 <option key={state.isoCode} value={state.name}>{state.name}</option>
                                             ))}
-                                             
+
                                         </select>
                                     </div>
                                     <div>
@@ -511,6 +513,7 @@ function Checkout() {
                                             id="phone"
                                             name="phone"
                                             placeholder="+91 Phone Number"
+                                            maxLength={13}
                                             required
                                             onChange={handleInputChange}
                                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-brandyellow focus:border-brandyellow"
@@ -607,7 +610,7 @@ function Checkout() {
                                             </div>
                                         </label>
 
-                                        <label className="flex items-start p-4 border rounded-xl hover:border-brandyellow transition-colors cursor-pointer">
+                                        {/* <label className="flex items-start p-4 border rounded-xl hover:border-brandyellow transition-colors cursor-pointer">
                                             <input
                                                 type="radio"
                                                 name="paymentMethod"
@@ -621,7 +624,7 @@ function Checkout() {
                                                     Pay in cash when your order is delivered
                                                 </p>
                                             </div>
-                                        </label>
+                                        </label> */}
                                     </div>
                                 </div>
 
@@ -634,7 +637,7 @@ function Checkout() {
                             </form>
                         </div>
                     </div>
-                    <div className="lg:w-auto border-l-2 pl-10 flex mx-auto items-start justify-start self-start flex-grow overflow-y-auto">
+                    <div className=" w-full lg:border-l-2 lg:pl-10 flex mx-auto items-start justify-start self-start">
                         <div className="bg-white rounded-xl shadow-sm p-6 sticky top-4 w-full">
                             <h3 className="text-xl font-semibold mb-6 pb-2 border-b border-gray-100">
                                 Order Summary
@@ -651,11 +654,27 @@ function Checkout() {
                                                 />
                                             </Link>
                                             <div>
-                                                <div className="font-medium">{item.name}</div>
+                                                <div className="font-medium flex items-center gap-2">
+                                                    {item.name}
+
+                                                    {item.isPreorder && (
+                                                        <span className="text-[10px] font-semibold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">
+                                                            Pre-order
+                                                        </span>
+                                                    )}
+                                                </div>
+
                                                 <div className="text-sm text-gray-500">
                                                     {item.quantity} × ₹{item.price}
                                                 </div>
+
+                                                {item.isPreorder && (
+                                                    <div className="text-[11px] text-amber-700">
+                                                        Delivered within 10 days
+                                                    </div>
+                                                )}
                                             </div>
+
                                         </div>
                                         <div className="font-medium">
                                             ₹{(item.price * item.quantity).toFixed(2)}
@@ -667,17 +686,17 @@ function Checkout() {
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Discount Code
                                 </label>
-                                <div className="flex gap-2">
+                                <div className="flex flex-col md:flex-row gap-2">
                                     <input
                                         type="text"
                                         value={couponCode}
                                         onChange={(e) => setCouponCode(e.target.value)}
                                         placeholder="Enter coupon code"
-                                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-brandyellow focus:border-brandyellow"
+                                        className="flex-1 px-4 py-2 w-full lg:w-auto border border-gray-300 rounded-lg focus:ring-brandyellow focus:border-brandyellow"
                                     />
                                     <button
                                         onClick={handleApplyCoupon}
-                                        className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg transition-colors"
+                                        className="px-4 py-2 w-full lg:w-auto bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg"
                                     >
                                         Apply
                                     </button>

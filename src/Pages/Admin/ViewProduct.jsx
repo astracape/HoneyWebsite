@@ -20,6 +20,7 @@ function ViewProduct() {
     const navigate = useNavigate();
     const location = useLocation();
     const itemsPerPage = 10;
+    
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -58,7 +59,7 @@ function ViewProduct() {
                 snapshot.forEach((doc) => {
                     const category = doc.id;
                     const data = doc.data();
-                    
+
                     if (data.products && Array.isArray(data.products)) {
                         const categoryProducts = data.products.map((product) => ({
                             ...product,
@@ -83,23 +84,23 @@ function ViewProduct() {
 
     const removeProduct = async () => {
         if (!selectedProduct) return;
-    
+
         try {
             const { id, category } = selectedProduct;
             const categoryRef = doc(database, "products", category);
-    
+
             const categorySnap = await getDoc(categoryRef);
             if (!categorySnap.exists()) {
                 toast.error("Category not found");
                 return;
             }
-    
+
             const data = categorySnap.data();
             const updatedProducts = data.products.filter(product => product.id !== id);
-    
+
             await updateDoc(categoryRef, { products: updatedProducts });
             setProducts(prevProducts => prevProducts.filter(product => product.id !== id));
-    
+
             setShowModal(false);
             toast.success("Product removed successfully");
         } catch (error) {
@@ -136,8 +137,8 @@ function ViewProduct() {
                 <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex justify-between items-center">
                     <h1 className="text-2xl font-bold text-gray-900 px-3 border-l-4 border-brandyellow">Product Management</h1>
                     <div className="flex space-x-4">
-                        <Link 
-                            to="/addproduct" 
+                        <Link
+                            to="/addproduct"
                             className="flex items-center bg-brandyellow text-white px-4 py-2 rounded-md transition-colors"
                         >
                             <FiPlus className="mr-2" />
@@ -164,7 +165,7 @@ function ViewProduct() {
                                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full focus:outline-transparent focus:ring-2 focus:ring-yellow-500 "
                             />
                         </div>
-                        
+
                         <div className="flex flex-col sm:flex-row gap-4">
                             <div className="flex items-center">
                                 <label htmlFor="category" className="mr-2 text-sm font-medium text-gray-700">Category:</label>
@@ -184,7 +185,7 @@ function ViewProduct() {
                                     ))}
                                 </select>
                             </div>
-                            
+
                             <div className="flex items-center">
                                 <label htmlFor="sort" className="mr-2 text-sm font-medium text-gray-700">Sort:</label>
                                 <select
@@ -220,6 +221,10 @@ function ViewProduct() {
                                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Price
                                         </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Stock
+                                        </th>
+
                                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Weight
                                         </th>
@@ -250,6 +255,17 @@ function ViewProduct() {
                                                 <div className="text-sm text-gray-900">₹{product.price}</div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
+                                                <span
+                                                    className={`px-2 py-1 rounded text-xs font-semibold ${product.stockStatus === "out-of-stock"
+                                                            ? "bg-red-100 text-red-700"
+                                                            : "bg-green-100 text-green-700"
+                                                        }`}
+                                                >
+                                                    {product.stockStatus === "out-of-stock" ? "Out of Stock" : "In Stock"}-
+                                                </span>
+                                            </td>
+
+                                            <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="text-sm text-gray-900">{product.weight}</div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -278,7 +294,7 @@ function ViewProduct() {
                             <FaBoxOpen className="mx-auto h-12 w-12 text-gray-400" />
                             <h3 className="mt-2 text-lg font-medium text-gray-900">No products found</h3>
                             <p className="mt-1 text-sm text-gray-500">
-                                {searchTerm 
+                                {searchTerm
                                     ? "Try adjusting your search or filter criteria"
                                     : "Get started by adding a new product"}
                             </p>

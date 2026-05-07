@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import img from "../../assets/oatmeal-cookies-honey-jar-isolated-pastel-background-copy-space_176841-82698.jpg"
 import img1 from "../../assets/history1.png"
+import DOMPurify from "dompurify";
 
 import { onValue, ref } from 'firebase/database';
 import { database } from '../../FirebaseConfig';
@@ -9,7 +10,10 @@ import { toast } from 'react-toastify';
 
 function BlogPage() {
   const [blogs, setBlogs] = useState([]);
-
+const cleanDescription = DOMPurify.sanitize(blogs.description, {
+  ALLOWED_ATTR: ["href", "src", "alt", "title"], // allow only safe attributes
+  FORBID_ATTR: ["style"], // remove all inline styles (including background)
+});
   useEffect(() => {
     const fetchBlogs = async () => {
         try {
@@ -52,7 +56,7 @@ function BlogPage() {
         </div>
       </section>
 
-      <div className="2xl:px-20 lg:px-10 p-5  flex flex-col justify-center items-center mx-auto 2xl:mt-10">
+      <div className="2xl:px-20 lg:px-10 p-5  flex flex-col justify-center items-center mx-auto 2xl:mt-10 ">
         <div>
           <h1 className="text-xl md:text-2xl font-semibold italic text-center">
             Did you know that honey has been part of humans' diet for thousands of
@@ -205,10 +209,15 @@ function BlogPage() {
                     <p className="text-gray-400 text-xs md:text-sm mb-2">
                     {new Date(blog.date).toLocaleDateString("en-GB")}
                     </p>
-                    <div
+                    {/* <div
                       className="text-gray-700 text-sm md:text-base"
                       dangerouslySetInnerHTML={{ __html: blog.description }}
-                    />
+                    /> */}
+                    <div
+  className="text-gray-700 text-sm md:text-base"
+  dangerouslySetInnerHTML={{ __html: cleanDescription }}
+/>
+
                   </div>
                 </div>
               );

@@ -14,6 +14,8 @@ function SingleProduct() {
   const { addToCart } = useContext(CartContext);
   const [showPopup, setShowPopup] = useState(false);
   const [product, setProduct] = useState(null);
+  
+
  const navigate = useNavigate()
 
   // Initialize the Firebase database
@@ -81,15 +83,43 @@ function SingleProduct() {
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 p-8 gap-12 max-w-6xl mx-auto mt-10">
-        <div className='flex justify-center items-center'>
+        {/* <div className='flex justify-center items-center'>
           <img src={product.imageUrl} alt={product.name} className="w-96 h-96 max-w-md object-cover rounded-lg" />
-        </div>
+        </div> */}
+        <div className="flex justify-center items-center relative">
+  {product.stockStatus === "out-of-stock" && (
+    <span className="absolute top-2 left-20 bg-red-700 text-white text-xs px-2 py-1 rounded">
+      Out of Stock
+    </span>
+  )}
+{product.isPreorder && (
+  <span className="absolute top-2 right-2 bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-md shadow">
+    🕒 Pre-order
+  </span>
+)}
+
+  <img
+    src={product.imageUrl}
+    alt={product.name}
+    className="w-96 h-96 max-w-md object-cover rounded-lg"
+  />
+</div>
+
         <div className=' flex flex-col justify-center items-start space-y-6 border-l-2 pl-8'>
           <h1 className="text-3xl font-bold ">{product.name}</h1>
-          <p className="text-xl font-semibold mt-4 ">{product.price}</p>
+          <p className="text-xl font-semibold mt-4 ">₹{product.price}</p>
           <p className="text-gray-500 font-semibold mt-4 ">Weight: {product.weight}</p>
 
           <p className="text-gray-500 mt-2">Category: {product.category}</p>
+
+
+{product.isPreorder && (
+  <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+    🕒 <strong>Pre-order item</strong><br />
+    This product is prepared fresh and will be delivered within
+    <strong> 10 days</strong> from the order date.
+  </div>
+)}
 
           <button
             className="mt-4 px-4 py-2 bg-[#9C3618] text-white rounded-md" onClick={() => handleAddToCart(product)}>

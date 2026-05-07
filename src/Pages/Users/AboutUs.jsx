@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
-import img from "../../assets/bg2.png"
+import img from "../../assets/closeup-honeybees-beehive-sunlight-agricultural-concept.jpg"
 import bee from "../../assets/image5.png"
-import bee1 from "../../assets/bee123.png"
+import bee1 from "../../assets/closeup-shot-bee-chamomile-flower.webp"
 import img2 from "../../assets/Untitled.png"
+import contact from "../../assets/bee.webp"
+
 import honeyspice from "../../assets/honeycape.webp"
 import img3 from "../../assets/bee-fly-dotted-route-pattern-vector_638603-453.jpg"
 
@@ -13,12 +15,12 @@ import { database } from '../../FirebaseConfig'
 import { toast, ToastContainer } from 'react-toastify'
 function AboutUs() {
     const [email, setEmail] = useState("");
-    const [subject,setSubject]=useState("")
+    const [subject, setSubject] = useState("")
     const [name, setName] = useState('');
     const [queries, setQueries] = useState('');
 
     const handleContact = async () => {
-        if (!name ||!subject || !email || !queries) {
+        if (!name || !subject || !email || !queries) {
             toast.warn("Please fill all fieds.");
             return;
         }
@@ -35,7 +37,7 @@ function AboutUs() {
                 queries,
                 timestamp: new Date(),
             });
-           
+
             setEmail("")
             setName("")
             setSubject("")
@@ -54,7 +56,7 @@ function AboutUs() {
 
 
             <div className="">
-                <section className="relative h-96 bg-cover bg-center" style={{ backgroundImage: `url(${img})` }}>
+                <section className="relative h-96 bg-cover bg-center" loading="lazy" style={{ backgroundImage: `url(${img})` }}>
                     <div className="absolute inset-0 bg-black opacity-50"></div>
                     <div className="relative flex items-center justify-center h-full">
                         <h1 className="text-white text-5xl font-bold">About Us</h1>
@@ -132,41 +134,139 @@ function AboutUs() {
                             </div>
                         </div>
                     </div>
-                    {/* </section> */}
+                </section>
+                {/* <section className="py-20 bg-brandyellow text-amber-50">
+                    <div className="max-w-3xl mx-auto px-6 lg:px-8 text-center">
+                        <h2 className="text-3xl font-light mb-4">Want to Learn More About Us?</h2>
+                        <p className="text-amber-200 mb-12 text-lg">
+                            Feel free to reach out for any questions, queries, or collaboration ideas.
+                        </p>
 
-                    <section className="py-16 px-5 bg-brandyellow text-black text-center rounded-t-3xl mt-16">
-                        <h2 className="text-3xl font-bold mb-4">Want to Learn More About Us?</h2>
-                        <p className="mb-6">Feel free to reach out for any questions, queries, or collaboration ideas.</p>
-                        <div className='flex flex-col items-center space-y-4'>
-                            <input
-                                type="text"
-                                placeholder="Enter your name"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                className="px-4 py-3 rounded-lg text-gray-900 focus:ring-0 w-72"
-                                required
-                            />
-                             <input
-                                type="text"
-                                placeholder="Subject"
+                        <form onSubmit={handleContact} className="space-y-6">
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <input
+                                    type="text"
+                                    placeholder="Your Name"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    className="px-6 py-4 bg-white rounded-lg text-amber-50 placeholder-amber-300/70 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                    required
+                                />
+
+                                <input
+                                    type="email"
+                                    placeholder="Email Address"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="px-6 py-4 bg-white rounded-lg text-amber-50 placeholder-amber-300/70 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                    required
+                                />
+                            </div>
+
+                            <select
                                 value={subject}
                                 onChange={(e) => setSubject(e.target.value)}
-                                className="px-4 py-3 rounded-lg text-gray-900 focus:ring-0 w-72"
+                                className="w-full px-6 py-4 bg-white rounded-lg text-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-400"
                                 required
-                            />
-                            <input type="email"  pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} className="px-4 py-3 rounded-lg text-gray-900  mb-4 focus:ring-0 w-72" required/>
+                            >
+                                <option value="" className='text-black'>Select Subject</option>
+                                <option value="Order Cancellation">Order Cancellation</option>
+                                <option value="Order Modification">Order Modification</option>
+                                <option value="Refund Request">Refund Request</option>
+                                <option value="Order Status Enquiry">Order Status Enquiry</option>
+                                <option value="Product Issue">Product Issue</option>
+                                <option value="Delivery Issue">Delivery Issue</option>
+                                <option value="General Query">General Query</option>
+                            </select>
+
                             <textarea
-                                placeholder="Enter your queries"
+                                placeholder="Your Message"
                                 value={queries}
                                 onChange={(e) => setQueries(e.target.value)}
-                                className="px-4 py-3 rounded-lg text-gray-900 focus:ring-0 w-72 h-32"
-                            rows={5}
+                                rows={5}
+                                className="w-full px-6 py-4 bg-white rounded-lg text-amber-50 placeholder-amber-300/70 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                required
                             />
-                            <button onClick={handleContact} className="bg-white text-black px-6 py-3 rounded-lg font-semibold hover:bg-brandyellow my-auto w-72">Contact Us</button>
-                        </div>
-                    </section>
-                </section>
 
+                            <button
+                                type="submit"
+                                className="px-8 py-4 bg-amber-50 text-amber-900 rounded-lg font-medium hover:bg-white transition-colors duration-300 shadow-lg hover:shadow-xl"
+                            >
+                                Send Message
+                            </button>
+                        </form>
+                    </div>
+                </section> */}
+                <section className="relative py-20 bg-fixed bg-cover bg-center"
+                    style={{ backgroundImage: `url(${contact})` }}
+                >
+                    {/* Dark Overlay for better text readability */}
+                    <div className="absolute inset-0 bg-black/60"></div>
+
+                    {/* Content */}
+                    <div className="relative z-10 max-w-3xl mx-auto px-6 lg:px-8 text-center">
+                        <h2 className="text-3xl md:text-4xl font-light mb-4 text-white">
+                            Want to Learn More About Us?
+                        </h2>
+                        <p className="text-white/80 mb-12 text-lg">
+                            Feel free to reach out for any questions, queries, or collaboration ideas.
+                        </p>
+
+                        <form onSubmit={handleContact} className="space-y-6">
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <input
+                                    type="text"
+                                    placeholder="Your Name"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    className="px-6 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white/20 transition-all"
+                                    required
+                                />
+
+                                <input
+                                    type="email"
+                                    placeholder="Email Address"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="px-6 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white/20 transition-all"
+                                    required
+                                />
+                            </div>
+
+                            <select
+                                value={subject}
+                                onChange={(e) => setSubject(e.target.value)}
+                                className="w-full px-6 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white/20 transition-all"
+                                required
+                            >
+                                <option value="" className="bg-gray-800 text-white">Select Subject</option>
+                                <option value="Order Cancellation" className="bg-gray-800 text-white">Order Cancellation</option>
+                                <option value="Order Modification" className="bg-gray-800 text-white">Order Modification</option>
+                                <option value="Refund Request" className="bg-gray-800 text-white">Refund Request</option>
+                                <option value="Order Status Enquiry" className="bg-gray-800 text-white">Order Status Enquiry</option>
+                                <option value="Product Issue" className="bg-gray-800 text-white">Product Issue</option>
+                                <option value="Delivery Issue" className="bg-gray-800 text-white">Delivery Issue</option>
+                                <option value="General Query" className="bg-gray-800 text-white">General Query</option>
+                            </select>
+
+                            <textarea
+                                placeholder="Your Message"
+                                value={queries}
+                                onChange={(e) => setQueries(e.target.value)}
+                                rows={5}
+                                className="w-full px-6 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white/20 transition-all"
+                                required
+                            />
+
+                            <button
+                                type="submit"
+                                className="px-8 py-4 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-600 transition-colors duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                            >
+                                Send Message
+                            </button>
+                        </form>
+                    </div>
+                </section>
 
                 <section className="relative py-16 bg-gradient-to-r from-yellow-50 to-yellow-100 ">
                     <div className="absolute inset-0 bg-cover bg-center opacity-5 " style={{ backgroundImage: `url(${img3})` }}></div>
@@ -213,7 +313,7 @@ function AboutUs() {
                             <img
                                 src={bee1}
                                 alt="Bee"
-                                className="w-64 h-64 md:w-80 md:h-80 rounded-full shadow-lg border-4 border-yellow-300"
+                                className="w-72 h-72 md:w-96 md:h-80 rounded-full shadow-lg border-4 border-yellow-300"
                             />
                         </div>
 
@@ -257,13 +357,13 @@ function AboutUs() {
                     <Link to="/productpage" className="bg-white text-black px-6 py-3 rounded-full border-4 border-black font-bold hover:bg-yellow-500 transition">Shop Now</Link>
                 </section>
             </div>
-             <ToastContainer
-                                position="bottom-center"
-                                autoClose={1200}
-                                hideProgressBar={false}
-                                newestOnTop={true}
-                                limit={1}
-                            />
+            <ToastContainer
+                position="bottom-center"
+                autoClose={1200}
+                hideProgressBar={false}
+                newestOnTop={true}
+                limit={1}
+            />
         </div>
 
     )

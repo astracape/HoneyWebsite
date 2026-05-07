@@ -1,6 +1,6 @@
-import React, { useContext, useEffect, useState,useRef } from 'react'
+import React, { useContext, useEffect, useState, useRef } from 'react'
 import { database } from '../../FirebaseConfig';
-import img from "../../assets/productpage.jpg"
+import img from "../../assets/freepik__a-topdown-view-of-a-small-white-bowl-filled-with-p__34361.jpeg"
 import 'react-toastify/dist/ReactToastify.css';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from "react-toastify"
@@ -22,36 +22,84 @@ function ProductPage() {
     const location = useLocation();
     const [loading, setLoading] = useState(true);
     const { cart, addToCart } = useContext(CartContext);
+    const [nativeSpecialId, setNativeSpecialId] = useState(null);
+
     const [loadedProductIds, setLoadedProductIds] = useState(new Set());
     const [searchTerm, setSearchTerm] = useState("")
     const [showCartSidebar, setShowCartSidebar] = useState(false);
     const itemsPerPage = 12;
-const resultsRef = useRef(null);
+    const resultsRef = useRef(null);
+
     useEffect(() => {
-        window.scrollTo(0, 0); // Scroll to the top when the component mounts
-    }, []);
-    useEffect(() => {
-        const queryParams = new URLSearchParams(location.search);
-        const category = queryParams.get('category') || 'all';  // Default to 'all'
-        setSelectedCategory(category);
-    }, [location]);
+        if (searchTerm) {
+            resultsRef.current?.scrollIntoView({ behavior: "smooth" });
+        }
+    }, [searchTerm]);
 
     useEffect(() => {
         const fetchCategories = async () => {
             try {
                 const querySnapshot = await getDocs(collection(database, "categories"));
-                const categoryList = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    name: doc.data()?.category || ""
-                })).filter((item) => item.name !== "Gifting Options");
 
-                setCategories([{ id: "all", name: "All" }, ...categoryList]);
+                const categoryList = querySnapshot.docs
+                    .map(doc => ({
+                        id: doc.id,                 //  real ID
+                        name: doc.data()?.category  // display name
+                    }))
+                    .filter(item => item.name !== "Gifting Options");
+
+                // desired order by NAME
+                const desiredOrder = [
+                    "Honey",
+                    "Spices",
+                    "Nuts",
+                    "Native Specials - Pre order",
+                    "Wholesale"
+                ];
+
+                const sortedCategories = desiredOrder
+                    .map(name => categoryList.find(cat => cat.name === name))
+                    .filter(Boolean);
+
+                setCategories([
+                    ...sortedCategories,
+                    { id: "all", name: "All" }
+                ]);
+                const nativeSpecialCategory = categoryList.find(
+                    cat => cat.name === "Native Specials - Pre order"
+                );
+
+                if (nativeSpecialCategory) {
+                    setNativeSpecialId(nativeSpecialCategory.id);
+                }
+
+                // SET DEFAULT TO HONEY ID
+                // const honeyCategory = categoryList.find(cat => cat.name === "Honey");
+                // if (honeyCategory) {
+                //     setSelectedCategory(honeyCategory.id);
+                //     navigate(`?category=${honeyCategory.id}`, { replace: true });
+                // }
+                const queryParams = new URLSearchParams(location.search);
+const categoryFromURL = queryParams.get("category");
+
+if (!categoryFromURL) {
+    const honeyCategory = categoryList.find(cat => cat.name === "Honey");
+
+    if (honeyCategory) {
+        setSelectedCategory(honeyCategory.id);
+        navigate(`?category=${honeyCategory.id}`, { replace: true });
+    }
+}
+
+
             } catch (error) {
                 console.error("Error fetching categories:", error);
             }
         };
+
         fetchCategories();
     }, []);
+
     useEffect(() => {
         const productsRef = collection(database, "products");
 
@@ -92,17 +140,17 @@ const resultsRef = useRef(null);
         setCurrentPage(selected);
     };
     const auth = getAuth();
-const searchWords = searchTerm.toLowerCase().trim().split(/\s+/); 
- resultsRef.current?.scrollIntoView({ behavior: "smooth" });
+    const searchWords = searchTerm.toLowerCase().trim().split(/\s+/);
     const filteredProducts = products
         .filter((product) =>
 
             selectedCategory === 'all' || product.category === selectedCategory
         )
         .filter((product) => !product.isGift)
-        .filter((product) =>{const name=product.name.toLowerCase()
+        .filter((product) => {
+            const name = product.name.toLowerCase()
             return searchWords.every((word) => name.includes(word))
-});
+        });
 
     const sortedProducts = [...filteredProducts].sort((a, b) => {
         if (sortOrder === "lowToHigh") return a.price - b.price;
@@ -120,13 +168,13 @@ const searchWords = searchTerm.toLowerCase().trim().split(/\s+/);
     const handleAddToCart = (product) => {
         addToCart(product);
         setShowPopup(true);
-         const timer = setTimeout(() => {
+        const timer = setTimeout(() => {
             setShowPopup(false);
         }, 1000);
         // Clear timeout if component unmounts or popup is closed manually
         return () => clearTimeout(timer);
     };
-   
+
     useEffect(() => {
         if (products.length === 0) {
             setLoading(true);
@@ -141,12 +189,59 @@ const searchWords = searchTerm.toLowerCase().trim().split(/\s+/);
 
     return (
         <div>
-            <div className="relative h-96 bg-cover bg-center" loading='lazy' style={{ backgroundImage: `url(${img})` }}>
-                <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent"></div>
-                <div className='relative p-10 flex justify-center md:justify-start items-center h-full'>
-                    <div className='font-thin text-7xl bebas-neue-regular '>Products</div>
+            <div className="relative h-44 md:h-56 lg:h-40 overflow-hidden">
+
+                {/* Background Image */}
+                <img
+                    src={img}
+                    alt="Products Banner"
+                    className="absolute inset-0 w-full h-full object-cover"
+                    loading="lazy"
+                />
+
+                {/* Soft Premium Overlay */}
+                <div className="absolute inset-0 bg-black/35"></div>
+
+                {/* Content */}
+                <div className="relative h-full flex items-center justify-center">
+
+                    <div className="text-center">
+                        <h1 className="text-4xl md:text-5xl font-extralight text-white tracking-[0.2em] uppercase">
+                            Products
+                        </h1>
+                    </div>
+
                 </div>
             </div>
+
+            {nativeSpecialId && selectedCategory === nativeSpecialId && 
+ (
+                <div className="bg-gradient-to-r from-red-50 via-orange-50 to-amber-50 py-10 px-6">
+                    <div className="max-w-3xl mx-auto text-center">
+                        <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-red-900 to-red-700 rounded-full mb-6 shadow-lg">
+                            <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                            </svg>
+                        </div>
+
+                        <div className="space-y-4 text-gray-700">
+                            <p className="text-lg leading-relaxed">
+                                Each of our native snacks is <span className="font-semibold text-red-700">prepared fresh upon request</span>
+                                &nbsp;and never produced in bulk. We cherish the traditional methods that ensure
+                                every bite carries authentic, homemade quality.
+                            </p>
+                            <div className="inline-block px-6 py-2 bg-gradient-to-r from-red-900 to-red-700 rounded-full shadow-md">
+                                <p className="text-white font-medium">
+                                    Pre-orders will be shipped <span className="font-bold">10 days</span> after the order date
+                                </p>
+                            </div>
+                            <p className="text-gray-600 mt-6 italic font-medium">
+                                We appreciate your patience as we craft your order with care.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <button
                 onClick={() => setShowCartSidebar(true)}
@@ -214,7 +309,7 @@ const searchWords = searchTerm.toLowerCase().trim().split(/\s+/);
                                         setShowCartSidebar(false);
                                         navigate('/cart');
                                     }}
-                                    className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition-colors"
+                                    className="w-full bg-gradient-to-r from-red-900 to-red-700 text-white py-3 rounded-lg  transition-colors"
                                 >
                                     See Details
                                 </button>
@@ -278,7 +373,7 @@ const searchWords = searchTerm.toLowerCase().trim().split(/\s+/);
 
                 {/* Product Grid */}
                 <div className={`flex-1 w-full  relative p-5 ${!loading && currentItems.length > 0 ? 'md:border-l-2 md:border-t-2' : ''}`}>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 relative">
+                    <div ref={resultsRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 relative">
                         {loading ? (
                             <div className="flex items-center justify-center py-20">
                                 {/* Simple spinner without separate component*/}
@@ -289,7 +384,7 @@ const searchWords = searchTerm.toLowerCase().trim().split(/\s+/);
                             </div>
                         ) : currentItems.length > 0 ? (
                             currentItems.map((product, index) => (
-                                <div key={index} ref={resultsRef} className="bg-white shadow-lg rounded-xl overflow-hidden transition-transform transform hover:scale-105 hover:shadow-2xl p-4 relative">
+                                <div key={index} className="bg-white shadow-lg rounded-xl overflow-hidden transition-transform transform hover:scale-105 hover:shadow-2xl p-4 relative">
                                     <Link to={`/singleproduct/${product.id}`}>
                                         <div className="relative">
                                             <img
@@ -304,10 +399,26 @@ const searchWords = searchTerm.toLowerCase().trim().split(/\s+/);
                                     </Link>
                                     <div className="mt-2 text-center">
                                         <h3 className="font-semibold text-base text-gray-800">{product.name}</h3>
+                                        {product.isPreorder && (
+                                            <div className="mt-1 inline-flex flex-col items-center gap-0.5">
+                                                <span className="text-xs font-semibold text-amber-800 bg-amber-100 px-2 py-1 rounded-full">
+                                                    🕒 Pre-order
+                                                </span>
+                                                <span className="text-[11px] text-amber-700">
+                                                    Delivered within 10 days
+                                                </span>
+                                            </div>
+                                        )}
                                         <p className="text-gray-600 text-sm mt-1 font-medium"> ₹{product.price}</p>
                                         <p className="text-gray-600 text-sm mt-1 font-medium">{product.weight}</p>
 
                                     </div>
+                                    {product.stockStatus === "out-of-stock" && (
+                                        <span className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
+                                            Out of Stock
+                                        </span>
+                                    )}
+
                                     <button
                                         className="w-full mt-2 bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600 text-white py-2 rounded-lg transition-all duration-300 text-sm"
                                         onClick={() => handleAddToCart(product)}
@@ -331,7 +442,7 @@ const searchWords = searchTerm.toLowerCase().trim().split(/\s+/);
                 hideProgressBar={false}
                 limit={1}
             />
-           
+
             {showPopup && (
                 <div
                     className="fixed bottom-4 left-0 right-0 mx-auto bg-brandyellow rounded-lg shadow-xl z-50 max-w-sm w-[90%]"

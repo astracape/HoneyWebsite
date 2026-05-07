@@ -21,7 +21,7 @@ function Footer() {
                         <div className=" space-y-2 mt-5">
                             <p>Location: 26/57E ,  Palliyadi, Kanyakumari District. TN 629169</p>
                             <p>Phone: +918015396203</p>
-                            <p>EmailId: info.capztone@gmail.com</p>
+                            <p>EmailId: info.capenaturals@gmail.com</p>
                         </div>
                     </div>
 
@@ -34,6 +34,7 @@ function Footer() {
                             <li><Link to="/aboutus" className="hover:text-yellow-400">About us</Link></li>
                             <li><Link to="/blog" className="hover:text-yellow-400">Blogs</Link></li>
                             <li><Link to="/oh" className="hover:text-yellow-400">Order History</Link></li>
+                            <li><Link to="/termsofuse" className="hover:text-yellow-400">Terms Of Use</Link></li>
 
                         </ul>
                     </div>

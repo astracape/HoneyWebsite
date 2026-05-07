@@ -1,7 +1,8 @@
 {
   "projects": {
     "default": "honey-8e04f",
-    "dev": "honey-8e04f"
+    "dev": "honey-8e04f",
+    "capenaturals": "capenaturals-db5cf"
   },
   "targets": {},
   "etags": {}

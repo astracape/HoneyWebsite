@@ -5,7 +5,7 @@ import { Navigate } from 'react-router-dom';
 
 
 const ProtectedRoute = ({ element, isAuth }) => {
-    return isAuth ? element : <Navigate to="/login" />;
+    return isAuth ? element : <Navigate to="/reg" />;
   };
 
 export default ProtectedRoute

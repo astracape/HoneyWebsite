@@ -31,7 +31,7 @@ function Cart() {
         if (user) {
             navigate("/checkout");
         } else {
-            navigate("/login");
+            navigate("/reg");
         }
     };
 
@@ -50,17 +50,17 @@ function Cart() {
         currentPage * itemsPerPage,
         currentPage * itemsPerPage + itemsPerPage
     );
- 
+
 
     const handlePageChange = ({ selected }) => {
         setCurrentPage(selected);
     };
-const confirmRemove = () => {
-    if (deleteModal.item) {
-        handleRemove(deleteModal.item.id);
-        setDeleteModal({ show: false, item: null });
-    }
-};
+    const confirmRemove = () => {
+        if (deleteModal.item) {
+            handleRemove(deleteModal.item.id);
+            setDeleteModal({ show: false, item: null });
+        }
+    };
 
     return (
         <div>
@@ -97,7 +97,19 @@ const confirmRemove = () => {
                                                 <td className="py-4 px-4 flex flex-col sm:flex-row sm:items-center sm:space-x-4 ">
                                                     <Link to={`/singleproduct/${item.id}`}>
                                                         <img src={item.imageUrl} alt={item.name} className="w-16 h-16 object-cover rounded-md mx-auto sm:mx-0" /></Link>
-                                                    <span className="text-gray-800 text-center sm:text-left mt-2 sm:mt-0">{item.name}</span>
+                                                    {/* <span className="text-gray-800 text-center sm:text-left mt-2 sm:mt-0">{item.name}</span> */}
+                                                    <div className="flex flex-col text-center sm:text-left mt-2 sm:mt-0">
+                                                        <span className="text-gray-800 font-medium">
+                                                            {item.name}
+                                                        </span>
+
+                                                        {item.isPreorder && (
+                                                            <span className="mt-1 inline-flex items-center text-xs font-semibold text-amber-800 bg-amber-100 px-2 py-1 rounded-md w-fit">
+                                                                🕒 Pre-order 
+                                                            </span>
+                                                        )}
+                                                    </div>
+
                                                 </td>
                                                 <td className="py-4 px-4 text-center">
                                                     <div className="flex justify-center space-x-3">
@@ -165,6 +177,14 @@ const confirmRemove = () => {
                                             <span className="text-gray-700 font-semibold">₹{calculateTotal().toLocaleString("en-IN")}</span>
                                         </div>
                                     </div>
+                                    {cart.some(item => item.isPreorder) && (
+                                        <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+                                            🕒 <strong>Pre-order Notice:</strong><br />
+                                            Your cart contains one or more pre-order items.
+                                            These items are freshly prepared and will be delivered within
+                                            <strong> 10 days</strong> from the order date.
+                                        </div>
+                                    )}
 
                                     <button
                                         onClick={handleProceedToCheckout}

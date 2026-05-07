@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import { database } from '../../FirebaseConfig';
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCartIcon } from '@heroicons/react/solid';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -107,6 +107,7 @@ function GiftHamper() {
             <div className="mt-10 grid grid-cols-2 gap-6 lg:mt-16 lg:grid-cols-4 lg:gap-4">
               {giftProducts.map((product) => (
                 <article key={product.id} className="relative">
+                 <Link to={`/singleproduct/${product.id}`}>
                   <div className="aspect-square overflow-hidden">
                     <img
                       className="group-hover:scale-125 h-full w-full object-cover transition-all duration-300"
@@ -116,6 +117,7 @@ function GiftHamper() {
                       decoding="async"
                     />
                   </div>
+                  </Link>
                   <div className="mt-4 flex items-start justify-between h-24">
                     <div className='p-2'>
                       <h3 className="text-xs md:w-44 font-semibold sm:text-sm md:text-base">

@@ -148,355 +148,393 @@ function ShippingMethod() {
 
   return (
 
-    <div className="lg:ml-64">
-      {deleteConfirmation.isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-md w-full">
-            <h3 className="text-lg font-medium mb-4">Confirm Deletion</h3>
-            <p className="mb-4">
-              Are you sure you want to delete this {deleteConfirmation.type}?
-              {deleteConfirmation.name && ` (${deleteConfirmation.name})`}
-            </p>
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => setDeleteConfirmation({ isOpen: false, id: null, type: null, name: null })}
-                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={async () => {
-                  if (deleteConfirmation.type === 'method') {
-                    await deleteDoc(doc(database, "shipping_methods", deleteConfirmation.id));
-                    fetchShippingMethods();
-                  } else if (deleteConfirmation.type === 'type') {
-                    await deleteDoc(doc(database, "shipping_types", deleteConfirmation.id));
-                    fetchShippingTypes();
-                  }
-                  setDeleteConfirmation({ isOpen: false, id: null, type: null, name: null });
-                }}
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
+   <div className="lg:ml-64">
+  {deleteConfirmation.isOpen && (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg max-w-md w-full">
+        <h3 className="text-lg font-medium mb-4">Confirm Deletion</h3>
+        <p className="mb-4">
+          Are you sure you want to delete this {deleteConfirmation.type}?
+          {deleteConfirmation.name && ` (${deleteConfirmation.name})`}
+        </p>
+        <div className="flex justify-end space-x-3">
+          <button
+            onClick={() => setDeleteConfirmation({ isOpen: false, id: null, type: null, name: null })}
+            className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={async () => {
+              if (deleteConfirmation.type === 'method') {
+                await deleteDoc(doc(database, "shipping_methods", deleteConfirmation.id));
+                fetchShippingMethods();
+              } else if (deleteConfirmation.type === 'type') {
+                await deleteDoc(doc(database, "shipping_types", deleteConfirmation.id));
+                fetchShippingTypes();
+              }
+              setDeleteConfirmation({ isOpen: false, id: null, type: null, name: null });
+            }}
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+          >
+            Delete
+          </button>
         </div>
-      )}
-      <div className="flex space-x-4 border-b border-gray-200 px-4 pt-4">
-        <button
-          className={`px-4 py-2 font-medium ${activeTab === "types"
-            ? "border-b-2 border-yellow-600 text-yellow-600"
-            : "text-gray-600 hover:text-yellow-600"
-            }`}
-          onClick={() => setActiveTab("types")}
-        >
-          Shipping Types
-        </button>
-        <button
-          className={`px-4 py-2 font-medium ${activeTab === "methods"
-            ? "border-b-2 border-yellow-600 text-yellow-600"
-            : "text-gray-600 hover:text-yellow-600"
-            }`}
-          onClick={() => setActiveTab("methods")}
-        >
-          Shipping Methods
-        </button>
-        <button
-          className={`px-4 py-2 font-medium ${activeTab === "discounts"
-            ? "border-b-2 border-yellow-600 text-yellow-600"
-            : "text-gray-600 hover:text-yellow-600"
-            }`}
-          onClick={() => {
-            setActiveTab("discounts");
-            setIsModalOpen(true);
-          }}
-        >
-          Discounts
-        </button>
+      </div>
+    </div>
+  )}
+  
+  <div className="flex space-x-4 border-b border-gray-200 px-4 pt-4">
+    <button
+      className={`md:px-4 py-2 font-medium ${activeTab === "types"
+        ? "border-b-2 border-yellow-600 text-yellow-600"
+        : "text-gray-600 hover:text-yellow-600"
+        }`}
+      onClick={() => setActiveTab("types")}
+    >
+      Shipping Types
+    </button>
+    <button
+      className={`px-4 py-2 font-medium ${activeTab === "methods"
+        ? "border-b-2 border-yellow-600 text-yellow-600"
+        : "text-gray-600 hover:text-yellow-600"
+        }`}
+      onClick={() => setActiveTab("methods")}
+    >
+      Shipping Methods
+    </button>
+    <button
+      className={`md:px-4 py-2 font-medium ${activeTab === "discounts"
+        ? "border-b-2 border-yellow-600 text-yellow-600"
+        : "text-gray-600 hover:text-yellow-600"
+        }`}
+      onClick={() => {
+        setActiveTab("discounts");
+        setIsModalOpen(true);
+      }}
+    >
+      Discounts
+    </button>
+  </div>
 
+  {activeTab === "types" && (
+    <div className="p-4 space-y-6">
+      <div className="bg-white p-4 rounded-lg">
+        <ShippingType fetchShippingTypes={fetchShippingTypes} />
       </div>
 
-      {activeTab === "types" && (
-        <div className="p-4 space-y-6">
-          <div className="bg-white p-4 rounded-lg">
-            <ShippingType fetchShippingTypes={fetchShippingTypes} />
+      <div className="bg-white p-4 md:p-6 overflow-hidden border rounded-lg">
+        <div className="flex justify-end mb-6">
+          <div className="relative flex items-center">
+            <input
+              type="name"
+              name="search"
+              className="h-10 w-full px-3 py-2 rounded-l-md border outline-none focus:ring-2 transition-all duration-200"
+              placeholder="Search..."
+              value={shippingMethodSearch}
+              onChange={(e) => setShippingMethodSearch(e.target.value)}
+            />
+            <button
+              type="submit"
+              className="h-10 px-3 rounded-r-md bg-brandyellow text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+            >
+              <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </button>
           </div>
+        </div>
 
-          <div className="bg-white p-4 md:p-6 overflow-hidden border rounded-lg">
-            <div className="flex justify-end mb-6">
-              <div className="relative flex items-center">
-                <input
-                  type="name"
-                  name="search"
-                  className="h-10 w-full px-3 py-2 rounded-l-md border outline-none focus:ring-2 transition-all duration-200"
-                  placeholder="Search..."
-                  value={shippingMethodSearch}
-                  onChange={(e) => setShippingMethodSearch(e.target.value)}
-                />
-                <button
-                  type="submit"
-                  className="h-10 px-3 rounded-r-md bg-brandyellow text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                >
-                  <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </button>
-              </div>
-            </div>
+        <h2 className="md:text-2xl font-bold text-gray-800 p-2">Available Shipping Types</h2>
+        <div className="overflow-x-auto rounded-lg border border-gray-200">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Shipping Type</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/2">Description</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredShippingTypes.map((type) => (
+                <tr key={type.id}>
+                  <td className="px-4 py-4 w-1/4">
+                    {editingTypeId === type.id ? (
+                      <input 
+                        className="w-full min-w-0 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent" 
+                        value={editingTypeName} 
+                        onChange={(e) => setEditingTypeName(e.target.value)} 
+                      />
+                    ) : (
+                      <div className="text-sm">{type.name}</div>
+                    )}
+                  </td>
+                  <td className="px-4 py-4 w-1/2">
+                    {editingTypeId === type.id ? (
+                      <input 
+                        className="w-full min-w-0 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent" 
+                        value={editingTypeDescription} 
+                        onChange={(e) => setEditingTypeDescription(e.target.value)} 
+                      />
+                    ) : (
+                      <div className="text-sm">{type.description || "No description available"}</div>
+                    )}
+                  </td>
+                  <td className="px-4 py-4 w-1/4">
+                    <div className="flex space-x-2">
+                      {editingTypeId === type.id ? (
+                        <>
+                          <button onClick={handleUpdateType} className="bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm">Save</button>
+                          <button onClick={() => setEditingTypeId(null)} className="bg-gray-400 text-white px-3 py-2 rounded hover:bg-gray-500 text-sm">Cancel</button>
+                        </>
+                      ) : (
+                        <>
+                          <button onClick={() => handleEditType(type)} className="bg-brandyellow text-white px-3 py-2 rounded hover:bg-yellow-700 text-sm">Edit</button>
+                          <button
+                            onClick={() => setDeleteConfirmation({
+                              isOpen: true,
+                              id: type.id,
+                              type: 'type',
+                              name: type.name
+                            })}
+                            className="bg-red-600 text-white px-3 py-2 rounded hover:bg-red-700 text-sm"
+                          >
+                            Delete
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-            <h2 className="md:text-2xl font-bold text-gray-800 p-2">Available Shipping Types</h2>
-            <div className="overflow-x-auto rounded-lg border border-gray-200">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shipping Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredShippingTypes.map((type) => (
-                    <tr key={type.id}>
-                      <td className="px-6 py-4">
-                        {editingTypeId === type.id ? (
-                          <input className="border p-1 w-full" value={editingTypeName} onChange={(e) => setEditingTypeName(e.target.value)} />
-                        ) : (
-                          type.name
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-xs md:text-base">
-                        {editingTypeId === type.id ? (
-                          <input className="border p-1 w-full" value={editingTypeDescription} onChange={(e) => setEditingTypeDescription(e.target.value)} />
-                        ) : (
-                          type.description || "No description available"
-                        )}
-                      </td>
-                      <td className="px-6 py-4 flex">
-                        {editingTypeId === type.id ? (
+      {isModalOpen && <CouponForm onClose={() => setIsModalOpen(false)} />}
+    </div>
+  )}
+
+  {activeTab === "methods" && (
+    <div className="p-4 space-y-6">
+      <div className="bg-white p-4 rounded-lg">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-3">Add Shipping Method</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <select value={selectedShippingType} onChange={(e) => setSelectedShippingType(e.target.value)} className="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all" required>
+            <option value="">Select type</option>
+            {shippingTypes.map((type) => (
+              <option key={type.id} value={type.name}>{type.name}</option>
+            ))}
+          </select>
+          <input
+            type="text"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Description"
+            className="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+          />
+          <input type="text" value={shippingTime} onChange={(e) => setShippingTime(e.target.value)} placeholder="Shipping Time" className="w-full border rounded border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all" required />
+
+          <select
+            value={region}
+            onChange={(e) => setRegion(e.target.value)}
+            className="w-full border rounded p-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+            required
+          >
+            <option value="">Select State</option>
+            {states.map((state) => (
+              <option key={state.isoCode} value={state.name}>
+                {state.name}
+              </option>
+            ))}
+            <option value="Others">Others</option>
+          </select>
+          <input type="text" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="Weight upto 1kg" className="w-full border rounded p-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all" required />
+          <input
+            type="number"
+            value={extraRate}
+            onChange={(e) => setExtraRate(e.target.value)}
+            placeholder="Extra Rate per kg (₹)"
+            className="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+            required
+          />
+          <input type="number" value={shippingRate} onChange={(e) => setShippingRate(e.target.value)} placeholder="Shipping Rate (₹)" className="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all" required />
+
+          <button type="submit" className="bg-brandyellow text-white px-4 py-2 rounded hover:bg-yellow-700">Add Shipping Method</button>
+        </form>
+      </div>
+
+      <div className="bg-white p-4 rounded-lg">
+        <div className="flex justify-end mb-6">
+          <div className="relative flex items-center">
+            <input
+              type="name"
+              name="search"
+              className="h-10 w-full px-3 py-2 rounded-l-md border outline-none focus:ring-2 transition-all duration-200"
+              placeholder="Search..."
+              value={shippingMethodSearch}
+              onChange={(e) => setShippingMethodSearch(e.target.value)}
+            />
+            <button
+              type="submit"
+              className="h-10 px-3 rounded-r-md bg-brandyellow text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+            >
+              <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <h2 className="text-xl md:text-2xl font-semibold text-gray-800 mb-4">Available Shipping Methods</h2>
+        <div className="overflow-x-auto rounded-lg border border-gray-200">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase w-[15%]">Type</th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase w-[20%]">Description</th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase w-[15%]">Region</th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase w-[10%]">Rate (₹)</th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase w-[15%]">Time</th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase w-[10%]">Extra rate</th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase w-[10%]">Weight</th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase w-[15%]">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredShippingMethods.map((method) => {
+                const isEditing = editingId === method.id;
+                return (
+                  <tr key={method.id}>
+                    <td className="px-3 py-4 w-[15%]">
+                      {isEditing ? (
+                        <select 
+                          className="w-full min-w-0 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent" 
+                          value={selectedShippingType} 
+                          onChange={(e) => setSelectedShippingType(e.target.value)}
+                        >
+                          <option value="">Select Type</option>
+                          {shippingTypes.map((type) => (
+                            <option key={type.id} value={type.name}>{type.name}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <div className="text-sm">{method.type}</div>
+                      )}
+                    </td>
+                    <td className="px-3 py-4 w-[20%]">
+                      {isEditing ? (
+                        <input 
+                          className="w-full min-w-0 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent" 
+                          value={description} 
+                          onChange={(e) => setDescription(e.target.value)} 
+                        />
+                      ) : (
+                        <div className="text-sm">{method.description}</div>
+                      )}
+                    </td>
+                    <td className="px-3 py-4 w-[15%]">
+                      {isEditing ? (
+                        <input 
+                          className="w-full min-w-0 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent" 
+                          value={region} 
+                          onChange={(e) => setRegion(e.target.value)} 
+                        />
+                      ) : (
+                        <div className="text-sm">{method.region}</div>
+                      )}
+                    </td>
+                    <td className="px-3 py-4 w-[10%]">
+                      {isEditing ? (
+                        <input 
+                          className="w-full min-w-0 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent" 
+                          value={shippingRate} 
+                          onChange={(e) => setShippingRate(e.target.value)} 
+                          type="number"
+                        />
+                      ) : (
+                        <div className="text-sm">₹{method.rate}</div>
+                      )}
+                    </td>
+                    <td className="px-3 py-4 w-[15%]">
+                      {isEditing ? (
+                        <input 
+                          className="w-full min-w-0 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent" 
+                          value={shippingTime} 
+                          onChange={(e) => setShippingTime(e.target.value)} 
+                        />
+                      ) : (
+                        <div className="text-sm">{method.time}</div>
+                      )}
+                    </td>
+                    <td className="px-3 py-4 w-[10%]">
+                      {isEditing ? (
+                        <input 
+                          className="w-full min-w-0 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent" 
+                          value={extraRate} 
+                          onChange={(e) => setExtraRate(e.target.value)} 
+                          type="number"
+                        />
+                      ) : (
+                        <div className="text-sm">₹{method.extraRate}</div>
+                      )}
+                    </td>
+                    <td className="px-3 py-4 w-[10%]">
+                      {isEditing ? (
+                        <input 
+                          className="w-full min-w-0 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent" 
+                          value={weight} 
+                          onChange={(e) => setWeight(e.target.value)} 
+                        />
+                      ) : (
+                        <div className="text-sm">{method.weight}</div>
+                      )}
+                    </td>
+                    <td className="px-3 py-4 w-[15%]">
+                      <div className="flex space-x-1">
+                        {isEditing ? (
                           <>
-                            <button onClick={handleUpdateType} className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Save</button>
-                            <button onClick={() => setEditingTypeId(null)} className="ml-2 bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-500">Cancel</button>
+                            <button onClick={handleSubmit} className="bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 text-sm">Save</button>
+                            <button onClick={() => setEditingId(null)} className="bg-gray-400 text-white px-2 py-1 rounded hover:bg-gray-500 text-sm">Cancel</button>
                           </>
                         ) : (
                           <>
-                            <button onClick={() => handleEditType(type)} className="bg-brandyellow text-white px-3 py-1 rounded hover:bg-yellow-700">Edit</button>
-                            {/* <button onClick={() => handleDeleteType(type.id)} className="ml-2 bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">Delete</button> */}
+                            <button onClick={() => handleEdit(method)} className="bg-brandyellow text-white px-2 py-1 rounded hover:bg-yellow-700 text-sm">Edit</button>
                             <button
                               onClick={() => setDeleteConfirmation({
                                 isOpen: true,
-                                id: type.id,
-                                type: 'type',
-                                name: type.name
+                                id: method.id,
+                                type: 'method',
+                                name: `${method.type} (${method.region})`
                               })}
-                              className="ml-2 bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+                              className="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-sm"
                             >
                               Delete
                             </button>
                           </>
                         )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {isModalOpen && <CouponForm onClose={() => setIsModalOpen(false)} />}
-        </div>
-      )}
-
-      {activeTab === "methods" && (
-        <div className="p-4 space-y-6">
-          <div className="bg-white p-4 rounded-lg">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-3">Add Shipping Method</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <select value={selectedShippingType} onChange={(e) => setSelectedShippingType(e.target.value)} className="w-full border  border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all" required>
-                <option value="">Select type</option>
-                {shippingTypes.map((type) => (
-                  <option key={type.id} value={type.name}>{type.name}</option>
-                ))}
-              </select>
-              <input
-                type="text"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Description"
-                className="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
-              />
-              <input type="text" value={shippingTime} onChange={(e) => setShippingTime(e.target.value)} placeholder="Shipping Time" className="w-full border rounded  border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all" required />
-
-              <select
-                value={region}
-                onChange={(e) => setRegion(e.target.value)}
-                className="w-full border rounded p-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
-                required
-                
-              >
-                <option value="">Select State</option>
-                {states.map((state) => (
-                  <option key={state.isoCode} value={state.name}>
-                    {state.name}
-                  </option>
-                ))}
- <option value="Others">Others</option>
-              </select>
-              <input type="text" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="Weight upto 1kg" className="w-full border rounded p-2  border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all " required />
-              <input
-                type="number"
-                value={extraRate}
-                onChange={(e) => setExtraRate(e.target.value)}
-                placeholder="Extra Rate per kg (₹)"
-                className="w-full border border-gray-300 rounded p-2"
-                required
-              />
-              <input type="number" value={shippingRate} onChange={(e) => setShippingRate(e.target.value)} placeholder="Shipping Rate (₹)" className="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all" required />
-
-              <button type="submit" className="bg-brandyellow text-white px-4 py-2 rounded hover:bg-yellow-700">Add Shipping Method</button>
-            </form>
-          </div>
-
-          <div className="bg-white p-4 rounded-lg">
-            <div className="flex justify-end mb-6">
-              <div className="relative flex items-center">
-                <input
-                  type="name"
-                  name="search"
-                  className="h-10 w-full px-3 py-2 rounded-l-md border outline-none focus:ring-2 transition-all duration-200"
-                  placeholder="Search..."
-                  value={shippingMethodSearch}
-                  onChange={(e) => setShippingMethodSearch(e.target.value)}
-                />
-                <button
-                  type="submit"
-                  className="h-10 px-3 rounded-r-md bg-brandyellow text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                >
-                  <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <h2 className="text-xl md:text-2xl font-semibold text-gray-800 mb-4">Available Shipping Methods</h2>
-            <div className="overflow-x-auto rounded-lg border border-gray-200">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Region</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rate (₹)</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Extra rate per kg</th>
-
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Weight</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                      </div>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredShippingMethods.map((method) => {
-                    const isEditing = editingId === method.id;
-                    return (
-                      <tr key={method.id}>
-                        <td className="px-6 py-4">
-                          {isEditing ? (
-                            <select className="w-32" value={selectedShippingType} onChange={(e) => setSelectedShippingType(e.target.value)}>
-                              <option value="">Select Type</option>
-                              {shippingTypes.map((type) => (
-                                <option key={type.id} value={type.name}>{type.name}</option>
-                              ))}
-                            </select>
-                          ) : (
-                            method.type
-                          )}
-                        </td>
-                        <td className="px-6 py-4">
-                          {isEditing ? (
-                            <input value={description} onChange={(e) => setDescription(e.target.value)} className="w-32" />
-                          ) : (
-                            method.description
-                          )}
-                        </td>
-                        <td className="px-6 py-4">
-                          {isEditing ? (
-                            <input value={region} onChange={(e) => setRegion(e.target.value)} className="w-32" />
-                          ) : (
-                            method.region
-                          )}
-                        </td>
-                        <td className="px-6 py-4">
-                          {isEditing ? (
-                            <input value={shippingRate} onChange={(e) => setShippingRate(e.target.value)} className="w-32" />
-                          ) : (
-                            `₹${method.rate}`
-                          )}
-                        </td>
-                        <td className="px-6 py-4">
-                          {isEditing ? (
-                            <input value={shippingTime} onChange={(e) => setShippingTime(e.target.value)} className="w-32" />
-                          ) : (
-                            method.time
-                          )}
-                        </td>
-                         <td className="px-6 py-4">
-                          {isEditing ? (
-                            <input value={extraRate} onChange={(e) => setExtraRate(e.target.value)} className="w-32" />
-                          ) : (
-                            `₹${method.extraRate}`
-                          )}
-                        </td>
-                        <td className="px-6 py-4">
-                          {isEditing ? (
-                            <input value={weight} onChange={(e) => setWeight(e.target.value)} className="w-32" />
-                          ) : (
-                            method.weight
-                          )}
-                        </td>
-                        <td className="px-6 py-4 space-x-2">
-                          {isEditing ? (
-                            <>
-                              <button onClick={handleSubmit} className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Save</button>
-                              <button onClick={() => setEditingId(null)} className="bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-500">Cancel</button>
-                            </>
-                          ) : (
-                            <>
-                              <button onClick={() => handleEdit(method)} className="bg-brandyellow text-white px-3 py-1 rounded hover:bg-yellow-700">Edit</button>
-                              {/* <button onClick={() => handleDelete(method.id)} className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">Delete</button> */}
-                              <button
-                                onClick={() => setDeleteConfirmation({
-                                  isOpen: true,
-                                  id: method.id,
-                                  type: 'method',
-                                  name: `${method.type} (${method.region})`
-                                })}
-                                className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
-                              >
-                                Delete
-                              </button>
-                            </>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
-      )}
-      {activeTab === "discounts" && isModalOpen && (
-        <div className="p-4">
-          <CouponForm onClose={() => {
-            setIsModalOpen(false);
-            setActiveTab("types");
-          }} />
-        </div>
-      )}
-
+      </div>
     </div>
+  )}
+  
+  {activeTab === "discounts" && isModalOpen && (
+    <div className="p-4">
+      <CouponForm onClose={() => {
+        setIsModalOpen(false);
+        setActiveTab("types");
+      }} />
+    </div>
+  )}
+</div>
   )
 }
 export default ShippingMethod

@@ -71,7 +71,7 @@ const handleDelete = async () => {
     return;
   }
 
-  console.log("🔍 Selected UID to delete:", selectedUserId);
+  console.log(" Selected UID to delete:", selectedUserId);
 
   try {
     const response = await fetch("https://us-central1-honey-8e04f.cloudfunctions.net/deleteUserCompletelyv2", {
@@ -83,7 +83,7 @@ const handleDelete = async () => {
     });
 
     const result = await response.json();
-    console.log("✅ Delete result:", result);
+    console.log("Delete result:", result);
      await deleteDoc(doc(database, "users", selectedUserId));
 
     if (response.ok) {
@@ -98,7 +98,7 @@ const handleDelete = async () => {
 
   } catch (error) {
     console.error("🔥 Error:", error);
-    toast.error(`Failed to delete user: ${error.message}`);
+    toast.error(`Failed to delete user:`);
   }
 };
 

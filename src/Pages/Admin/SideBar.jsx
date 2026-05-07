@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import 'flowbite';
 import { Link } from 'react-router-dom';
-import { FaBox, FaShippingFast, FaNewspaper, FaClipboardList, FaBars, FaTimes, FaProductHunt, FaBoxes, FaSms, FaVoicemail, FaEnvelope } from 'react-icons/fa';
+import { FaBox, FaShippingFast, FaNewspaper, FaClipboardList, FaBars, FaTimes, FaProductHunt, FaBoxes, FaSms, FaVoicemail, FaEnvelope, FaStar } from 'react-icons/fa';
 import { FaEnvelopesBulk } from 'react-icons/fa6';
 
 function SideBar() {
@@ -10,6 +10,7 @@ function SideBar() {
    const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
    const [isShippingOpen, setIsShippingOpen] = useState(false);
    const[isBlogOpen,setIsBlogOpen]=useState(false)
+   const[isReviewOpen,setIsReviewOpen]=useState(false)
    const toggleDrawer = () => {
       setIsDrawerOpen(!isDrawerOpen);
    };
@@ -17,7 +18,7 @@ function SideBar() {
       const toggleCategories = () => setIsCategoriesOpen(!isCategoriesOpen);
       const toggleShipping = () => setIsShippingOpen(!isShippingOpen);
  const toggleBlogs=()=>setIsBlogOpen(!isBlogOpen)
-
+const toggleReviews=()=>setIsReviewOpen(!isReviewOpen)
  const closeDrawer = () => {
    setIsDrawerOpen(false);
 };
@@ -93,7 +94,17 @@ function SideBar() {
                         </ul>
                      )}
                   </li>
-                
+                 <li>
+                     <button onClick={toggleReviews} className="flex items-center w-full p-2 text-white focus:outline-none">
+                        <FaStar className="mr-2" />
+                        <span className='ms-3'>Reviews</span>
+                     </button>
+                     {isReviewOpen && (
+                        <ul className="ml-6 space-y-1">
+                           <li><Link to="/addreviews" className="block p-2 text-white">Add Reviews</Link></li>
+                        </ul>
+                     )}
+                  </li>
                   
                   <li>
                      <Link to="/orders" className="flex items-center p-2 text-white">
@@ -180,7 +191,17 @@ function SideBar() {
                      )}
                   </li>
                 
-                  
+                  <li>
+                     <button onClick={toggleReviews} className="flex items-center w-full p-2 text-white focus:outline-none">
+                        <FaNewspaper className="mr-2" />
+                        <span className='ms-3'>Reviews</span>
+                     </button>
+                     {isReviewOpen && (
+                        <ul className="ml-6 space-y-1">
+                           <li><Link to="/addreviews"  onClick={closeDrawer} className="block p-2 text-white">Add Review</Link></li>
+                        </ul>
+                     )}
+                  </li>
                   <li>
                      <Link to="/orders" className="flex items-center p-2 text-white">
                      <FaClipboardList className="mr-2 inline" />

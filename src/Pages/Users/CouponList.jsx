@@ -1,66 +1,55 @@
 
 import React, { useContext, useEffect, useState } from 'react';
 import { database } from '../../FirebaseConfig';
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { FaPercent } from 'react-icons/fa';
 
 
 function CouponList({ onCheckValid }) {
   const [coupons, setCoupons] = useState([]);
-  
 
- 
   useEffect(() => {
-    const fetchCoupons = async () => {
-      try {
-        const snapshot = await getDocs(collection(database, 'coupons'));
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); // Normalize to start of day
+    const unsubscribe = onSnapshot(collection(database, 'coupons'), async (snapshot) => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
-        const activeCoupons = [];
-        const updatePromises = [];
+      const activeCoupons = [];
+      const updatePromises = [];
 
-        snapshot.forEach((docSnap) => {
-          const coupon = docSnap.data();
-          const validToDate = coupon.validTo?.toDate?.() || new Date(coupon.validTo);
-          validToDate.setHours(23, 59, 59, 999); // End of day
+      snapshot.forEach((docSnap) => {
+        const coupon = docSnap.data();
+        const validToDate = coupon.validTo?.toDate?.() || new Date(coupon.validTo);
+        validToDate.setHours(23, 59, 59, 999);
 
-          // Check if coupon should be active
-          const shouldBeActive = today <= validToDate;
+        const shouldBeActive = today <= validToDate;
 
-          // If Firestore status doesn't match calculated status, queue an update
-          if (coupon.isActive !== shouldBeActive) {
-            updatePromises.push(
-              updateDoc(doc(database, 'coupons', docSnap.id), {
-                isActive: shouldBeActive
-              })
-            );
-          }
-
-          // Only show coupons that are active AND not expired
-          if (shouldBeActive) {
-            activeCoupons.push({ 
-              id: docSnap.id, 
-              ...coupon,
-              validTo: validToDate
-            });
-          }
-        });
-
-        // Wait for all updates to complete
-        if (updatePromises.length > 0) {
-          await Promise.all(updatePromises);
+        if (coupon.isActive !== shouldBeActive) {
+          updatePromises.push(
+            updateDoc(doc(database, 'coupons', docSnap.id), {
+              isActive: shouldBeActive
+            })
+          );
         }
 
-        setCoupons(activeCoupons);
-        if (onCheckValid) onCheckValid(activeCoupons.length > 0);
-      } catch (error) {
-        console.error("Error fetching coupons:", error);
-        if (onCheckValid) onCheckValid(false);
-      }
-    };
+        if (shouldBeActive) {
+          activeCoupons.push({
+            id: docSnap.id,
+            ...coupon,
+            validTo: validToDate
+          });
+        }
+      });
 
-    fetchCoupons();
+      if (updatePromises.length > 0) {
+        await Promise.all(updatePromises);
+      }
+
+      setCoupons(activeCoupons);
+      if (onCheckValid) onCheckValid(activeCoupons.length > 0);
+    });
+
+    // Cleanup listener on unmount
+    return () => unsubscribe();
   }, [onCheckValid]);
 
   return (
@@ -75,8 +64,8 @@ function CouponList({ onCheckValid }) {
                 <span className="text-sm">
                   {coupon.discountType === "fixed"
                     ? `Flat ₹${coupon.discountValue} Off`
-                    : `${coupon.discountValue}% Off` + 
-                      (coupon.maxDiscount ? ` (Max ₹${coupon.maxDiscount})` : '')}
+                    : `${coupon.discountValue}% Off` +
+                    (coupon.maxDiscount ? ` (Max ₹${coupon.maxDiscount})` : '')}
                 </span>
                 <span className="text-xs opacity-80">
                   Min Order: ₹{coupon.minimumOrderValue}
@@ -87,7 +76,7 @@ function CouponList({ onCheckValid }) {
         </div>
       </div>
     </div>
-   
+    
   );
 }
 

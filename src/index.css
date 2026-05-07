@@ -124,7 +124,7 @@
   --w: 350px; /* preferred image width */
   --c:#bf8a02;
   
-  width: round(var(--w),2*var(--s)); /* my first use case of round() 🥳 */
+  width: round(var(--w),2*var(--s)); /* my first use case of round() */
   aspect-ratio: 1;
   object-fit: cover;
   padding: var(--s);

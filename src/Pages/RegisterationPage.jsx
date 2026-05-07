@@ -1,237 +1,333 @@
-import React, { useState } from 'react'
-import { auth, database } from '../FirebaseConfig';
-import { createUserWithEmailAndPassword, sendEmailVerification, signOut } from 'firebase/auth';
-import 'react-toastify/dist/ReactToastify.css';
-import { Link, useNavigate } from 'react-router-dom';
-import { toast, ToastContainer } from 'react-toastify';
-import img from "../assets/bee1.png"
-import { doc, Firestore, setDoc } from 'firebase/firestore';
+import React, { useState } from "react";
+import { auth, provider, database } from "../FirebaseConfig";
+import {
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  signInWithPopup,
+  browserLocalPersistence,
+  setPersistence,
+  getAuth,
+} from "firebase/auth";
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { toast, ToastContainer } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import "react-toastify/dist/ReactToastify.css";
 
 function RegisterationPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [generatedOtp, setGeneratedOtp] = useState(false);
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const navigate = useNavigate();
+// const auth = getAuth();
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
+  const validatePhoneNumber = (num) => /^[6-9]\d{9}$/.test(num);
+const setupRecaptcha = () => {
+  if (!window.recaptchaVerifier) {
+    window.recaptchaVerifier = new RecaptchaVerifier(
+      auth,
+      "recaptcha-container",
+      {
+        size: "invisible",
+      }
+    );
+  }
+  return window.recaptchaVerifier;
+};
 
-    // firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
 
+
+
+  const sendOtp = async () => {
+  if (!validatePhoneNumber(phone)) {
+    toast.error("Enter a valid 10-digit number");
+    return;
+  }
+
+  setOtpLoading(true);
+
+  try {
+    const fullPhone = "+91" + phone;
+    const appVerifier = setupRecaptcha();
+
+    // send OTP
+    const confirmation = await signInWithPhoneNumber(auth, fullPhone, appVerifier);
+    window.confirmationResult = confirmation;
+
+    toast.success("OTP sent!");
+    setGeneratedOtp(true);
+  } catch (err) {
+    console.error("sendOtp error", err);
+    toast.error(err.code === "auth/invalid-recaptcha-token"
+      ? "reCAPTCHA failed, please refresh and try again"
+      : "Failed to send OTP"
+    );
+  } finally {
+    setOtpLoading(false);
+  }
+};
+
+
+  const verifyOtp = async () => {
+    if (!otp) return;
+    setOtpLoading(true);
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+      await setPersistence(auth, browserLocalPersistence);
 
-      await sendEmailVerification(auth.currentUser);
-      toast.info("Verification email sent. Please check your inbox.",
-        {
-          autoClose: false,
-          closeOnClick: true,
-        }
-      );
+      const result = await window.confirmationResult.confirm(otp);
+      const user = result.user;
+      const uid = user.uid;
 
-      console.log("User registered:", user);
+      const userRef = doc(database, "users", uid);
+      const userSnap = await getDoc(userRef);
 
-      const isAdminEmail = email === "honeycapz25@gmail.com";
-      const role = isAdminEmail ? "admin" : "user";
-
-      await setDoc(doc(database, "users", user.uid), {
-        name: name,
-        email: email,
-        phone: phone,
-        role: role,
-        timestamp: Date.now(),
-
-      });
-      await signOut(auth);
-      // toast.warning("Please verify your email before logging in.");
-      setTimeout(() => {
-        navigate("/login");
-      }, 5000);
-    }
-
-    // } catch (error) {
-    //     console.log('Registration error:', error.code,error.message);
-    //     toast.error('Failed to register. Please check your details.');
-    // }
-    catch (error) {
-      console.log('Registration error:', error.code, error.message);
-
-      let message = 'Failed to register. Please try again.';
-
-      if (error.code === 'auth/email-already-in-use') {
-        message = 'Email is already registered. Please use a different email or login.';
-      } else if (error.code === 'auth/invalid-email') {
-        message = 'Invalid email format.';
-      } else if (error.code === 'auth/weak-password') {
-        message = 'Password should be at least 6 characters.';
-      } else if (error.code === 'auth/network-request-failed') {
-        message = 'Network error. Please check your connection.';
+      let isNewUser = false;
+      if (userSnap.exists()) {
+        await updateDoc(userRef, {
+          lastLogin: serverTimestamp(),
+        });
+      } else {
+        isNewUser = true;
+        await setDoc(userRef, {
+          phone: "+91" + phone,
+          name: "",
+          email: "",
+          role: "user",
+          method:"phone",
+          firstLogin: serverTimestamp(),
+          lastLogin: serverTimestamp(),
+        });
       }
 
-      toast.error(message);
-    }
+      localStorage.setItem("uid", uid);
+      toast.success("Login Successful!");
 
+      setTimeout(() => {
+        if (isNewUser) navigate("/profile");
+        else navigate("/");
+      }, 800);
+
+    } catch (err) {
+      toast.error("Invalid OTP");
+      console.error("OTP Error:", err);
+    } finally {
+      setOtpLoading(false);
+    }
   };
 
+  // const handleGoogleLogin = async () => {
+  //   setGoogleLoading(true);
+  //   try {
+  //      provider.setCustomParameters({
+  //     prompt: "select_account",
+  //   });
+  //     const result = await signInWithPopup(auth, provider);
+  //     const user = result.user;
+  //     const uid = user.uid;
+
+  //     const userRef = doc(database, "users", uid);
+  //     const userSnap = await getDoc(userRef);
+  //     let isNewUser = false;
+  //     if (!userSnap.exists()) {
+  //       isNewUser = true;
+  //       await setDoc(userRef, {
+  //         name: user.displayName,
+  //         email: user.email,
+  //         createdAt: serverTimestamp(),
+  //         method:"google"
+  //       });
+  //     } else {
+  //       await updateDoc(userRef, { lastLogin: serverTimestamp() });
+  //     }
+
+  //     localStorage.setItem("uid", user.uid);
+  //     toast.success("Welcome!");
+
+  //     if (isNewUser) navigate("/profile");
+  //     else navigate("/");
+
+  //   } catch (err) {
+  //     toast.error("Google login failed");
+  //   } finally {
+  //     setGoogleLoading(false);
+  //   }
+  // };
+  const handleGoogleLogin = async () => {
+  setGoogleLoading(true);
+
+  try {
+    provider.setCustomParameters({ prompt: "select_account" });
+
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+    const uid = user.uid;
+
+    const userRef = doc(database, "users", uid);
+    const snap = await getDoc(userRef);
+
+    let role = "user";
+
+    if (!snap.exists()) {
+
+      await setDoc(userRef, {
+        name: user.displayName || "",
+        email: user.email || "",
+        phone: user.phoneNumber || "",
+        photoURL: user.photoURL || "",
+        role: role,
+        method: "google",
+        createdAt: serverTimestamp(),
+        lastLogin: serverTimestamp()
+      });
+
+    } else {
+
+      const data = snap.data();
+      role = data.role || "user";
+
+      await updateDoc(userRef, {
+        lastLogin: serverTimestamp()
+      });
+    }
+
+    localStorage.setItem("uid", uid);
+    localStorage.setItem("role", role);
+
+    toast.success("Welcome!");
+
+    if (role === "admin") navigate("/dashboard");
+    else navigate("/");
+
+  } catch (err) {
+    console.error("GOOGLE LOGIN ERROR:", err);
+    toast.error("Google login failed");
+  } finally {
+    setGoogleLoading(false);
+  }
+};
+
+const resetOtpFlow = () => {
+  setGeneratedOtp(false);
+  setOtp("");
+  window.recaptchaVerifier?.clear?.();
+  window.recaptchaVerifier = null;
+};
+
   return (
-    <div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-50 px-4 py-8">
+      <div id="recaptcha-container"></div>
+      {/* <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-50 px-4 py-8"> */}
+       <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-amber-100">
+         <div className="text-center bg-gradient-to-r from-amber-500 to-amber-600 p-8">
+           <h1 className="text-3xl font-bold text-white mb-1">CapeNaturals</h1>
+           <p className="text-amber-100 text-sm">Welcome to our honey community 🍯</p>
+         </div>
 
+         <div className="p-8">
+           <h2 className="text-center text-2xl font-bold text-gray-800 mb-6">
+            Login or Register
+          </h2>
 
-      <div className="min-h-screen flex items-center justify-center bg-[#f8f5f0] p-4">
-        <div className="w-full max-w-4xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 bg-white rounded-2xl shadow-lg overflow-hidden border border-amber-100">
-            {/* Left Side - Image/Decoration */}
-            <div className="hidden md:block bg-gradient-to-b from-amber-100 to-amber-50 relative">
-              <div className="absolute inset-0 flex items-center justify-center p-8">
-                <div className="text-center">
-                  <h2 className="text-2xl font-serif font-bold text-amber-800 mb-3">Welcome to CapeNaturals</h2>
-                  <p className="text-amber-700">Join our community of honey and spice lovers</p>
-                </div>
+          {!generatedOtp ? (
+            <>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Phone Number
+              </label>
+              <div className="flex items-center border-2 border-gray-200 rounded-xl mb-4 focus:ring-0 focus:outline-none">
+                <span className="pl-4 text-gray-600">+91</span>
+                <input
+                  type="tel"
+                  placeholder="Enter your number"
+                  value={phone}
+                  onChange={(e) =>
+                    setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
+                  }
+                  className="w-full px-4 py-3 outline-none text-lg"
+                  disabled={otpLoading}
+                />
               </div>
-            </div>
 
-            {/* Right Side - Registration Form */}
-            <div className="p-8">
-              <div className="text-center mb-8">
-                <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                  </svg>
-                </div>
-                <h1 className="text-2xl font-semibold text-gray-800 mb-1">Create Your Account</h1>
-                <p className="text-gray-600 text-sm">Join CapeNaturals today</p>
+              <button
+                onClick={sendOtp}
+                disabled={otpLoading || phone.length !== 10}
+                className="w-full bg-amber-600 text-white py-3 rounded-xl font-semibold text-lg hover:bg-amber-700 transition-all duration-200 disabled:opacity-50"
+              >
+                {otpLoading ? "Sending OTP..." : "Send OTP"}
+              </button>
+
+              <div className="my-6 text-center text-gray-500 text-sm">
+                or
               </div>
 
-              <form onSubmit={handleRegister} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="Your Name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      required
-                      className="block w-full pl-10 pr-3 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-300 focus:border-amber-400 bg-white placeholder-gray-400 text-gray-700 transition duration-200"
-                    />
-                  </div>
-                </div>
+              <button
+                onClick={handleGoogleLogin}
+                disabled={googleLoading}
+                className="w-full flex items-center justify-center gap-3  py-3 rounded-xl hover:bg-gray-50 transition"
+              >
+                <img
+                  src="https://www.svgrepo.com/show/475656/google-color.svg"
+                  alt="Google"
+                  className="w-5 h-5"
+                />
+                <span className="font-medium text-gray-700">
+                  Continue with Google
+                </span>
+              </button>
+              <div className="text-center mt-4">
+  <p className="text-sm text-gray-600">
+    Already have an account?{" "}
+    <span
+      onClick={() => navigate("/login")}
+      className="text-amber-600 font-semibold cursor-pointer hover:underline"
+    >
+      Login
+    </span>
+  </p>
+</div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                      </svg>
-                    </div>
-                    <input
-                      type="email"
-                      placeholder="your@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="block w-full pl-10 pr-3 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-300 focus:border-amber-400 bg-white placeholder-gray-400 text-gray-700 transition duration-200"
-                    />
-                  </div>
-                </div>
+            </>
+          ) : (
+            <>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Enter OTP
+              </label>
+              <input
+                type="text"
+                placeholder="6-digit code"
+                value={otp}
+                onChange={(e) =>
+                  setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+                }
+                className="w-full text-center text-2xl tracking-widest font-bold border-2 border-gray-200 rounded-xl py-3 mb-4"
+                maxLength={6}
+              />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                      </svg>
-                    </div>
-                    <input
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      className="block w-full pl-10 pr-10 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-300 focus:border-amber-400 bg-white placeholder-gray-400 text-gray-700 transition duration-200"
-                    />
-                  </div>
-                </div>
+              <button
+                onClick={verifyOtp}
+                disabled={otpLoading || otp.length !== 6}
+                className="w-full bg-green-600 text-white py-3 rounded-xl font-semibold text-lg hover:bg-green-700 transition-all duration-200 disabled:opacity-50"
+              >
+                {otpLoading ? "Verifying..." : "Verify & Continue"}
+              </button>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                      </svg>
-                    </div>
-                    <input
-                      type="tel"
-                      pattern="[0-9]{10}"
-                      maxLength={10}
-                      minLength={10}
-                      placeholder="9757896756"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      required
-                      className="block w-full pl-10 pr-3 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-300 focus:border-amber-400 bg-white placeholder-gray-400 text-gray-700 transition duration-200"
-                    />
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-
-
-                  <Link
-                    to="/forgotpwd"
-                    className="text-sm font-medium text-amber-800 hover:text-amber-500"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
-                <button
-                  type="submit"
-                  className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-brandyellow hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-colors duration-200 mt-6"
-                >
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  Register
-                </button>
-              </form>
-
-              <div className="mt-6 text-center">
-                <p className="text-sm text-gray-600">
-                  Already have an account?{' '}
-                  <Link to="/login" className="font-medium text-amber-600 hover:text-amber-500">
-                    Sign in
-                  </Link>
-                </p>
-              </div>
-            </div>
-          </div>
-          <ToastContainer
-            position="bottom-center"
-            //  autoClose={3000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            limit={1}
-          />
+              <button
+                onClick={resetOtpFlow}
+                className="w-full text-sm text-amber-600 mt-3 hover:text-amber-800"
+              >
+                Use different number
+              </button>
+              
+            </>
+          )}
         </div>
       </div>
-    </div >
-  )
+
+     
+      <ToastContainer position="bottom-center" autoClose={4000} />
+    </div>
+  );
 }
 
-export default RegisterationPage
+export default RegisterationPage;
