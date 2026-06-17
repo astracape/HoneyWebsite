@@ -347,9 +347,9 @@ function HomePage() {
                 <div className='mx-auto items-center justify-center md:p-3'>
                     <div className='grid grid-cols-1 md:grid-cols-2 justify-center items-center mx-auto gap-5'>
                         <div>
-                            <div className="flex justify-center py-8 mt-16  md:mt-0 ">
+                            <div className="flex justify-center py-8 mt-16 p-5 md:mt-0 ">
 
-                                <div className="relative bg-gradient-to-br from-red-900 to-red-500 text-white w-80 rounded-lg shadow-xl shadow-red-500/50 p-6 hover:scale-105 transition-transform duration-300 ease-out">
+                                <div className=" relative bg-gradient-to-br from-red-900 to-red-500 text-white w-80 rounded-lg shadow-xl shadow-red-500/50 p-6 hover:scale-105 transition-transform duration-300 ease-out">
 
                                     <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 w-36 h-36 rounded-full overflow-hidden drop-shadow-2xl border-4 border-white ">
                                         <img className="object-cover w-full h-full hover:animate-spin" src={tamarind} alt="Tamarind" />
@@ -370,7 +370,7 @@ function HomePage() {
 
                         </div>
                         <div>
-                            <div className="flex justify-center py-8">
+                            <div className="flex justify-center py-8 p-5">
 
                                 <div className="relative bg-gradient-to-br from-red-900 to-red-500 text-white w-80 rounded-lg shadow-xl drop-shadow-2xl shadow-red-500/50  p-6 hover:scale-105 transition-transform duration-300 ease-out">
 
@@ -391,7 +391,7 @@ function HomePage() {
                             </div>
                         </div>
                         <div>
-                            <div className="flex justify-center py-8 mt-5">
+                            <div className="flex justify-center py-8 p-5  mt-5">
 
                                 <div className="relative hover:scale-105 bg-gradient-to-br from-red-900 to-red-500 text-white w-80 rounded-lg drop-shadow-2xl shadow-xl shadow-red-500/50 p-6 transition-transform duration-300 ease-out">
 
@@ -412,7 +412,7 @@ function HomePage() {
                             </div>
                         </div>
                         <div>
-                            <div className="flex justify-center py-8  mt-5">
+                            <div className="flex justify-center py-8 p-5  mt-5">
 
                                 <div className="relative bg-gradient-to-br from-red-900 to-red-500 text-white w-80 rounded-lg shadow-xl shadow-red-500/50 p-6 hover:scale-105 transition-transform duration-300 ease-out">
 

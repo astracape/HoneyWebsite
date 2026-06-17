@@ -47,7 +47,10 @@ function Checkout() {
     useEffect(() => {
         window.scrollTo(0, 0);
         fetchShippingTypes();
-
+  if (cart.length === 0) {
+        navigate("/cart", { replace: true });
+        return;
+    }
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
             if (!currentUser) {
@@ -80,7 +83,21 @@ function Checkout() {
             }));
         }
     }, [formData.state]);
-
+useEffect(() => {
+    if (
+        formData.state &&
+        formData.shippingType
+    ) {
+        fetchShippingRate(
+            formData.state,
+            formData.shippingType
+        );
+    }
+}, [
+    cart,
+    formData.state,
+    formData.shippingType
+]);
     // useEffect(() => {
     //   if (checkoutData.billing) {
     //     setBillingData(checkoutData.billing);
@@ -99,7 +116,7 @@ function Checkout() {
         const updatedForm = { ...formData, [name]: value };
         setFormData(updatedForm);
         console.log("Trying to match: region =", State, "| type =", shippingType);
-
+        updateShipping(updatedForm);
         if (
             (name === "state" || name === "shippingType") &&
             updatedForm.state &&
@@ -304,8 +321,8 @@ function Checkout() {
 
     const saveOrderToDatabase = async (orderDetails) => {
         try {
-            
-        console.log("🔥 ORDER OBJECT:", orderDetails);
+
+            console.log("🔥 ORDER OBJECT:", orderDetails);
             await setDoc(doc(database, "orders", orderDetails.orderId), orderDetails);
             return true;
         } catch (error) {
@@ -382,6 +399,7 @@ function Checkout() {
                                             type="text"
                                             id="firstName"
                                             name="firstName"
+                                            value={formData.firstName}
                                             required
                                             pattern="[A-Za-z\s]{2,50}"
                                             onChange={handleInputChange}
@@ -399,6 +417,7 @@ function Checkout() {
                                             required
                                             pattern="[A-Za-z\s]{1,50}"
                                             onChange={handleInputChange}
+                                            value={formData.lastName}
                                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-brandyellow focus:border-brandyellow"
                                         />
                                     </div>
@@ -411,6 +430,7 @@ function Checkout() {
                                         type="text"
                                         id="address"
                                         name="address"
+                                        value={formData.address}
                                         required
                                         onChange={handleInputChange}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-brandyellow focus:border-brandyellow"
@@ -425,6 +445,7 @@ function Checkout() {
                                         type="text"
                                         id="apartment"
                                         name="apartment"
+                                        value={formData.apartment}
                                         onChange={handleInputChange}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-brandyellow focus:border-brandyellow"
                                     />
@@ -483,6 +504,7 @@ function Checkout() {
                                             type="text"
                                             id="city"
                                             name="city"
+                                            value={formData.city}
                                             required
                                             onChange={handleInputChange}
                                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-brandyellow focus:border-brandyellow"
@@ -499,6 +521,7 @@ function Checkout() {
                                             type="text"
                                             id="pinCode"
                                             name="pinCode"
+                                            value={formData.pinCode}
                                             required
                                             onChange={handleInputChange}
                                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-brandyellow focus:border-brandyellow"
@@ -513,6 +536,7 @@ function Checkout() {
                                             id="phone"
                                             name="phone"
                                             placeholder="+91 Phone Number"
+                                            value={formData.phone}
                                             maxLength={13}
                                             required
                                             onChange={handleInputChange}
@@ -529,6 +553,7 @@ function Checkout() {
                                         type="email"
                                         id="email"
                                         name="email"
+                                        value={formData.email}
                                         required
                                         onChange={handleInputChange}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-brandyellow focus:border-brandyellow"
@@ -563,6 +588,7 @@ function Checkout() {
                                             <input
                                                 type="radio"
                                                 name="paymentMethod"
+                
                                                 value="Online Payment"
                                                 onChange={handleInputChange}
                                                 className="mt-1 mr-3 h-5 w-5 text-brandyellow focus:ring-brandyellow border-gray-300"

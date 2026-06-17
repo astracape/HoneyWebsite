@@ -7,13 +7,12 @@ import { auth, database } from '../FirebaseConfig';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { toast } from 'react-toastify';
 import { CartContext } from '../context/CartContext';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 
-function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin, userName }) {
+function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin, userName, profileImage }) {
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState(false);
   const [isAccountDropdownOpen, setAccountDropdownOpen] = useState(false);
-  const [profileImage, setProfileImage] = useState(null);
 
   const { cart } = useContext(CartContext);
   const navigate = useNavigate();
@@ -36,25 +35,7 @@ function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin, userName }) {
       console.error(error);
     }
   };
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      console.log("Auth state changed user:", user?.uid, user);
-      if (user) {
-        setIsAuth(true);
-        setAccountDropdownOpen(false);
-        const userDoc = doc(database, "users", user.uid);
-        const userSnap = await getDoc(userDoc);
-        if (userSnap.exists()) {
-          const data = userSnap.data();
-          setProfileImage(data.photoURL || null);
-        }
-      } else {
-        setProfileImage(null);
-      }
-    });
 
-    return () => unsubscribe();
-  }, []);
   useEffect(() => {
     const handleOutsideClick = (e) => {
       if (
@@ -81,16 +62,16 @@ function NavBar({ isAuth, setIsAuth, isAdmin, setIsAdmin, userName }) {
 
   return (
     <div className='fixed top-4 left-0 w-screen z-40 transition-all duration-300'>
-      <header className="top-2 bg-gradient-to-r from-white to-brandyellow py-2 px-3 relative">
-        <div className="mx-auto flex justify-between items-center">
-          <div className="flex md:ml-5">
+      <header className="bg-gradient-to-r from-white to-brandyellow py-2 px-4 lg:px-8 relative">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="flex items-center flex-shrink-0">
             <Link to="/" className="flex items-center">
-              <img src="/logo123.png" className="h-16 mt-1" alt="Logo 1" />
-              <img src="/122.png" className="h-16 mt-1 ml-2" alt="Logo 2" />
+              <img src="/logo123.png" className="h-10 sm:h-12 md:h-16" alt="Logo 1" />
+              <img src="/122.png" className="h-10 sm:h-12 md:h-16 ml-2" alt="Logo 2" />
             </Link>
           </div>
-          <nav className="hidden md:flex justify-end w-full items-end mr-10 space-x-6">
-            <div className="flex space-x-6">
+          <nav className="hidden md:flex flex-1 justify-end items-center gap-4 mr-10 lg:gap-6 ml-6">
+            <div className="flex space-x-3 lg:space-x-6">
               <Link to="/" className="text-black hover:text-yellow-700">Home</Link>
               <Link to="/productpage" className="text-black hover:text-yellow-700">Products</Link>
               <Link to="/gifting" className="text-black hover:text-yellow-700">Gifting</Link>

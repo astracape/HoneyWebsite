@@ -69,7 +69,9 @@ function Profile() {
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file || !user) return;
-
+    console.log(
+      `profileImages/${user.uid}/${file.name}`
+    );
     setUploading(true);
     const imageRef = ref(storage, `profileImages/${user.uid}/${file.name}`);
 
@@ -83,7 +85,8 @@ function Profile() {
       await updateDoc(docRef, { photoURL: downloadURL });
       await updateProfile(user, { photoURL: downloadURL });
 
-
+await user.reload(); // Refresh user data to get updated photoURL
+setUser(auth.currentUser); // Update local user state with refreshed data
       setProfile((prev) => ({ ...prev, photoURL: downloadURL }));
       toast.success("Profile photo updated!");
     } catch (error) {
@@ -98,13 +101,15 @@ function Profile() {
     if (!user) return;
     const error = validatePhone(profile.phone);
     if (error) {
-    setPhoneError(error);
-    // toast.error("Please enter a valid phone number");
-    return;
-  }
+      setPhoneError(error);
+      // toast.error("Please enter a valid phone number");
+      return;
+    }
     const docRef = doc(database, "users", user.uid);
     await updateDoc(docRef, {
-      ...profile,
+      name: profile.name,
+      phone: profile.phone,
+      photoURL: profile.photoURL,
       updatedAt: serverTimestamp(),
     });
     toast.success("Profile updated!");
@@ -130,23 +135,25 @@ function Profile() {
                 <img
                   src={profile.photoURL || "https://via.placeholder.com/120"}
                   alt="Profile"
-                  className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg transition-transform duration-300 group-hover:scale-105"
+                  className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg cursor-pointer"
+                  onClick={() =>
+                    document.getElementById("photoUpload").click()
+                  }
                 />
-                <label
-                  htmlFor="photoUpload"
-                  className="absolute inset-0 rounded-full bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-300 flex items-center justify-center cursor-pointer"
-                >
-                  <span className="text-white text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    {uploading ? "Uploading..." : "Change"}
-                  </span>
-                  <input
-                    id="photoUpload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-                </label>
+
+                <input
+                  id="photoUpload"
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={handleImageUpload}
+                />
+
+                {uploading && (
+                  <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center text-white">
+                    Uploading...
+                  </div>
+                )}
               </div>
               <h2 className="text-xl font-semibold text-gray-800 mt-4">
                 {profile.name || "Your Name"}
@@ -192,9 +199,9 @@ function Profile() {
                     }`}
                   placeholder="Your phone number"
                 />
-{phoneError && (
-  <p className="text-sm text-red-500 mt-1">{phoneError}</p>
-)}
+                {phoneError && (
+                  <p className="text-sm text-red-500 mt-1">{phoneError}</p>
+                )}
 
               </div>
               <div className="space-y-2 md:col-span-2">

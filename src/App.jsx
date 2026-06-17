@@ -36,7 +36,7 @@ import OrderDetails from './Pages/Admin/OrderDetails';
 const OrderHistory = lazy(() => import('./Pages/OrderHistory'));
 import OrderManagement from './Pages/Admin/OrderManagement';
 import UsersTable from './Pages/Admin/UsersTable';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import AddCategory from './Pages/Admin/AddCategory';
 import ShippingMethod from './Pages/Admin/ShippingMethod';
 import ShippingType from './Pages/Admin/ShippingType';
@@ -62,62 +62,78 @@ function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userName,setUserName]= useState()
+  const [profileImage, setProfileImage] = useState(null);
 
   useEffect(() => {
     AOS.init({ once: false });
   }, []);
  
 useEffect(() => {
-  // Subscribe to Firebase auth state changes
-  const unsubscribe = onAuthStateChanged(auth, async (user) => {
-    console.log("Auth state changed user:", user?.uid, user?.email, user?.phoneNumber);
+  let unsubscribeFirestore = null;
 
-    try {
-      if (!user) {
-        console.log("User signed out or not available yet");
-        setIsAuth(false);
-        setIsAdmin(false);
-        return;
+  const unsubscribeAuth =
+    onAuthStateChanged(auth, async (user) => {
+
+      try {
+        if (!user) {
+          setIsAuth(false);
+          setIsAdmin(false);
+          setUserName("");
+          setProfileImage(null);
+          return;
+        }
+
+        setIsAuth(true);
+
+        localStorage.setItem(
+          "userId",
+          user.uid
+        );
+
+        const userRef = doc(
+          database,
+          "users",
+          user.uid
+        );
+
+        // realtime listener
+        unsubscribeFirestore =
+          onSnapshot(userRef, (snapshot) => {
+
+            if (snapshot.exists()) {
+              const userData =
+                snapshot.data();
+
+              setIsAdmin(
+                userData.role === "admin"
+              );
+
+              setUserName(
+                userData.name || "User"
+              );
+
+              setProfileImage(
+                userData.photoURL || null
+              );
+            }
+          });
+
+      } catch (err) {
+        console.error(
+          "Error in auth:",
+          err
+        );
       }
+    });
 
-      // Reload ensures we have the latest status (optional, but safe)
-      await user.reload();
-      user = auth.currentUser;
+  return () => {
+    unsubscribeAuth();
 
-      // Skip email verification only for phone logins
-      if (user?.email && !user.emailVerified && !user.phoneNumber) {
-        console.warn("Email user not verified → signing out");
-        await signOut(auth);
-        localStorage.removeItem("userId");
-        sessionStorage.clear();
-        setIsAuth(false);
-        setIsAdmin(false);
-        setAccountDropdownOpen(false);
-        return;
-      }
-
-      // Proceed with logged-in user
-      setIsAuth(true);
-      localStorage.setItem("userId", user.uid);
-
-      // Fetch user role
-      const userRef = doc(database, "users", user.uid);
-      const snapshot = await getDoc(userRef);
-      const userData = snapshot.data();
-
-      if (userData) {
-        setIsAdmin(userData.role === "admin");
-        setUserName(userData.name || "User");
-      }
-    } catch (err) {
-      console.error("Error in onAuthStateChanged:", err);
+    if (unsubscribeFirestore) {
+      unsubscribeFirestore();
     }
-  });
-
-  // Cleanup listener on unmount
-  return () => unsubscribe();
+  };
 }, []);
-
 
 
 
@@ -126,7 +142,7 @@ useEffect(() => {
       <BrowserRouter>
         <ScrollToTop />
         <CouponBanner />
-        <NavBar isAuth={isAuth} setIsAuth={setIsAuth} isAdmin={isAdmin} setIsAdmin={setIsAdmin} />
+        <NavBar isAuth={isAuth} setIsAuth={setIsAuth} isAdmin={isAdmin} setIsAdmin={setIsAdmin} userName={userName} profileImage={profileImage} />
         <Suspense fallback={<div className="flex items-center justify-center h-screen"><BounceLoader color="#FFA500" size={50} /></div>}>
           <div className="pt-24">
             <Routes >
