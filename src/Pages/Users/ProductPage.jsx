@@ -47,22 +47,31 @@ function ProductPage() {
                         name: doc.data()?.category  // display name
                     }))
                     .filter(item => item.name !== "Gifting Options");
-
+                console.log(categoryList);
                 // desired order by NAME
                 const desiredOrder = [
                     "Honey",
                     "Spices",
                     "Nuts",
                     "Native Specials - Pre order",
-                    "Wholesale"
+                    "Wholesale",
+            
                 ];
 
+                // Categories that are already in the desired order
                 const sortedCategories = desiredOrder
                     .map(name => categoryList.find(cat => cat.name === name))
                     .filter(Boolean);
 
+                // Categories added later by admin
+                const remainingCategories = categoryList.filter(
+                    category => !desiredOrder.includes(category.name)
+                );
+
+                // Final category list
                 setCategories([
                     ...sortedCategories,
+                    ...remainingCategories,
                     { id: "all", name: "All" }
                 ]);
                 const nativeSpecialCategory = categoryList.find(
@@ -80,16 +89,16 @@ function ProductPage() {
                 //     navigate(`?category=${honeyCategory.id}`, { replace: true });
                 // }
                 const queryParams = new URLSearchParams(location.search);
-const categoryFromURL = queryParams.get("category");
+                const categoryFromURL = queryParams.get("category");
 
-if (!categoryFromURL) {
-    const honeyCategory = categoryList.find(cat => cat.name === "Honey");
+                if (!categoryFromURL) {
+                    const honeyCategory = categoryList.find(cat => cat.name === "Honey");
 
-    if (honeyCategory) {
-        setSelectedCategory(honeyCategory.id);
-        navigate(`?category=${honeyCategory.id}`, { replace: true });
-    }
-}
+                    if (honeyCategory) {
+                        setSelectedCategory(honeyCategory.id);
+                        navigate(`?category=${honeyCategory.id}`, { replace: true });
+                    }
+                }
 
 
             } catch (error) {
@@ -214,34 +223,34 @@ if (!categoryFromURL) {
                 </div>
             </div>
 
-            {nativeSpecialId && selectedCategory === nativeSpecialId && 
- (
-                <div className="bg-gradient-to-r from-red-50 via-orange-50 to-amber-50 py-10 px-6">
-                    <div className="max-w-3xl mx-auto text-center">
-                        <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-red-900 to-red-700 rounded-full mb-6 shadow-lg">
-                            <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
-                            </svg>
-                        </div>
+            {nativeSpecialId && selectedCategory === nativeSpecialId &&
+                (
+                    <div className="bg-gradient-to-r from-red-50 via-orange-50 to-amber-50 py-10 px-6">
+                        <div className="max-w-3xl mx-auto text-center">
+                            <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-red-900 to-red-700 rounded-full mb-6 shadow-lg">
+                                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                                </svg>
+                            </div>
 
-                        <div className="space-y-4 text-gray-700">
-                            <p className="text-lg leading-relaxed">
-                                Each of our native snacks is <span className="font-semibold text-red-700">prepared fresh upon request</span>
-                                &nbsp;and never produced in bulk. We cherish the traditional methods that ensure
-                                every bite carries authentic, homemade quality.
-                            </p>
-                            <div className="inline-block px-6 py-2 bg-gradient-to-r from-red-900 to-red-700 rounded-full shadow-md">
-                                <p className="text-white font-medium">
-                                    Pre-orders will be shipped <span className="font-bold">10 days</span> after the order date
+                            <div className="space-y-4 text-gray-700">
+                                <p className="text-lg leading-relaxed">
+                                    Each of our native snacks is <span className="font-semibold text-red-700">prepared fresh upon request</span>
+                                    &nbsp;and never produced in bulk. We cherish the traditional methods that ensure
+                                    every bite carries authentic, homemade quality.
+                                </p>
+                                <div className="inline-block px-6 py-2 bg-gradient-to-r from-red-900 to-red-700 rounded-full shadow-md">
+                                    <p className="text-white font-medium">
+                                        Pre-orders will be shipped <span className="font-bold">10 days</span> after the order date
+                                    </p>
+                                </div>
+                                <p className="text-gray-600 mt-6 italic font-medium">
+                                    We appreciate your patience as we craft your order with care.
                                 </p>
                             </div>
-                            <p className="text-gray-600 mt-6 italic font-medium">
-                                We appreciate your patience as we craft your order with care.
-                            </p>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
 
             <button
                 onClick={() => setShowCartSidebar(true)}

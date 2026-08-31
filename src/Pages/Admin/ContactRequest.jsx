@@ -1,4 +1,4 @@
-import { collection, getDocs, doc, deleteDoc, addDoc, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, doc, deleteDoc, addDoc, query, orderBy, updateDoc } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { database } from '../../FirebaseConfig';
 import emailjs from '@emailjs/browser';
@@ -14,6 +14,7 @@ function ContactRequest() {
     const [repliedContacts, setRepliedContacts] = useState(new Set());
     const [filter, setFilter] = useState('all');
     const [isLoadingReplies, setIsLoadingReplies] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
     useEffect(() => {
         emailjs.init(import.meta.env.VITE_EMAILJS_PUBLIC_KEY);
         const savedRepliedContacts = localStorage.getItem('repliedContacts');
@@ -28,6 +29,7 @@ function ContactRequest() {
                 const querySnapshot = await getDocs(collection(database, 'contactus'));
                 const contactData = querySnapshot.docs.map(doc => ({
                     id: doc.id,
+                    isRead: doc.data().isRead || false,
                     ...doc.data(),
                 }));
                 setContacts(contactData);
@@ -45,8 +47,8 @@ function ContactRequest() {
             const repliesSnapshot = await getDocs(
                 query(collection(database, 'contactus', contactId, 'replies'), orderBy('timestamp', 'asc'))
             );
-            const replies = repliesSnapshot.docs.map(doc => ({ 
-                id: doc.id, 
+            const replies = repliesSnapshot.docs.map(doc => ({
+                id: doc.id,
                 ...doc.data(),
                 timestamp: doc.data().timestamp?.toDate?.() || new Date(doc.data().timestamp)
             }));
@@ -60,13 +62,20 @@ function ContactRequest() {
     // Handle contact selection
     const handleContactSelect = async (contact) => {
         console.log('Selected contact:', contact.id);
-        setSelectedContact(contact);
+        setSelectedContact({ ...contact, isRead: true });
+        await updateDoc(doc(database, 'contactus', contact.id), { isRead: true });
+        setContacts(prev =>
+            prev.map(item =>
+                item.id === contact.id
+                    ? { ...item, isRead: true }
+                    : item
+            ));
         setEmailContent({
             subject: `Re: ${contact.subject || 'Your inquiry'}`,
             message: ''
         });
         setStatus({ type: '', message: '' });
-        
+
         // Load replies for this contact
         setIsLoadingReplies(true);
         try {
@@ -123,7 +132,7 @@ function ContactRequest() {
             setEmailContent({ subject: '', message: '' });
 
             setStatus({ type: 'success', message: 'Reply sent' });
-            
+
         } catch (error) {
             console.error('Failed to send email or save reply:', error);
             setStatus({ type: 'error', message: 'Failed to send reply. Please try again.' });
@@ -154,26 +163,30 @@ function ContactRequest() {
     const filteredContacts = contacts
         .filter(contact => {
             if (filter === 'all') return true;
-            if (filter === 'new') return !hasReplies(contact.id);
-            if (filter === 'replied') return hasReplies(contact.id);
+            if (filter === 'unread') return !contact.isRead;
             return true;
         })
+        .filter(contact =>
+            contact.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            contact.subject?.toLowerCase().includes(searchQuery.toLowerCase())
+        )
         .sort((a, b) => {
             const timeA = a.timestamp?.seconds ? a.timestamp.seconds * 1000 : 0;
             const timeB = b.timestamp?.seconds ? b.timestamp.seconds * 1000 : 0;
             return timeB - timeA;
         });
+
     const formatTimestamp = (timestamp) => {
         if (!timestamp) return 'Unknown date';
-        
+
         if (timestamp.seconds) {
             return new Date(timestamp.seconds * 1000).toLocaleString();
         }
-        
+
         if (timestamp instanceof Date) {
             return timestamp.toLocaleString();
         }
-        
+
         return new Date(timestamp).toLocaleString();
     };
 
@@ -182,11 +195,20 @@ function ContactRequest() {
             <div className="max-w-7xl mx-auto">
                 <div className="flex justify-between items-center mb-8">
                     <h2 className="text-2xl font-semibold text-gray-800">Contact Inquiries</h2>
+
                     <div className="text-sm text-gray-500">
                         {filteredContacts.length} of {contacts.length} requests
                     </div>
                 </div>
-
+                <div className="p-4 border-b">
+                    <input
+                        type="text"
+                        placeholder="Search..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-100 rounded-lg"
+                    />
+                </div>
                 {status.message && (
                     <div className={`mb-6 p-4 rounded-md ${status.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'}`}>
                         {status.message}
@@ -200,7 +222,7 @@ function ContactRequest() {
                             <div className="flex items-center justify-between">
                                 <h3 className="font-medium text-gray-700">Contact Requests</h3>
                                 <div className="flex space-x-1">
-                                    {['all', 'new', 'replied'].map(type => (
+                                    {['all', 'unread'].map(type => (
                                         <button
                                             key={type}
                                             onClick={() => setFilter(type)}
@@ -233,9 +255,9 @@ function ContactRequest() {
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center space-x-2">
                                                     <h4 className="font-medium text-gray-900 truncate">{contact.name}</h4>
-                                                    {hasReplies(contact.id) && (
-                                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                                            Replied
+                                                    {!contact.isRead && (
+                                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                                            Unread
                                                         </span>
                                                     )}
                                                 </div>
@@ -264,7 +286,7 @@ function ContactRequest() {
                     </div>
 
                     {/* Main Content - Message View */}
-                    <div className="lg:col-span-8 bg-white rounded-lg border-2 border-gray-300 overflow-hidden flex flex-col">
+                    <div className="lg:col-span-8 rounded-lg overflow-hidden flex flex-col">
                         {selectedContact ? (
                             <>
                                 {/* Message Header */}
@@ -352,7 +374,7 @@ function ContactRequest() {
                                 {/* Reply Section */}
                                 <div className="border-t border-gray-200 bg-white p-6 w-full">
                                     <h4 className="text-lg font-semibold text-gray-800 mb-4">Send Reply</h4>
-                                    
+
                                     <div className="space-y-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
@@ -387,11 +409,10 @@ function ContactRequest() {
                                             <button
                                                 onClick={handleSendEmail}
                                                 disabled={isSending || !emailContent.message.trim()}
-                                                className={`px-6 py-2.5 rounded-lg font-medium text-white shadow-sm ${
-                                                    isSending || !emailContent.message.trim() 
-                                                    ? 'bg-yellow-400 cursor-not-allowed' 
+                                                className={`px-6 py-2.5 rounded-lg font-medium text-white shadow-sm ${isSending || !emailContent.message.trim()
+                                                    ? 'bg-yellow-400 cursor-not-allowed'
                                                     : 'bg-brandyellow hover:bg-yellow-700'
-                                                }`}
+                                                    }`}
                                             >
                                                 {isSending ? (
                                                     <>
@@ -408,7 +429,7 @@ function ContactRequest() {
                                 </div>
                             </>
                         ) : (
-                            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+                            <div className="flex-1 flex flex-col items-start justify-start p-8 text-center">
                                 <div className="max-w-md">
                                     <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
@@ -421,7 +442,7 @@ function ContactRequest() {
                     </div>
                 </div>
             </div>
-        </div>  
+        </div>
     );
 }
 
